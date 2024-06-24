@@ -15,6 +15,6 @@ class SatuanBarang extends Model
 
     public function barang()
     {
-        return $this->belongsTo(Barang::class);
+        return $this->hasMany(Barang::class);
     }
 }

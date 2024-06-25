@@ -6,18 +6,18 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class RoleSeeder extends Seeder
+class KategoriSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        DB::table('roles')->insert(
+        DB::table('kategoris')->insert(
             [
-                ["nama_role" => "SuperAdmin"],
-                ["nama_role" => "Admin"],
-                ["nama_role" => "Karyawan"],
+                ["nama_kategori" => "Antibiotik"],
+                ["nama_kategori" => "Antihistamin"],
+                ["nama_kategori" => "Antipiretik"],
             ]
         );
     }

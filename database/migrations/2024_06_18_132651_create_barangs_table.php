@@ -20,8 +20,8 @@ return new class extends Migration
             $table->integer('harga_jual');
             $table->timestamps();
 
-            $table->foreign('id_kategori')->references('id')->on('kategoris');
-            $table->foreign('id_satuan')->references('id')->on('satuans');
+            $table->foreign('id_kategori')->references('id')->on('kategoris')->onDelete('cascade');
+            $table->foreign('id_satuan')->references('id')->on('satuans')->onDelete('cascade');
         });
     }
 

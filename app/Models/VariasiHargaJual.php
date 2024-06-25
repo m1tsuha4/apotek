@@ -10,12 +10,13 @@ class VariasiHargaJual extends Model
     use HasFactory;
 
     protected $fillable = [
-        'min_kuantitasi',
+        'id_barang',
+        'min_kuantitas',
         'harga',
     ];
 
     public function barang()
     {
-        return $this->hasMany(Barang::class);
+        return $this->belongsTo(Barang::class, 'id_barang');
     }
 }

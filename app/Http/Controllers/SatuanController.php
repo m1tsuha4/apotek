@@ -55,7 +55,12 @@ class SatuanController extends Controller
      */
     public function show(Satuan $satuan)
     {
-        //
+        $satuan = Satuan::findOrFail($satuan->id);
+        return response()->json([
+            'success' => true,
+            'data'    => $satuan,
+            'message' => 'Data Berhasil ditemukan!',
+        ], 200);
     }
 
     /**

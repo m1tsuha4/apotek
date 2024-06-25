@@ -1,6 +1,6 @@
-# Monev FTI Application Setup Guide
+# Apotek API Application Setup Guide
 
-This guide will walk you through the steps to set up the Monev FTI application.
+This guide will walk you through the steps to set up the Apotek API application.
 
 ## Prerequisites
 - PHP version "^8.2"

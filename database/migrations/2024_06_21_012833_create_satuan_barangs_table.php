@@ -19,8 +19,8 @@ return new class extends Migration
             $table->integer('harga_jual');
             $table->timestamps();
 
-            $table->foreign('id_satuan')->references('id')->on('satuans');
-            $table->foreign('id_barang')->references('id')->on('barangs');
+            $table->foreign('id_satuan')->references('id')->on('satuans')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

@@ -16,7 +16,7 @@ class PelangganController extends Controller
         return response()->json([
             'success' => true,
             'data' => $pelanggan,
-            'message' => 'Data pelanggan berhasil ditampilkan',
+            'message' => 'Data pelanggan berhasil ditemukan',
         ]);
     }
 
@@ -64,7 +64,13 @@ class PelangganController extends Controller
      */
     public function show(Pelanggan $pelanggan)
     {
-        //
+        $pelanggan = Pelanggan::findOrFail($pelanggan->id); 
+        
+        return response()->json([
+            'success' => true,
+            'data' => $pelanggan,
+            'message' => 'Data pelanggan berhasil ditemukan',
+        ]);
     }
 
     /**

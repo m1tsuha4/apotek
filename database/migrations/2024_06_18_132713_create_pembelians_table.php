@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pembelians', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_vendor')->constrained('vendors')->onDelete('cascade');
-            $table->foreignId('id_metode_bayar')->constrained('metode_pembayarans')->onDelete('cascade');
+            $table->foreignId('id_metode_bayar')->constrained('metode_pembayarans')->onDelete('cascade')->nullable();
             $table->date('tanggal');
             $table->string('status');
             $table->date('tanggal_jatuh_tempo');
@@ -24,8 +24,8 @@ return new class extends Migration
             $table->integer('total');
             $table->string('catatan')->nullable();
             $table->boolean('quotation');
-            $table->integer('total_dibayar');
-            $table->date('tanggal_pembayaran');
+            $table->integer('total_dibayar')->nullable();
+            $table->date('tanggal_pembayaran')->nullable();
             $table->string('referensi_pembayaran')->nullable();
             $table->timestamps();
         });

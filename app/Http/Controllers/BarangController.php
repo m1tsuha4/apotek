@@ -18,7 +18,7 @@ class BarangController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    =>  $barang->load(['variasiHargaJual','satuanBarang']), 
+            'data'    =>  $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']), 
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
@@ -56,7 +56,7 @@ class BarangController extends Controller
         foreach ($validatedData['variasi_harga_juals'] as $variasiHargaJual) {
             $barang->variasiHargaJual()->create([
                 'id_barang' => $barang->id,
-                'min_kuantitas' => $variasiHargaJual['min_kuantitasi'],
+                'min_kuantitas' => $variasiHargaJual['min_kuantitas'],
                 'harga' => $variasiHargaJual['harga']
             ]);
         }
@@ -74,7 +74,7 @@ class BarangController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Ditambahkan!',
-            'data' => $barang->load(['variasiHargaJual','satuanBarang']), 
+            'data' => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),
         ], 200);
     }
 
@@ -86,7 +86,7 @@ class BarangController extends Controller
         $barang = Barang::where('id', $id)->first();
         return response()->json([
             'success' => true,
-            'data'    =>  $barang->load(['variasiHargaJual','satuanBarang']), 
+            'data'    => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),  
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
@@ -147,7 +147,7 @@ class BarangController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Diupdate!',
-            'data' => $barang->load(['variasiHargaJual', 'satuanBarang']),
+            'data' => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),
         ], 200);
     }
 

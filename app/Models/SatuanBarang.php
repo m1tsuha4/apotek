@@ -10,11 +10,19 @@ class SatuanBarang extends Model
     use HasFactory;
 
     protected $fillable = [
-        'satuan',
+        'id_barang',
+        'id_satuan',
+        'harga_beli',
+        'harga_jual'
     ];
 
     public function barang()
     {
-        return $this->belongsTo(Barang::class);
+        return $this->belongsTo(Barang::class, 'id_barang');
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(Satuan::class, 'id_satuan');
     }
 }

@@ -12,4 +12,14 @@ class Satuan extends Model
     protected $fillable = [
         'nama_satuan',
     ];
+
+    public function barang()
+    {
+        return $this->hasMany(Barang::class, 'id_satuan');
+    }
+
+    public function satuanBarang()
+    {
+        return $this->hasMany(SatuanBarang::class, 'id_satuan');
+    }
 }

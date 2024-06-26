@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('stok_apotek');
             $table->timestamps();
 
-            $table->foreign('id_barang')->references('id')->on('barangs');
+            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

@@ -12,7 +12,12 @@ class VendorController extends Controller
      */
     public function index()
     {
-        //
+        $vendor = Vendor::all();
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**
@@ -28,7 +33,32 @@ class VendorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_vendor' => ['required', 'string', 'max:255', 'unique:' . Vendor::class],
+            'perusahaan' => ['required', 'string', 'max:255'],
+            'no_telepon' => ['required', 'numeric', 'digits_between:10,13', 'unique:' . Vendor::class],
+            'alamat' => ['required', 'string', 'max:255'],
+        ]);
+
+        $vendor = Vendor::create([
+            'nama_vendor' => $request->nama_vendor,
+            'perusahaan' => $request->perusahaan,
+            'no_telepon' => $request->no_telepon,
+            'alamat' => $request->alamat
+        ]);
+
+        if($vendor) {
+            return response()->json([
+                'success' => true,
+                'data' => $vendor,
+                'message' => 'Data vendor ditambahkan!',
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Data vendor gagal ditambahkan!',
+        ], 409);
     }
 
     /**
@@ -36,7 +66,13 @@ class VendorController extends Controller
      */
     public function show(Vendor $vendor)
     {
-        //
+        $vendor = Vendor::findOrFail($vendor->id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**
@@ -52,7 +88,20 @@ class VendorController extends Controller
      */
     public function update(Request $request, Vendor $vendor)
     {
-        //
+        $validatedData = $request->validate([
+            'nama_vendor' => ['sometimes', 'string', 'max:255'],
+            'perusahaan' => ['sometimes', 'string', 'max:255'],
+            'no_telepon' => ['sometimes', 'numeric', 'digits_between:10,13'],
+            'alamat' => ['sometimes', 'string', 'max:255'],
+        ]);
+
+        $vendor = Vendor::where('id', $vendor->id)->update($validatedData);
+
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+            'message' => 'Data vendor diupdate!',
+        ]);
     }
 
     /**
@@ -60,6 +109,10 @@ class VendorController extends Controller
      */
     public function destroy(Vendor $vendor)
     {
-        //
+        $vendor->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil dihapus!',
+        ]);
     }
 }

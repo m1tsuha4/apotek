@@ -5,14 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Vendor extends Model
+class MetodePembayaran extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'nama_vendor',
-        'perusahaan',
-        'no_telepon',
-        'alamat'
+        'nama_metode'
     ];
 }

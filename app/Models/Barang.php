@@ -18,13 +18,23 @@ class Barang extends Model
         'harga_jual',
     ];
 
-    public function satuanBarang(): BelongsTo
+    public function satuanBarang()
     {
-        return $this->belongsTo(SatuanBarang::class);
+        return $this->hasMany(SatuanBarang::class, 'id_barang');
     }
 
-    public function variasiHargaJual(): BelongsTo
+    public function variasiHargaJual()
     {
-        return $this->belongsTo(VariasiHargaJual::class);
+        return $this->hasMany(VariasiHargaJual::class, 'id_barang');
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(Satuan::class, 'id_satuan');
+    }
+
+    public function kategori()
+    {
+        return $this->belongsTo(Kategori::class, 'id_kategori');
     }
 }

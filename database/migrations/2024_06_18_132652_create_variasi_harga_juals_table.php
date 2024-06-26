@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('variasi_harga_juals', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_barang');
-            $table->integer('min_kuantitasi');
+            $table->integer('min_kuantitas');
             $table->integer('harga');
             $table->timestamps();
 
-            $table->foreign('id_barang')->references('id')->on('barangs');
+            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

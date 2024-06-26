@@ -12,7 +12,12 @@ class MetodePembayaranController extends Controller
      */
     public function index()
     {
-        //
+        $metodePembayaran = MetodePembayaran::all();
+        return response ()->json([
+            'success' => true,
+            'data' => $metodePembayaran,
+            'message' => 'List Data MetodePembayaran'
+        ]);
     }
 
     /**
@@ -28,7 +33,27 @@ class MetodePembayaranController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nama_metode' => 'required'
+        ]);
+
+        $metodePembayaran = MetodePembayaran::create([
+            'nama_metode' => $request->nama_metode
+        ]);
+
+        if ($metodePembayaran){
+            return response ()->json([
+                'success' => true,
+                'data' => $metodePembayaran,
+                'message' => 'Data Berhasil Ditambahkan'
+            ]);
+        }
+
+        return response ()->json([
+            'success' => false,
+            'message' => 'Data Gagal Ditambahkan'
+        ]);
+        
     }
 
     /**
@@ -36,7 +61,12 @@ class MetodePembayaranController extends Controller
      */
     public function show(MetodePembayaran $metodePembayaran)
     {
-        //
+        $metodePembayaran = MetodePembayaran::findOrFail($metodePembayaran->id);
+        return response ()->json([
+            'success' => true,
+            'data' => $metodePembayaran,
+            'message' => 'Data Berhasil Ditemukan'
+        ]);
     }
 
     /**
@@ -52,7 +82,26 @@ class MetodePembayaranController extends Controller
      */
     public function update(Request $request, MetodePembayaran $metodePembayaran)
     {
-        //
+        $validatedData = $request->validate([
+            'nama_metode' => ['sometimes', 'string', 'max:255'],
+        ]);
+
+        $metodePembayaran = MetodePembayaran::where('id', $metodePembayaran->id)->first();
+
+        if(!$metodePembayaran) {
+            return response ()->json([
+                'success' => false,
+                'message' => 'Data Gagal Diupdate'
+            ]);
+        }
+
+        $metodePembayaran->update($validatedData);
+
+        return response ()->json([
+            'success' => true,
+            'data' => $metodePembayaran,
+            'message' => 'Data Berhasil Diupdate'
+        ]);
     }
 
     /**
@@ -60,6 +109,11 @@ class MetodePembayaranController extends Controller
      */
     public function destroy(MetodePembayaran $metodePembayaran)
     {
-        //
+        $metodePembayaran->delete();
+
+        return response ()->json([
+            'success' => true,
+            'message' => 'Data Berhasil Dihapus'
+        ]);
     }
 }

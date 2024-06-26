@@ -31,5 +31,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Vendor
     Route::apiResource('vendor', \App\Http\Controllers\VendorController::class);    
+
+    //Metode Pembayaran
+    Route::apiResource('metode-pembayaran', \App\Http\Controllers\MetodePembayaranController::class);
 });
 

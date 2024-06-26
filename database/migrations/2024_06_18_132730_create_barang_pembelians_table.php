@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('barang_pembelians', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('id_pembelian')->constrained('pembelians')->onDelete('cascade');
+            $table->foreignId('id_barang')->constrained('barangs')->onDelete('cascade');
+            $table->integer('jumlah');
+            $table->integer('satuan');
+            $table->integer('diskon');
+            $table->integer('harga');
+            $table->integer('total');
             $table->timestamps();
         });
     }

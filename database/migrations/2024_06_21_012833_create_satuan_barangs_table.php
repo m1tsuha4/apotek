@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_satuan');
             $table->unsignedBigInteger('id_barang');
+            $table->integer('jumlah');
             $table->integer('harga_beli');
             $table->integer('harga_jual');
             $table->timestamps();

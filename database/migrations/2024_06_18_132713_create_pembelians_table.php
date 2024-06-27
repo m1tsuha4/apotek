@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('tanggal_jatuh_tempo');
             $table->string('referensi')->nullable();
             $table->integer('sub_total');
-            $table->integer('diskon');
+            $table->integer('diskon')->nullable();
             $table->integer('total');
             $table->string('catatan')->nullable();
             $table->boolean('quotation');

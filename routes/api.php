@@ -24,6 +24,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('satuan', \App\Http\Controllers\SatuanController::class);
 
     //Barang
+    Route::get('beli-barang', [\App\Http\Controllers\BarangController::class, 'beliBarang']);
     Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
 
     //Pelanggan

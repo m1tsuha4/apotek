@@ -12,6 +12,7 @@ class SatuanBarang extends Model
     protected $fillable = [
         'id_barang',
         'id_satuan',
+        'jumlah',
         'harga_beli',
         'harga_jual'
     ];

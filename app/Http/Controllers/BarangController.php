@@ -22,13 +22,31 @@ class BarangController extends Controller
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
-
+    
+    public function beliBarang(){
+        $barang = Barang::with('satuanBarang.satuan')->select('id', 'nama_barang', 'satuan_barang_id', 'harga_beli')->get();
+    
+        $data = $barang->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'nama_barang' => $item->nama_barang,
+                'satuan' => $item->satuanBarang->pluck('satuan.nama_satuan'), 
+                'harga_beli' => $item->harga_beli,
+            ];
+        });
+    
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'message' => 'Data Berhasil Ditemukan!',
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
+      
     }
 
     /**
@@ -47,6 +65,7 @@ class BarangController extends Controller
             'variasi_harga_juals.*.harga' => 'required',
             'satuan_barangs' => 'required|array', 
             'satuan_barangs.*.id_satuan' => 'required',
+            'satuan_barangs.*.jumlah' => 'required',
             'satuan_barangs.*.harga_beli' => 'required',
             'satuan_barangs.*.harga_jual' => 'required', 
         ]);
@@ -66,6 +85,7 @@ class BarangController extends Controller
             $barang->satuanBarang()->create([
                 'id_barang' => $barang->id,
                 'id_satuan' => $satuanBarang['id_satuan'],
+                'jumlah' => $satuanBarang['jumlah'],
                 'harga_beli' => $satuanBarang['harga_beli'],
                 'harga_jual' => $satuanBarang['harga_jual']
             ]);
@@ -117,6 +137,7 @@ class BarangController extends Controller
             'satuan_barangs' => 'required|array',
             'satuan_barangs.*.id' => 'sometimes|required|exists:satuan_barangs,id',
             'satuan_barangs.*.id_satuan' => 'required',
+            'satuan_barangs.*.jumlah' => 'required',
             'satuan_barangs.*.harga_beli' => 'required',
             'satuan_barangs.*.harga_jual' => 'required',
         ]);

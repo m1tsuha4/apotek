@@ -20,7 +20,7 @@ class PembelianController extends Controller
      */
     public function create()
     {
-        //
+       
     }
 
     /**
@@ -28,7 +28,34 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_vendor' => 'required',
+            'id_metode_bayar' => 'required',
+            'tanggal' => 'required',
+            'status' => 'required',
+            'tanggal_jatuh_tempo' => 'required',
+            'barang_pembelians' => 'rquired|array',
+            'barang_pembelians.*.id_barang' => 'required',
+            'barang_pembelians.*.jumlah' => 'required',
+            'barang_pembelians.*.satuan' => 'required',
+            'barang_pembelians.*.harga' => 'required'
+        ]);
+
+        $pembelian = Pembelian::create($validatedData);
+
+        foreach ($validatedData['barang_pembelians'] as $barangPembelianData) {
+            $pembelian->barangPembelian()->create([
+                'id_barang' => $barangPembelianData['id_barang'],
+                'jumlah' => $barangPembelianData['jumlah'],
+                'satuan' => $barangPembelianData['satuan'],
+                'harga' => $barangPembelianData['harga']
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pembelian Berhasil!',
+        ],200);
     }
 
     /**

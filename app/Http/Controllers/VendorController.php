@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Sales;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ class VendorController extends Controller
         $vendor = Vendor::all();
         return response()->json([
             'success' => true,
-            'data' => $vendor,
+            'data' => $vendor->load(['sales']),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
@@ -33,24 +34,28 @@ class VendorController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_vendor' => ['required', 'string', 'max:255', 'unique:' . Vendor::class],
-            'perusahaan' => ['required', 'string', 'max:255'],
+        $validatedData = $request->validate([
+            'nama_perusahaan' => ['required', 'string', 'max:255', 'unique:' . Vendor::class],
             'no_telepon' => ['required', 'numeric', 'digits_between:10,13', 'unique:' . Vendor::class],
             'alamat' => ['required', 'string', 'max:255'],
+            'sales' => 'required|array',
+            'sales.*.nama_sales' => ['required', 'string', 'max:255'],
+            'sales.*.no_telepon' => ['required', 'numeric', 'digits_between:10,13'],
         ]);
 
-        $vendor = Vendor::create([
-            'nama_vendor' => $request->nama_vendor,
-            'perusahaan' => $request->perusahaan,
-            'no_telepon' => $request->no_telepon,
-            'alamat' => $request->alamat
-        ]);
+        $vendor = Vendor::create($validatedData);
+
+        foreach ($validatedData['sales'] as $salesData) {
+            $vendor->sales()->create([
+                'nama_sales' => $salesData['nama_sales'],
+                'no_telepon' => $salesData['no_telepon'],
+            ]);
+        }
 
         if($vendor) {
             return response()->json([
                 'success' => true,
-                'data' => $vendor,
+                'data' => $vendor->load(['sales']),
                 'message' => 'Data vendor ditambahkan!',
             ], 200);
         }
@@ -70,7 +75,7 @@ class VendorController extends Controller
         
         return response()->json([
             'success' => true,
-            'data' => $vendor,
+            'data' => $vendor->load(['sales']),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
@@ -93,17 +98,29 @@ class VendorController extends Controller
             'perusahaan' => ['sometimes', 'string', 'max:255'],
             'no_telepon' => ['sometimes', 'numeric', 'digits_between:10,13'],
             'alamat' => ['sometimes', 'string', 'max:255'],
+            'sales' => 'required|array',
+            'sales.*.nama_sales' => ['required', 'string', 'max:255'],
+            'sales.*.no_telepon' => ['required', 'numeric', 'digits_between:10,13'],
         ]);
-
-        $vendor = Vendor::where('id', $vendor->id)->update($validatedData);
-
+    
+        $vendor->update($validatedData);
+    
+        foreach ($validatedData['sales'] as $index => $salesData) {
+            $sales = $vendor->sales()->get()[$index] ?? null;
+            if ($sales) {
+                $sales->update($salesData);
+            } else {
+                $vendor->sales()->create($salesData);
+            }
+        }
+    
         return response()->json([
             'success' => true,
-            'data' => $vendor,
+            'data' => $vendor->load(['sales']),
             'message' => 'Data vendor diupdate!',
         ]);
     }
-
+    
     /**
      * Remove the specified resource from storage.
      */

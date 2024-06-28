@@ -20,7 +20,7 @@ class Barang extends Model
 
     public function satuanBarang()
     {
-        return $this->hasMany(SatuanBarang::class, 'id_barang');
+        return $this->hasOne(SatuanBarang::class, 'id_barang');
     }
 
     public function variasiHargaJual()

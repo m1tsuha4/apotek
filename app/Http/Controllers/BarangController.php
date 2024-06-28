@@ -24,17 +24,31 @@ class BarangController extends Controller
     }
     
     public function beliBarang(){
-        $barang = Barang::with('satuanBarang.satuan')->select('id', 'nama_barang', 'satuan_barang_id', 'harga_beli')->get();
-    
+        // $barang = Barang::with('satuan','satuanBarang.satuan')->select('id', 'nama_barang', 'satuan_barang_id', 'harga_beli','nama_satuan')->get();
+        $barang = Barang::with('satuan','satuanBarang.satuan')->select('*')->get();
+        
         $data = $barang->map(function ($item) {
             return [
                 'id' => $item->id,
                 'nama_barang' => $item->nama_barang,
-                'satuan' => $item->satuanBarang->pluck('satuan.nama_satuan'), 
                 'harga_beli' => $item->harga_beli,
+                'satuan_dasar' => [
+                    'id' => $item->satuan->id,
+                    'nama_satuan' => $item->satuan->nama_satuan,
+                ],
+                'satuan_barang' => $item->satuanBarang->map(function ($satuanBarang) {
+                    return [
+                        'id' => $satuanBarang->id,
+                        'harga_beli' => $satuanBarang->harga_beli,
+                        'satuan' => [
+                            'id' => $satuanBarang->satuan->id,
+                            'nama_satuan' => $satuanBarang->satuan->nama_satuan,
+                        ],
+                    ];
+                })
             ];
         });
-    
+
         return response()->json([
             'success' => true,
             'data' => $data,
@@ -60,14 +74,13 @@ class BarangController extends Controller
             'nama_barang' => ['required', 'string', 'max:255'],
             'harga_beli' => ['required'],
             'harga_jual' => ['required'],
-            'variasi_harga_juals' => 'required|array', 
-            'variasi_harga_juals.*.min_kuantitas' => 'required',
-            'variasi_harga_juals.*.harga' => 'required',
-            'satuan_barangs' => 'required|array', 
-            'satuan_barangs.*.id_satuan' => 'required',
-            'satuan_barangs.*.jumlah' => 'required',
-            'satuan_barangs.*.harga_beli' => 'required',
-            'satuan_barangs.*.harga_jual' => 'required', 
+            'variasi_harga_juals' => 'sometimes|array',
+            'variasi_harga_juals.*.min_kuantitas' => 'sometimes',
+            'variasi_harga_juals.*.harga' => 'sometimes',
+            'satuan_barangs_id_satuan' => 'sometimes',
+            'satuan_barangs_jumlah' => 'sometimes',
+            'satuan_barangs_harga_beli' => 'sometimes',
+            'satuan_barangs_harga_jual' => 'sometimes',
         ]);
 
         $barang = Barang::create($validatedData);
@@ -80,23 +93,21 @@ class BarangController extends Controller
             ]);
         }
 
-        
-        foreach ($validatedData['satuan_barangs'] as $satuanBarang) {
-            $barang->satuanBarang()->create([
-                'id_barang' => $barang->id,
-                'id_satuan' => $satuanBarang['id_satuan'],
-                'jumlah' => $satuanBarang['jumlah'],
-                'harga_beli' => $satuanBarang['harga_beli'],
-                'harga_jual' => $satuanBarang['harga_jual']
-            ]);
-        }
-    
+        $barang->satuanBarang()->create([
+            'id_barang' => $barang->id,
+            'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+            'jumlah' => $validatedData['satuan_barangs_jumlah'],
+            'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+            'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+        ]);
+
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Ditambahkan!',
-            'data' => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),
+            'data' => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
         ], 200);
     }
+
 
     /**
      * Display the specified resource.
@@ -122,7 +133,7 @@ class BarangController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Barang $barang)
     {
         $validatedData = $request->validate([
             'id_kategori' => ['required'],
@@ -130,47 +141,54 @@ class BarangController extends Controller
             'nama_barang' => ['required', 'string', 'max:255'],
             'harga_beli' => ['required'],
             'harga_jual' => ['required'],
-            'variasi_harga_juals' => 'required|array',
-            'variasi_harga_juals.*.id' => 'sometimes|required|exists:variasi_harga_juals,id',
-            'variasi_harga_juals.*.min_kuantitas' => 'required',
-            'variasi_harga_juals.*.harga' => 'required',
-            'satuan_barangs' => 'required|array',
-            'satuan_barangs.*.id' => 'sometimes|required|exists:satuan_barangs,id',
-            'satuan_barangs.*.id_satuan' => 'required',
-            'satuan_barangs.*.jumlah' => 'required',
-            'satuan_barangs.*.harga_beli' => 'required',
-            'satuan_barangs.*.harga_jual' => 'required',
+            'variasi_harga_juals' => 'sometimes|array',
+            'variasi_harga_juals.*.min_kuantitas' => 'sometimes',
+            'variasi_harga_juals.*.harga' => 'sometimes',
+            'satuan_barangs_id_satuan' => 'sometimes',
+            'satuan_barangs_jumlah' => 'sometimes',
+            'satuan_barangs_harga_beli' => 'sometimes',
+            'satuan_barangs_harga_jual' => 'sometimes'
         ]);
-
-        $barang = Barang::findOrFail($id);
+    
+        // Update barang data
         $barang->update($validatedData);
-
+ 
         // Update or create VariasiHargaJual
-        foreach ($validatedData['variasi_harga_juals'] as $variasiHargaJualData) {
-            if (isset($variasiHargaJualData['id'])) {
-                $variasiHargaJual = VariasiHargaJual::findOrFail($variasiHargaJualData['id']);
+        foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
+            $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
+            if ($variasiHargaJual) {
                 $variasiHargaJual->update($variasiHargaJualData);
             } else {
                 $barang->variasiHargaJual()->create($variasiHargaJualData);
             }
         }
-
+    
         // Update or create SatuanBarang
-        foreach ($validatedData['satuan_barangs'] as $satuanBarangData) {
-            if (isset($satuanBarangData['id'])) {
-                $satuanBarang = SatuanBarang::findOrFail($satuanBarangData['id']);
-                $satuanBarang->update($satuanBarangData);
-            } else {
-                $barang->satuanBarang()->create($satuanBarangData);
-            }
-        }
+        $satuanBarang = $barang->satuanBarang;
 
+        if ($satuanBarang) {
+            $satuanBarang->update([
+                'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+                'jumlah' => $validatedData['satuan_barangs_jumlah'],
+                'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+                'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+            ]);
+        } else {
+            $barang->satuanBarang()->create([
+                'id_barang' => $barang->id,
+                'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+                'jumlah' => $validatedData['satuan_barangs_jumlah'],
+                'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+                'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+            ]);
+        }
+    
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Diupdate!',
-            'data' => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),
+            'data' => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
         ], 200);
-    }
+    }    
 
     /**
      * Remove the specified resource from storage.

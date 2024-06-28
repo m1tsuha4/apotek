@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             MetodePembayaranSeeder::class,
             SatuanSeeder::class,
             KategoriSeeder::class,
+            JenisSeeder::class,
         ]);
     }
 }

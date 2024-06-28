@@ -12,7 +12,12 @@ class SalesController extends Controller
      */
     public function index()
     {
-        //
+        $sales = Sales::select('id','nama_sales')->get();
+        return response()->json([
+            'success' => true,
+            'data' => $sales,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**

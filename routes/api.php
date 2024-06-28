@@ -33,7 +33,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Vendor
     Route::apiResource('vendor', \App\Http\Controllers\VendorController::class);    
 
+    //Sales
+    Route::apiResource('sales', \App\Http\Controllers\SalesController::class)->only('index');
+
     //Metode Pembayaran
     Route::apiResource('metode-pembayaran', \App\Http\Controllers\MetodePembayaranController::class);
+
+    //Pembelian
+    Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
 });
 

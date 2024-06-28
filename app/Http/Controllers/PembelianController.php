@@ -12,7 +12,12 @@ class PembelianController extends Controller
      */
     public function index()
     {
-        //
+        $pembelian = Pembelian::all();
+        return response()->json([
+            'success' => true,
+            'data' => $pembelian->load(['barangPembelian']),
+            'message' => 'Data pembelian berhasil ditemukan',
+        ]);
     }
 
     /**
@@ -29,16 +34,23 @@ class PembelianController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_vendor' => 'required',
-            'id_metode_bayar' => 'required',
+            'id_sales' => 'required',
+            'id_jenis' => 'required',
             'tanggal' => 'required',
             'status' => 'required',
             'tanggal_jatuh_tempo' => 'required',
-            'barang_pembelians' => 'rquired|array',
+            'referensi' => 'sometimes',
+            'sub_total' => 'required',
+            'diskon' => 'sometimes',
+            'total' => 'required',
+            'catatan' => 'sometimes',
+            'barang_pembelians' => 'required|array',
             'barang_pembelians.*.id_barang' => 'required',
             'barang_pembelians.*.jumlah' => 'required',
-            'barang_pembelians.*.satuan' => 'required',
-            'barang_pembelians.*.harga' => 'required'
+            'barang_pembelians.*.id_satuan' => 'required',
+            'barang_pembelians.*.diskon' => 'required',
+            'barang_pembelians.*.harga' => 'required',
+            'barang_pembelians.*.total' => 'required'
         ]);
 
         $pembelian = Pembelian::create($validatedData);
@@ -47,13 +59,16 @@ class PembelianController extends Controller
             $pembelian->barangPembelian()->create([
                 'id_barang' => $barangPembelianData['id_barang'],
                 'jumlah' => $barangPembelianData['jumlah'],
-                'satuan' => $barangPembelianData['satuan'],
-                'harga' => $barangPembelianData['harga']
+                'id_satuan' => $barangPembelianData['id_satuan'],
+                'diskon' => $barangPembelianData['diskon'],
+                'harga' => $barangPembelianData['harga'],
+                'total' => $barangPembelianData['total']
             ]);
         }
 
         return response()->json([
             'success' => true,
+            'data' => $pembelian->load(['barangPembelian']),
             'message' => 'Pembelian Berhasil!',
         ],200);
     }

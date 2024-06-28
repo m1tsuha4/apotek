@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('id_pembelian')->constrained('pembelians')->onDelete('cascade');
             $table->foreignId('id_barang')->constrained('barangs')->onDelete('cascade');
             $table->integer('jumlah');
-            $table->integer('satuan');
+            $table->foreignId('id_satuan')->constrained('satuans')->onDelete('cascade');
             $table->integer('diskon');
             $table->integer('harga');
             $table->integer('total');

@@ -35,7 +35,7 @@ class PelangganController extends Controller
     {
         $request->validate([
             'nama_pelanggan' => ['required', 'string', 'max:255', 'unique:' . Pelanggan::class],
-            'no_telepon' => ['required', 'numeric', 'digits_between:10,13', 'unique:' . Pelanggan::class],
+            'no_telepon' => ['required', 'unique:' . Pelanggan::class],
             'alamat' => ['required', 'string', 'max:255'],
         ]);
 
@@ -88,7 +88,7 @@ class PelangganController extends Controller
     {
         $validatedData = $request->validate([
             'nama_pelanggan' => ['sometimes', 'string', 'max:255'],
-            'no_telepon' => ['sometimes', 'numeric', 'digits_between:10,13'],
+            'no_telepon' => ['sometimes'],
             'alamat' => ['sometimes', 'string', 'max:255'],
         ]);
 

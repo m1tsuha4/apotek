@@ -36,11 +36,11 @@ class VendorController extends Controller
     {
         $validatedData = $request->validate([
             'nama_perusahaan' => ['required', 'string', 'max:255', 'unique:' . Vendor::class],
-            'no_telepon' => ['required', 'numeric', 'digits_between:10,13', 'unique:' . Vendor::class],
+            'no_telepon' => ['required', 'unique:' . Vendor::class],
             'alamat' => ['required', 'string', 'max:255'],
             'sales' => 'required|array',
             'sales.*.nama_sales' => ['required', 'string', 'max:255'],
-            'sales.*.no_telepon' => ['required', 'numeric', 'digits_between:10,13'],
+            'sales.*.no_telepon' => ['required'],
         ]);
 
         $vendor = Vendor::create($validatedData);
@@ -96,11 +96,11 @@ class VendorController extends Controller
         $validatedData = $request->validate([
             'nama_vendor' => ['sometimes', 'string', 'max:255'],
             'perusahaan' => ['sometimes', 'string', 'max:255'],
-            'no_telepon' => ['sometimes', 'numeric', 'digits_between:10,13'],
+            'no_telepon' => ['sometimes'],
             'alamat' => ['sometimes', 'string', 'max:255'],
             'sales' => 'required|array',
             'sales.*.nama_sales' => ['required', 'string', 'max:255'],
-            'sales.*.no_telepon' => ['required', 'numeric', 'digits_between:10,13'],
+            'sales.*.no_telepon' => ['required'],
         ]);
     
         $vendor->update($validatedData);

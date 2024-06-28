@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_vendor')->constrained('vendors')->onDelete('cascade');
             $table->string('nama_sales');
-            $table->bigInteger('no_telepon');
+            $table->string('no_telepon');
             $table->timestamps();
         });
     }

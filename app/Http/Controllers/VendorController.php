@@ -94,8 +94,7 @@ class VendorController extends Controller
     public function update(Request $request, Vendor $vendor)
     {
         $validatedData = $request->validate([
-            'nama_vendor' => ['sometimes', 'string', 'max:255'],
-            'perusahaan' => ['sometimes', 'string', 'max:255'],
+            'nama_perusahaan' => ['sometimes', 'string', 'max:255'],
             'no_telepon' => ['sometimes'],
             'alamat' => ['sometimes', 'string', 'max:255'],
             'sales' => 'required|array',

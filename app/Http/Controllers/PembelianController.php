@@ -15,7 +15,7 @@ class PembelianController extends Controller
         $pembelian = Pembelian::all();
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian']),
+            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian']),
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
     }
@@ -94,7 +94,42 @@ class PembelianController extends Controller
      */
     public function update(Request $request, Pembelian $pembelian)
     {
-        //
+        $validatedData = $request->validate([
+            'id_sales' => 'sometimes',
+            'id_jenis' => 'sometimes',
+            'tanggal' => 'sometimes',
+            'status' => 'sometimes',
+            'tanggal_jatuh_tempo' => 'sometimes',
+            'referensi' => 'sometimes',
+            'sub_total' => 'sometimes',
+            'diskon' => 'sometimes',
+            'total' => 'sometimes',
+            'catatan' => 'sometimes',
+            'barang_pembelians' => 'sometimes|array',
+            'barang_pembelians.*.id_barang' => 'sometimes',
+            'barang_pembelians.*.jumlah' => 'sometimes',
+            'barang_pembelians.*.id_satuan' => 'sometimes',
+            'barang_pembelians.*.diskon' => 'sometimes',
+            'barang_pembelians.*.harga' => 'sometimes',
+            'barang_pembelians.*.total' => 'sometimes'
+        ]);
+
+        $pembelian->update($validatedData);
+
+        foreach ($validatedData['barang_pembelians'] as $index => $barangPembelianData) {
+            $barangPembelian = $pembelian->barangPembelian()->get()[$index] ?? null;
+            if ($barangPembelian) {
+                $barangPembelian->update($barangPembelianData);
+            } else {
+                $pembelian->barangPembelian()->create($barangPembelianData);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $pembelian->load(['barangPembelian']),
+            'message' => 'Pembelian Berhasil!',
+        ],200);
     }
 
     /**
@@ -102,6 +137,11 @@ class PembelianController extends Controller
      */
     public function destroy(Pembelian $pembelian)
     {
-        //
+        $pembelian->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil dihapus!',
+        ]);
     }
 }

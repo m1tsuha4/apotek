@@ -2,14 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Pembelian extends Model
 {
     use HasFactory;
 
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id',
         'id_sales',
         'id_jenis',
         'tanggal',
@@ -32,5 +38,40 @@ class Pembelian extends Model
 
     public function barangPembelian() {
         return $this->hasMany(BarangPembelian::class, 'id_pembelian');
+    }
+
+    public function pembayaranPembelian() {
+        return $this->hasMany(PembayaranPembelian::class, 'id_pembelian');
+    }
+
+    // public static function boot() {
+    //     parent::boot();
+    //     self::creating(function ($model) {
+    //         $model->id = IdGenerator::generate(['table' => 'pembelians', 'length' => 6, 'prefix' =>'PO/']);
+    //     });
+    // }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = self::generateId();
+            }
+        });
+    }
+
+    protected static function generateId()
+    {
+        $lastRecord = self::orderBy('id', 'desc')->first();
+        if (!$lastRecord) {
+            return 'PO-00001';
+        }
+
+        $lastIdNumber = intval(substr($lastRecord->id, 3));
+        $newIdNumber = $lastIdNumber + 1;
+
+        return 'PO-' . str_pad($newIdNumber, 5, '0', STR_PAD_LEFT);
     }
 }

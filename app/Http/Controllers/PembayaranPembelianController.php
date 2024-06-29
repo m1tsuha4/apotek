@@ -28,7 +28,21 @@ class PembayaranPembelianController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_pembelian' => 'required',
+            'id_metode_pembayaran' => 'required',
+            'total_dibayar' => 'required',
+            'tanggal_pembayaran' => 'required',
+            'referensi_pembayaran' => 'sometimes',
+        ]);
+
+        $pembayaranPembelian = PembayaranPembelian::create($validatedData);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pembayaranPembelian,
+            'message' => 'Data pembayaran pembelian ditambahkan!',
+        ]);
     }
 
     /**

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('id_pembelian', 10);
             $table->foreign('id_pembelian')->references('id')->on('pembelians')->onDelete('cascade');
             $table->foreignId('id_barang')->constrained('barangs')->onDelete('cascade');
+            $table->string('batch');
+            $table->date('exp_date');
             $table->integer('jumlah');
             $table->foreignId('id_satuan')->constrained('satuans')->onDelete('cascade');
             $table->integer('diskon');

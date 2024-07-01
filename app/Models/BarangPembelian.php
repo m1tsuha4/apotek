@@ -12,6 +12,8 @@ class BarangPembelian extends Model
     protected $fillable = [
         'id_pembelian',
         'id_barang',
+        'batch',
+        'exp_date',
         'jumlah',
         'id_satuan',
         'diskon',

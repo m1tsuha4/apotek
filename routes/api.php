@@ -44,5 +44,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
+
+    //Stok Barang
+    Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
 });
 

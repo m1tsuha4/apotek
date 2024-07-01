@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pembelian;
+use App\Models\StokBarang;
 use Illuminate\Http\Request;
 
 class PembelianController extends Controller
@@ -46,6 +47,8 @@ class PembelianController extends Controller
             'catatan' => 'sometimes',
             'barang_pembelians' => 'required|array',
             'barang_pembelians.*.id_barang' => 'required',
+            'barang_pembelians.*.batch' => 'required',
+            'barang_pembelians.*.exp_date' => 'required',
             'barang_pembelians.*.jumlah' => 'required',
             'barang_pembelians.*.id_satuan' => 'required',
             'barang_pembelians.*.diskon' => 'required',
@@ -58,11 +61,20 @@ class PembelianController extends Controller
         foreach ($validatedData['barang_pembelians'] as $barangPembelianData) {
             $pembelian->barangPembelian()->create([
                 'id_barang' => $barangPembelianData['id_barang'],
+                'batch' => $barangPembelianData['batch'],
+                'exp_date' => $barangPembelianData['exp_date'],
                 'jumlah' => $barangPembelianData['jumlah'],
                 'id_satuan' => $barangPembelianData['id_satuan'],
                 'diskon' => $barangPembelianData['diskon'],
                 'harga' => $barangPembelianData['harga'],
                 'total' => $barangPembelianData['total']
+            ]);
+
+            StokBarang::create([
+                'id_barang' => $barangPembelianData['id_barang'],
+                'batch' => $barangPembelianData['batch'],
+                'exp_date' => $barangPembelianData['exp_date'],
+                'stok_gudang' => $barangPembelianData['jumlah']
             ]);
         }
 
@@ -107,6 +119,8 @@ class PembelianController extends Controller
             'catatan' => 'sometimes',
             'barang_pembelians' => 'sometimes|array',
             'barang_pembelians.*.id_barang' => 'sometimes',
+            'barang_pembelians.*.batch' => 'sometimes',
+            'barang_pembelians.*.exp_date' => 'sometimes',
             'barang_pembelians.*.jumlah' => 'sometimes',
             'barang_pembelians.*.id_satuan' => 'sometimes',
             'barang_pembelians.*.diskon' => 'sometimes',

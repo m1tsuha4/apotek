@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('batch');
             $table->date('exp_date');
             $table->integer('stok_gudang');
-            $table->integer('min_stok_gudang');
-            $table->integer('notif_exp');
-            $table->integer('stok_apotek');
+            $table->integer('min_stok_gudang')->nullable();
+            $table->integer('notif_exp')->nullable();
+            $table->integer('stok_apotek')->nullable();
             $table->timestamps();
 
             $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');

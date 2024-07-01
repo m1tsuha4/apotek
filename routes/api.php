@@ -50,5 +50,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Stok Opname
     Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
+
+    //Jenis
+    Route::apiResource('jenis', \App\Http\Controllers\JenisController::class)->only('index');
 });
 

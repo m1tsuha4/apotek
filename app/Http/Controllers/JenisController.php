@@ -12,7 +12,13 @@ class JenisController extends Controller
      */
     public function index()
     {
-        //
+        $jenis = Jenis::select('id', 'nama_jenis')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $jenis,
+            'message' => 'Data Berhasil ditemukan!'
+        ]);
     }
 
     /**

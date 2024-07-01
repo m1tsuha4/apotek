@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\StokBarang;
 use App\Models\StokOpname;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,12 @@ class StokOpnameController extends Controller
      */
     public function index()
     {
-        //
+        $stokOpname = StokOpname::all();
+        return response()->json([
+            'success' => true,
+            'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),
+            'message' => 'Data Stok Opname Berhasil ditemukan!',
+        ]);
     }
 
     /**
@@ -28,7 +34,28 @@ class StokOpnameController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_stok_barang' => 'required',
+            'sumber_stok' => 'required',
+            'tanggal' => 'required',
+            'stok_tercatat' => 'required',
+            'stok_aktual' => 'required',
+        ]);
+
+        StokOpname::create($validatedData);
+
+        $stokBarang = StokBarang::findOrFail($request->id_stok_barang);
+        if ($request->sumber_stok == 'Gudang') {
+            $stokBarang->stok_gudang = $request->stok_aktual;
+        } elseif ($request->sumber_stok == 'Apotek') {
+            $stokBarang->stok_apotek = $request->stok_aktual;
+        }
+        $stokBarang->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stok barang berhasil disesuaikan!',
+        ]);
     }
 
     /**
@@ -60,6 +87,10 @@ class StokOpnameController extends Controller
      */
     public function destroy(StokOpname $stokOpname)
     {
-        //
+        $stokOpname->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Stok Opname Berhasil dihapus!',
+        ]);
     }
 }

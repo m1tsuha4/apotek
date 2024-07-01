@@ -23,4 +23,8 @@ class StokBarang extends Model
     {
         return $this->belongsTo(Barang::class, 'id_barang');
     }
+
+    public function stokOpname(){
+        return $this->hasMany(StokOpname::class, 'id_stok_barang');
+    }
 }

@@ -47,5 +47,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
+
+    //Stok Opname
+    Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
 });
 

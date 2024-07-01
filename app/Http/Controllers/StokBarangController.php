@@ -131,4 +131,5 @@ class StokBarangController extends Controller
             'message' => 'Data Berhasil dihapus!',
         ]);
     }
+
 }

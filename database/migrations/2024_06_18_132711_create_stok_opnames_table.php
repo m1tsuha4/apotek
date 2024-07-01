@@ -13,15 +13,12 @@ return new class extends Migration
     {
         Schema::create('stok_opnames', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_barang');
+            $table->foreignId('id_stok_barang')->constrained('stok_barangs')->onDelete('cascade');
             $table->date('tanggal');
-            $table->date('exp_date');
             $table->string('sumber_stok');
             $table->integer('stok_tercatat');
             $table->integer('stok_aktual');
             $table->timestamps();
-
-            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

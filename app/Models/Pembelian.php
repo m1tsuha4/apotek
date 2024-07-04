@@ -29,11 +29,11 @@ class Pembelian extends Model
     ];
 
     public function sales() {
-        $this->belongsTo(Sales::class, 'id_sales');
+        return $this->belongsTo(Sales::class, 'id_sales');
     }
 
     public function jenis() {
-        $this->belongsTo(Jenis::class, 'id_jenis');
+        return $this->belongsTo(Jenis::class, 'id_jenis');
     }
 
     public function barangPembelian() {
@@ -43,13 +43,6 @@ class Pembelian extends Model
     public function pembayaranPembelian() {
         return $this->hasMany(PembayaranPembelian::class, 'id_pembelian');
     }
-
-    // public static function boot() {
-    //     parent::boot();
-    //     self::creating(function ($model) {
-    //         $model->id = IdGenerator::generate(['table' => 'pembelians', 'length' => 6, 'prefix' =>'PO/']);
-    //     });
-    // }
 
     public static function boot()
     {

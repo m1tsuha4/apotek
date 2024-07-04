@@ -19,4 +19,9 @@ class Sales extends Model
     {
         return $this->belongsTo(Vendor::class, 'id_vendor');
     }
+
+    public function pembelian()
+    {
+        return $this->hasMany(Pembelian::class, 'id_sales');
+    }
 }

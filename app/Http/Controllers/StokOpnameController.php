@@ -13,7 +13,7 @@ class StokOpnameController extends Controller
      */
     public function index()
     {
-        $stokOpname = StokOpname::all();
+        $stokOpname = StokOpname::paginate(10);
         return response()->json([
             'success' => true,
             'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),

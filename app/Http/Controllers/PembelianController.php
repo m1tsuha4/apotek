@@ -13,10 +13,10 @@ class PembelianController extends Controller
      */
     public function index()
     {
-        $pembelian = Pembelian::all();
+        $pembelian = Pembelian::paginate(10);
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian']),
+            'data' => $pembelian->load(['barangPembelian','jenis','sales','sales.vendor']),
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
     }
@@ -90,7 +90,12 @@ class PembelianController extends Controller
      */
     public function show(Pembelian $pembelian)
     {
-        //
+        $pembelian = Pembelian::findOrFail($pembelian->id);
+        return response()->json([
+            'success' => true,
+            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian','sales','sales.vendor']),
+            'message' => 'Data pembelian berhasil ditemukan',
+        ]);
     }
 
     /**

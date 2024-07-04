@@ -13,7 +13,7 @@ class VendorController extends Controller
      */
     public function index()
     {
-        $vendor = Vendor::all();
+        $vendor = Vendor::paginate(10);
         return response()->json([
             'success' => true,
             'data' => $vendor->load(['sales']),

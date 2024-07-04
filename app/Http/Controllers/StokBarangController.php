@@ -12,7 +12,7 @@ class StokBarangController extends Controller
      */
     public function index()
     {
-        $stok = StokBarang::all();
+        $stok = StokBarang::paginate(10);
 
         return response()->json([
             'success' => true,

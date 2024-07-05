@@ -13,12 +13,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
-Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
-
-Route::get('stok-opname-export', [\App\Http\Controllers\StokOpnameController::class, 'export']);
-
-Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
-
 Route::middleware(['auth:sanctum'])->group(function () {
     //Role
     Route::apiResource('roles', \App\Http\Controllers\RoleController::class)->only('index');
@@ -48,16 +42,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Pembelian
     Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
+    Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
-    
+    Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
 
     //Stok Opname
     Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
+    Route::get('stok-opname-export', [\App\Http\Controllers\StokOpnameController::class, 'export']);
 
 
     //Jenis

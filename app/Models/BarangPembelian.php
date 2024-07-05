@@ -30,4 +30,9 @@ class BarangPembelian extends Model
     {
         return $this->belongsTo(Barang::class, 'id_barang');
     }
+
+    public function satuan()
+    {
+        return $this->belongsTo(Satuan::class, 'id_satuan');
+    }
 }

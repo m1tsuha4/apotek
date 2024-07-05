@@ -79,13 +79,9 @@ class PembayaranPembelianController extends Controller
                 'message' => 'Data pembayaran pembelian diperbarui!',
             ]);
         } else {
-            $pembelian->update([
-                'status' => 'Belum Lunas',
-            ]);
             return response()->json([
                 'success' => true,
-                'data' => $pembelian->status,
-                'message' => 'Data pembayaran pembelian diperbarui!',
+                'message' => 'Pembayaran belum terpenuhi!',
             ]);
         }
        

@@ -6,6 +6,7 @@ use App\Models\Pembelian;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Exports\PembelianExport;
+use App\Models\PembayaranPembelian;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PembelianController extends Controller
@@ -92,10 +93,48 @@ class PembelianController extends Controller
      */
     public function show(Pembelian $pembelian)
     {
-        $pembelian = Pembelian::findOrFail($pembelian->id);
+
+        $pembayaranPembelian = PembayaranPembelian::where('id_pembelian', $pembelian->id)->sum('total_dibayar');
+
+        $data = [
+            'id' => $pembelian->id,
+            'status' => $pembelian->status,
+            'nama_sales' => $pembelian->sales->vendor->nama_perusahaan,
+            'tanggal' => $pembelian->tanggal,
+            'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
+            'catatan' => $pembelian->catatan,
+            'sub_total' => $pembelian->sub_total,
+            'diskon' => $pembelian->diskon,
+            'total' => $pembelian->total,
+            'sisa_tagihan' => $pembelian->total - $pembayaranPembelian,
+            'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {
+                return [
+                    'id' => $barangPembelian->id,
+                    'id_barang' => $barangPembelian->id_barang,
+                    'nama_barang' => $barangPembelian->barang->nama_barang,
+                    'batch' => $barangPembelian->batch,
+                    'jumlah' => $barangPembelian->jumlah,
+                    'id_satuan' => $barangPembelian->id_satuan,
+                    'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                    'diskon' => $barangPembelian->diskon,
+                    'harga' => $barangPembelian->harga,
+                    'total' => $barangPembelian->total
+                ];
+            }),
+            'pembayaranPembelian' => $pembelian->pembayaranPembelian->map(function ($pembayaranPembelian) {
+                return [
+                    'id' => $pembayaranPembelian->id,
+                    'id_pembelian' => $pembayaranPembelian->id_pembelian,
+                    'tanggal_pembayaran' => $pembayaranPembelian->tanggal_pembayaran,
+                    'metode_pembayaran' => $pembayaranPembelian->metodePembayaran->nama_metode,
+                    'total_dibayar' => $pembayaranPembelian->total_dibayar,
+                    'referensi_pembayaran' => $pembayaranPembelian->referensi_pembayaran
+                ];
+            })
+        ];
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian','sales','sales.vendor']),
+            'data' => $data,
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
     }

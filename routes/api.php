@@ -26,6 +26,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Barang
     Route::get('beli-barang', [\App\Http\Controllers\BarangController::class, 'beliBarang']);
     Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
+    Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
@@ -41,15 +42,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Pembelian
     Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
+    Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
+    Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
 
     //Stok Opname
     Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
+    Route::get('stok-opname-export', [\App\Http\Controllers\StokOpnameController::class, 'export']);
+
 
     //Jenis
     Route::apiResource('jenis', \App\Http\Controllers\JenisController::class)->only('index');

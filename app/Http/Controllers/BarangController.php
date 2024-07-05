@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
+use App\Exports\BarangExport;
 use App\Models\VariasiHargaJual;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BarangController extends Controller
 {
@@ -14,7 +16,7 @@ class BarangController extends Controller
      */
     public function index()
     {
-        $barang = Barang::all();
+        $barang = Barang::paginate(10);
 
         return response()->json([
             'success' => true,
@@ -23,10 +25,10 @@ class BarangController extends Controller
         ], 200);
     }
     
-    public function beliBarang(){
-        // $barang = Barang::with('satuan','satuanBarang.satuan')->select('id', 'nama_barang', 'satuan_barang_id', 'harga_beli','nama_satuan')->get();
-        $barang = Barang::with('satuan','satuanBarang.satuan')->select('*')->get();
-        
+    public function beliBarang()
+    {
+        $barang = Barang::with(['satuan', 'satuanBarang.satuan'])->get();
+    
         $data = $barang->map(function ($item) {
             return [
                 'id' => $item->id,
@@ -39,7 +41,7 @@ class BarangController extends Controller
                 'satuan_barang' => $item->satuanBarang->map(function ($satuanBarang) {
                     return [
                         'id' => $satuanBarang->id,
-                        'harga_beli' => $satuanBarang->harga_beli,
+                        'harga_beli' => $satuanBarang->pivot->harga_beli, // Jika `harga_beli` ada di pivot
                         'satuan' => [
                             'id' => $satuanBarang->satuan->id,
                             'nama_satuan' => $satuanBarang->satuan->nama_satuan,
@@ -48,13 +50,14 @@ class BarangController extends Controller
                 })
             ];
         });
-
+    
         return response()->json([
             'success' => true,
             'data' => $data,
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
+    
     /**
      * Show the form for creating a new resource.
      */
@@ -201,5 +204,10 @@ class BarangController extends Controller
             'success' => true,
             'message' => 'Data Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new BarangExport, 'Barang.xlsx');
     }
 }

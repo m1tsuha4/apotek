@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
+use App\Exports\StokBarangExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StokBarangController extends Controller
 {
@@ -12,7 +14,7 @@ class StokBarangController extends Controller
      */
     public function index()
     {
-        $stok = StokBarang::all();
+        $stok = StokBarang::paginate(10);
 
         return response()->json([
             'success' => true,
@@ -130,6 +132,11 @@ class StokBarangController extends Controller
             'success' => true,
             'message' => 'Data Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new StokBarangExport, 'StokBarang.xlsx');
     }
 
 }

@@ -12,7 +12,7 @@ class PelangganController extends Controller
      */
     public function index()
     {
-        $pelanggan = Pelanggan::all();
+        $pelanggan = Pelanggan::paginate(10);
         return response()->json([
             'success' => true,
             'data' => $pelanggan,

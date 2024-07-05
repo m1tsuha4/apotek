@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PembayaranPembelian;
+use App\Models\Pembelian;
 use Illuminate\Http\Request;
 
 class PembayaranPembelianController extends Controller
@@ -64,9 +65,30 @@ class PembayaranPembelianController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PembayaranPembelian $pembayaranPembelian)
+    public function update(Request $request, $id)
     {
-        //
+        $total_dibayar = PembayaranPembelian::where('id_pembelian', $id)->sum('total_dibayar');
+        $pembelian = Pembelian::findOrFail($id);
+        if ($total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+            return response()->json([
+                'success' => true,
+                'data' => $pembelian->status,
+                'message' => 'Data pembayaran pembelian diperbarui!',
+            ]);
+        } else {
+            $pembelian->update([
+                'status' => 'Belum Lunas',
+            ]);
+            return response()->json([
+                'success' => true,
+                'data' => $pembelian->status,
+                'message' => 'Data pembayaran pembelian diperbarui!',
+            ]);
+        }
+       
     }
 
     /**

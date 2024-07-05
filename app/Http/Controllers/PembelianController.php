@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Pembelian;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
+use App\Exports\PembelianExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PembelianController extends Controller
 {
@@ -13,10 +15,10 @@ class PembelianController extends Controller
      */
     public function index()
     {
-        $pembelian = Pembelian::all();
+        $pembelian = Pembelian::paginate(10);
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian']),
+            'data' => $pembelian->load(['barangPembelian','jenis','sales','sales.vendor']),
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
     }
@@ -90,7 +92,12 @@ class PembelianController extends Controller
      */
     public function show(Pembelian $pembelian)
     {
-        //
+        $pembelian = Pembelian::findOrFail($pembelian->id);
+        return response()->json([
+            'success' => true,
+            'data' => $pembelian->load(['barangPembelian','pembayaranPembelian','sales','sales.vendor']),
+            'message' => 'Data pembelian berhasil ditemukan',
+        ]);
     }
 
     /**
@@ -157,5 +164,10 @@ class PembelianController extends Controller
             'success' => true,
             'message' => 'Data Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new PembelianExport, 'pembelian.xlsx');
     }
 }

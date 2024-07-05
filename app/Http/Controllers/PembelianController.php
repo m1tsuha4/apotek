@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Pembelian;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
+use App\Exports\PembelianExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PembelianController extends Controller
 {
@@ -162,5 +164,10 @@ class PembelianController extends Controller
             'success' => true,
             'message' => 'Data Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new PembelianExport, 'pembelian.xlsx');
     }
 }

@@ -13,6 +13,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
+Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
+
+Route::get('stok-opname-export', [\App\Http\Controllers\StokOpnameController::class, 'export']);
+
+Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     //Role
     Route::apiResource('roles', \App\Http\Controllers\RoleController::class)->only('index');
@@ -26,6 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Barang
     Route::get('beli-barang', [\App\Http\Controllers\BarangController::class, 'beliBarang']);
     Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
+    Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
@@ -47,9 +54,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
+    
 
     //Stok Opname
     Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
+
 
     //Jenis
     Route::apiResource('jenis', \App\Http\Controllers\JenisController::class)->only('index');

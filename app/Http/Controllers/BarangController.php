@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
+use App\Exports\BarangExport;
 use App\Models\VariasiHargaJual;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BarangController extends Controller
 {
@@ -202,5 +204,10 @@ class BarangController extends Controller
             'success' => true,
             'message' => 'Data Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new BarangExport, 'Barang.xlsx');
     }
 }

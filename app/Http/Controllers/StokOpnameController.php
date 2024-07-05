@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\StokBarang;
 use App\Models\StokOpname;
 use Illuminate\Http\Request;
+use App\Exports\StokOpnameExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StokOpnameController extends Controller
 {
@@ -92,5 +94,10 @@ class StokOpnameController extends Controller
             'success' => true,
             'message' => 'Stok Opname Berhasil dihapus!',
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new StokOpnameExport, 'StokOpname.xlsx');
     }
 }

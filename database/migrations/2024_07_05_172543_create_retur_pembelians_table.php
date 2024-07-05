@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('retur_pembelians', function (Blueprint $table) {
-            $table->id();
+            $table->string('id', 10)->primary();
+            $table->foreign('id_pembelian')->references('id')->on('pembelians')->onDelete('cascade');
+            $table->date('tanggal');
+            $table->string('referensi')->nullable();
+            $table->integer('total_retur');
             $table->timestamps();
         });
     }

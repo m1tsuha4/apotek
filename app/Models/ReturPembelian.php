@@ -8,4 +8,45 @@ use Illuminate\Database\Eloquent\Model;
 class ReturPembelian extends Model
 {
     use HasFactory;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'id',
+        'id_pembelian',
+        'tanggal',
+        'referensi',
+        'total_retur',
+    ];
+
+    public function barangRetur()
+    {
+        return $this->hasMany(BarangRetur::class, 'id_retur_pembelian');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = self::generateId();
+            }
+        });
+    }
+
+    protected static function generateId()
+    {
+        $lastRecord = self::orderBy('id', 'desc')->first();
+        if (!$lastRecord) {
+            return 'RP-00001';
+        }
+
+        $lastIdNumber = intval(substr($lastRecord->id, 3));
+        $newIdNumber = $lastIdNumber + 1;
+
+        return 'RP-' . str_pad($newIdNumber, 5, '0', STR_PAD_LEFT);
+    }
 }

@@ -39,16 +39,10 @@ class BarangController extends Controller
                     'id' => $item->satuan->id,
                     'nama_satuan' => $item->satuan->nama_satuan,
                 ],
-                'satuan_barang' => $item->satuanBarang->map(function ($satuanBarang) {
-                    return [
-                        'id' => $satuanBarang->id,
-                        'harga_beli' => $satuanBarang->pivot->harga_beli, // Jika `harga_beli` ada di pivot
-                        'satuan' => [
-                            'id' => $satuanBarang->satuan->id,
-                            'nama_satuan' => $satuanBarang->satuan->nama_satuan,
-                        ],
-                    ];
-                })
+                'satuan_barang' => [
+                    'id' => $item->satuanBarang->id,
+                    'nama_satuan' => $item->satuanBarang->satuan->nama_satuan,
+                ]
             ];
         });
     

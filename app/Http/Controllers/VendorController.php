@@ -17,7 +17,7 @@ class VendorController extends Controller
         return response()->json([
             'success' => true,
             'data' => $vendor->load(['sales']),
-            'total' => $vendor->total(),
+            'last_page' => $vendor->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }

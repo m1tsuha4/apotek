@@ -19,7 +19,7 @@ class StokBarangController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stok->load(['barang','barang.kategori','barang.satuan']),
-            'total' => $stok->total(),
+            'last_page' => $stok->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }

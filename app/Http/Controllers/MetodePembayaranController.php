@@ -12,7 +12,7 @@ class MetodePembayaranController extends Controller
      */
     public function index()
     {
-        $metodePembayaran = MetodePembayaran::all();
+        $metodePembayaran = MetodePembayaran::select('id','nama_metode')->get();
         return response ()->json([
             'success' => true,
             'data' => $metodePembayaran,

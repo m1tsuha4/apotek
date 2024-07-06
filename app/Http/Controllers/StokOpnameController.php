@@ -19,7 +19,7 @@ class StokOpnameController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),
-            'total' => $stokOpname->total(),
+            'last_page' => $stokOpname->lastPage(),
             'message' => 'Data Stok Opname Berhasil ditemukan!',
         ]);
     }

@@ -14,10 +14,10 @@ class ReturPembelianController extends Controller
     {
         $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])->paginate(10);
 
-        $data = $returPembelians->map(function ($returPembelian) {
+        $data = collect($returPembelians->items())->map(function ($returPembelian) {
             $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');
             $jumlah_retur = $returPembelian->barangReturPembelian->sum('jumlah_retur');
-
+        
             return [
                 'id' => $returPembelian->id,
                 'id_pembelian' => $returPembelian->id_pembelian,
@@ -30,7 +30,7 @@ class ReturPembelianController extends Controller
                 'jumlah_retur' => $jumlah_retur,
                 'total' => $returPembelian->total_retur
             ];
-        });
+        })->all();
 
         return response()->json([
             'success' => true,
@@ -82,8 +82,33 @@ class ReturPembelianController extends Controller
      */
     public function show(ReturPembelian $returPembelian)
     {
-        //
+        $returPembelian->load([
+            'pembelian',
+            'barangReturPembelian',
+            'pembelian.barangPembelian',
+            'pembelian.barangPembelian.satuan',
+            'pembelian.barangPembelian.barang',
+        ]);
+    
+        // Hapus properti created_at dan updated_at dari model utama dan relasi
+        $returPembelian->makeHidden(['created_at', 'updated_at']);
+        $returPembelian->pembelian->makeHidden(['created_at', 'updated_at']);
+        foreach ($returPembelian->barangReturPembelian as $barangRetur) {
+            $barangRetur->makeHidden(['created_at', 'updated_at']);
+        }
+        foreach ($returPembelian->pembelian->barangPembelian as $barangPembelian) {
+            $barangPembelian->makeHidden(['created_at', 'updated_at']);
+            $barangPembelian->satuan->makeHidden(['created_at', 'updated_at']);
+            $barangPembelian->barang->makeHidden(['created_at', 'updated_at']);
+        }
+    
+        return response()->json([
+            'success' => true,
+            'data' => $returPembelian,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -98,7 +123,32 @@ class ReturPembelianController extends Controller
      */
     public function update(Request $request, ReturPembelian $returPembelian)
     {
-        //
+        $validatedData = $request->validate([
+            'id_pembelian' => ['sometimes'],
+            'tanggal' => ['sometimes'],
+            'referensi' => ['sometimes'],
+            'total_retur' => ['sometimes'],
+            'barang_retur_pembelians' => 'sometimes|array',
+            'barang_retur_pembelians.*.jumlah_retur' => ['sometimes'],
+            'barang_retur_pembelians.*.total' => ['sometimes'],
+        ]);
+
+        $returPembelian->update($validatedData);
+
+        foreach($validatedData['barang_retur_pembelians'] as $index => $barangReturPembelianData) {
+            $barangReturPembelian = $returPembelian->barangReturPembelian()->get()[$index] ?? null;
+            if ($barangReturPembelian) {
+                $barangReturPembelian->update($barangReturPembelianData);
+            } else {
+                $returPembelian->barangReturPembelian()->create($barangReturPembelianData);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $returPembelian->load('barangReturPembelian'),
+            'message' => 'Data retur pembelian berhasil diupdate',
+        ]);
     }
 
     /**
@@ -106,6 +156,10 @@ class ReturPembelianController extends Controller
      */
     public function destroy(ReturPembelian $returPembelian)
     {
-        //
+        $returPembelian->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil dihapus!',
+        ]);
     }
 }

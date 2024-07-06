@@ -21,6 +21,7 @@ class BarangController extends Controller
         return response()->json([
             'success' => true,
             'data'    =>  $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']), 
+            'total' => $barang->total(),
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }

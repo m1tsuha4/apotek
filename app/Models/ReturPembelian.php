@@ -26,6 +26,11 @@ class ReturPembelian extends Model
         return $this->hasMany(BarangReturPembelian::class, 'id_retur_pembelian');
     }
 
+    public function pembelian()
+    {
+        return $this->belongsTo(Pembelian::class, 'id_pembelian');
+    }
+
     public static function boot()
     {
         parent::boot();

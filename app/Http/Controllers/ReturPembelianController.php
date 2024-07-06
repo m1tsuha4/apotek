@@ -12,22 +12,34 @@ class ReturPembelianController extends Controller
      */
     public function index()
     {
-        $returPembelians = ReturPembelian::all();
-   
-        // $data = [
-        //     'id' => $returPembelians->id,
-        //     'id_pembelian' => $returPembelians->id_pembelian,
-        //     'tanggal' => $returPembelians->tanggal,
-        //     'referensi' => $returPembelians->referensi,
-        //     'total_retur' => $returPembelians->total_retur,
+        $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])->paginate(10);
 
-        // ];
+        $data = $returPembelians->map(function ($returPembelian) {
+            $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');
+            $jumlah_retur = $returPembelian->barangReturPembelian->sum('jumlah_retur');
+
+            return [
+                'id' => $returPembelian->id,
+                'id_pembelian' => $returPembelian->id_pembelian,
+                'tanggal' => $returPembelian->tanggal,
+                'id_sales' => $returPembelian->pembelian->id_sales,
+                'nama_sales' => $returPembelian->pembelian->sales->nama_sales,
+                'vendor' => $returPembelian->pembelian->sales->vendor->nama_perusahaan,
+                'referensi' => $returPembelian->referensi,
+                'jumlah' => $jumlah,
+                'jumlah_retur' => $jumlah_retur,
+                'total' => $returPembelian->total_retur
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $returPembelians->load('barangReturPembelian'),
+            'data' => $data,
+            'last_page' => $returPembelians->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -54,7 +66,7 @@ class ReturPembelianController extends Controller
 
         $returPembelian = ReturPembelian::create($validatedData);
 
-        foreach($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
+        foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
             $returPembelian->barangReturPembelian()->create($barangReturPembelian);
         }
 

@@ -16,6 +16,7 @@ class PelangganController extends Controller
         return response()->json([
             'success' => true,
             'data' => $pelanggan,
+            'total' => $pelanggan->total(),
             'message' => 'Data pelanggan berhasil ditemukan',
         ]);
     }

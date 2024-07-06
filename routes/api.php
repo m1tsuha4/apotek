@@ -48,7 +48,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
    
-
     //Retur Pembelian
     Route::apiResource('retur-pembelian', \App\Http\Controllers\ReturPembelianController::class);
 

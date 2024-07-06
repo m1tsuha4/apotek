@@ -20,6 +20,7 @@ class PembelianController extends Controller
         return response()->json([
             'success' => true,
             'data' => $pembelian->load(['barangPembelian','jenis','sales','sales.vendor']),
+            'total' => $pembelian->total(),
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
     }

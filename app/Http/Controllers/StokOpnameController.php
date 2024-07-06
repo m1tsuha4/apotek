@@ -19,6 +19,7 @@ class StokOpnameController extends Controller
         return response()->json([
             'success' => true,
             'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),
+            'total' => $stokOpname->total(),
             'message' => 'Data Stok Opname Berhasil ditemukan!',
         ]);
     }

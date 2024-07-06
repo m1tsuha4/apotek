@@ -25,6 +25,7 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'data' => $data,
+            'total' => $stokBarang->total(),
             'message' => 'Data Stok Barang Berhasil ditemukan!',
         ]);
     }

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('retur_pembelians', function (Blueprint $table) {
             $table->string('id', 10)->primary();
+            $table->string('id_pembelian', 10);
             $table->foreign('id_pembelian')->references('id')->on('pembelians')->onDelete('cascade');
             $table->date('tanggal');
             $table->string('referensi')->nullable();

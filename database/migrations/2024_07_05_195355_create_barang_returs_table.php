@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreign('id_retur_pembelian')->references('id')->on('retur_pembelians')->onDelete('cascade');
             $table->integer('jumlah_retur');
+            $table->integer('total');
             $table->timestamps();
         });
     }

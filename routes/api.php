@@ -43,9 +43,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Pembelian
     Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
     Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
+    Route::get('retur-barang-pembelian/{pembelian}',[\App\Http\Controllers\PembelianController::class, 'returPembelian']);
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
+   
+
+    //Retur Pembelian
+    Route::apiResource('retur-pembelian', \App\Http\Controllers\ReturPembelianController::class);
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);

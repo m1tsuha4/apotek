@@ -13,6 +13,7 @@ class BarangRetur extends Model
         'id',
         'id_retur_pembelian',
         'jumlah_retur',
+        'total'
     ];
 
     public function returPembelian()

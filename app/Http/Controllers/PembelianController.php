@@ -209,4 +209,31 @@ class PembelianController extends Controller
     {
         return Excel::download(new PembelianExport, 'pembelian.xlsx');
     }
+
+    public function returPembelian(Pembelian $pembelian)
+    {
+        $data = [
+            'id' => $pembelian->id,
+            'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {
+                return [
+                    'id' => $barangPembelian->id,
+                    'id_barang' => $barangPembelian->id_barang,
+                    'nama_barang' => $barangPembelian->barang->nama_barang,
+                    'batch' => $barangPembelian->batch,
+                    'jumlah' => $barangPembelian->jumlah,
+                    'id_satuan' => $barangPembelian->id_satuan,
+                    'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                    'diskon' => $barangPembelian->diskon,
+                    'harga' => $barangPembelian->harga,
+                    'total' => $barangPembelian->total
+                ];
+            }),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'messages' => 'Data Retur Berhasil ditampilkan!'
+        ]);
+    }
 }

@@ -100,6 +100,7 @@ class PembelianController extends Controller
         $data = [
             'id' => $pembelian->id,
             'status' => $pembelian->status,
+            'id_sales' => $pembelian->id_sales,
             'nama_sales' => $pembelian->sales->vendor->nama_perusahaan,
             'tanggal' => $pembelian->tanggal,
             'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
@@ -107,6 +108,7 @@ class PembelianController extends Controller
             'sub_total' => $pembelian->sub_total,
             'diskon' => $pembelian->diskon,
             'total' => $pembelian->total,
+            'referensi' => $pembelian->referensi,
             'sisa_tagihan' => $pembelian->total - $pembayaranPembelian,
             'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {
                 return [

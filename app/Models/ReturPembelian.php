@@ -21,9 +21,9 @@ class ReturPembelian extends Model
         'total_retur',
     ];
 
-    public function barangRetur()
+    public function barangReturPembelian()
     {
-        return $this->hasMany(BarangRetur::class, 'id_retur_pembelian');
+        return $this->hasMany(BarangReturPembelian::class, 'id_retur_pembelian');
     }
 
     public static function boot()

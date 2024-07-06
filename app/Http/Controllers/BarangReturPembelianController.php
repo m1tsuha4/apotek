@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BarangRetur;
+use App\Models\BarangReturPembelian;
 use Illuminate\Http\Request;
 
-class BarangReturController extends Controller
+class BarangReturPembelianController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class BarangReturController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BarangRetur $barangRetur)
+    public function show(BarangReturPembelian $barangReturPembelian)
     {
         //
     }
@@ -42,7 +42,7 @@ class BarangReturController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(BarangRetur $barangRetur)
+    public function edit(BarangReturPembelian $barangReturPembelian)
     {
         //
     }
@@ -50,7 +50,7 @@ class BarangReturController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, BarangRetur $barangRetur)
+    public function update(Request $request, BarangReturPembelian $barangReturPembelian)
     {
         //
     }
@@ -58,7 +58,7 @@ class BarangReturController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BarangRetur $barangRetur)
+    public function destroy(BarangReturPembelian $barangReturPembelian)
     {
         //
     }

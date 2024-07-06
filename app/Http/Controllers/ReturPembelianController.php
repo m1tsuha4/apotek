@@ -12,7 +12,21 @@ class ReturPembelianController extends Controller
      */
     public function index()
     {
-        //
+        $returPembelians = ReturPembelian::all();
+   
+        // $data = [
+        //     'id' => $returPembelians->id,
+        //     'id_pembelian' => $returPembelians->id_pembelian,
+        //     'tanggal' => $returPembelians->tanggal,
+        //     'referensi' => $returPembelians->referensi,
+        //     'total_retur' => $returPembelians->total_retur,
+
+        // ];
+        return response()->json([
+            'success' => true,
+            'data' => $returPembelians->load('barangReturPembelian'),
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**
@@ -28,7 +42,27 @@ class ReturPembelianController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_pembelian' => ['required'],
+            'tanggal' => ['required'],
+            'referensi' => ['sometimes'],
+            'total_retur' => ['required'],
+            'barang_retur_pembelians' => 'required|array',
+            'barang_retur_pembelians.*.jumlah_retur' => ['required'],
+            'barang_retur_pembelians.*.total' => ['required'],
+        ]);
+
+        $returPembelian = ReturPembelian::create($validatedData);
+
+        foreach($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
+            $returPembelian->barangReturPembelian()->create($barangReturPembelian);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $returPembelian->load('barangReturPembelian'),
+            'message' => 'Data retur pembelian berhasil ditambahkan',
+        ]);
     }
 
     /**

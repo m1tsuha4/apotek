@@ -8,6 +8,22 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+
+    public function keuangan(){
+        $data = [
+            'pemasukan' => 1000000,
+            'pengeluaran' => 500000,
+            'utang' => 500000,
+            'piutang' => 1000000
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'message' => 'Data Keuangan Berhasil ditemukan!',
+        ]);
+    }
+    
     public function stokBarang()
     {
         $stokBarang = StokBarang::paginate(10);

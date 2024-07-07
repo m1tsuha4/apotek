@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\Pembelian;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Exports\BarangExport;
-use App\Exports\KartuStockExport;
 use App\Imports\BarangImport;
-use App\Models\Pembelian;
+use App\Models\BarangPembelian;
 use App\Models\VariasiHargaJual;
+use App\Exports\KartuStockExport;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -233,17 +234,14 @@ class BarangController extends Controller
 
     public function detailKartuStok(Barang $barang)
     {
-        // Get all purchase and sales records for the given item, grouped by date and batch
-        $purchases = Pembelian::where('id_barang', $barang->id)
-            ->join('barangs', 'barang_pembelians.id_barang', '=', 'barangs.id')
-            ->join('satuans', 'barangs.id_satuan', '=', 'satuans.id')
-            ->join('barang_pembelians', 'pembelians.id', '=', 'barang_pembelians.id_pembelian')
-            ->select('nama_barang', 'nama_satuan', 'exp_date', 'tanggal', 'batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
-            ->groupBy('tanggal', 'batch')
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->tanggal . '-' . $item->batch;
-            });
+        $purchases = $barang->barangPembelian()
+                ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
+                ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
+                ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
+                ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
+                ->paginate(10);
+        // dd($purchases);
+
 
         // $sales = Penjualan::where('id_barang', $barang->id)
         //     ->select('tanggal', 'batch', \DB::raw('SUM(jumlah) as total_sold'))
@@ -260,6 +258,7 @@ class BarangController extends Controller
             $stockDetails[$key] = [
                 'tanggal' => $purchase->tanggal,
                 'batch' => $purchase->batch,
+                'exp_date' => $purchase->exp_date,
                 'masuk' => $purchase->masuk,
                 // 'total_sold' => $sales->has($key) ? $sales[$key]->total_sold : 0,
                 'keluar' => 0,
@@ -283,13 +282,14 @@ class BarangController extends Controller
         }
 
         $commonData = $purchases->first() ? [
-            'nama_barang' => $purchases->first()->nama_barang,
-            'nama_satuan' => $purchases->first()->nama_satuan,
+            'nama_barang' => $barang->nama_barang,
+            'nama_satuan' => $barang->satuan->nama_satuan,
         ] : [];
     
         return response()->json([
             'status' => true,
             'data' => array_merge($commonData, ['list' => array_values($stockDetails)]),
+            'last_page' => $purchases->lastPage(),
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }

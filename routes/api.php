@@ -13,6 +13,8 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
+Route::get('kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'kartuStok']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     //Role
     Route::apiResource('roles', \App\Http\Controllers\RoleController::class)->only('index');
@@ -28,6 +30,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
     Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
     Route::post('barang-import', [\App\Http\Controllers\BarangController::class, 'import']);
+    Route::get('detail-kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'detailKartuStok']);
+   
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);

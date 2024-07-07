@@ -6,7 +6,9 @@ use App\Models\Barang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Exports\BarangExport;
+use App\Exports\KartuStockExport;
 use App\Imports\BarangImport;
+use App\Models\Pembelian;
 use App\Models\VariasiHargaJual;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -22,16 +24,16 @@ class BarangController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    =>  $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']), 
+            'data'    =>  $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
             'last_page' => $barang->lastPage(),
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
-    
+
     public function beliBarang()
     {
         $barang = Barang::with(['satuan', 'satuanBarang.satuan'])->get();
-    
+
         $data = $barang->map(function ($item) {
             return [
                 'id' => $item->id,
@@ -47,20 +49,19 @@ class BarangController extends Controller
                 ]
             ];
         });
-    
+
         return response()->json([
             'success' => true,
             'data' => $data,
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
-    
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-      
     }
 
     /**
@@ -117,7 +118,7 @@ class BarangController extends Controller
         $barang = Barang::where('id', $id)->first();
         return response()->json([
             'success' => true,
-            'data'    => $barang->load(['satuan','kategori','variasiHargaJual','satuanBarang.satuan']),  
+            'data'    => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
@@ -149,10 +150,10 @@ class BarangController extends Controller
             'satuan_barangs_harga_beli' => 'sometimes',
             'satuan_barangs_harga_jual' => 'sometimes'
         ]);
-    
+
         // Update barang data
         $barang->update($validatedData);
- 
+
         // Update or create VariasiHargaJual
         foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
             $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
@@ -162,7 +163,7 @@ class BarangController extends Controller
                 $barang->variasiHargaJual()->create($variasiHargaJualData);
             }
         }
-    
+
         // Update or create SatuanBarang
         $satuanBarang = $barang->satuanBarang;
 
@@ -182,13 +183,13 @@ class BarangController extends Controller
                 'harga_jual' => $validatedData['satuan_barangs_harga_jual']
             ]);
         }
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Diupdate!',
             'data' => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
         ], 200);
-    }    
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -228,5 +229,140 @@ class BarangController extends Controller
                 'message' => 'Terjadi kesalahan saat mengimport data: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function detailKartuStok(Barang $barang)
+    {
+        // Get all purchase and sales records for the given item, grouped by date and batch
+        $purchases = Pembelian::where('id_barang', $barang->id)
+            ->join('barangs', 'barang_pembelians.id_barang', '=', 'barangs.id')
+            ->join('satuans', 'barangs.id_satuan', '=', 'satuans.id')
+            ->join('barang_pembelians', 'pembelians.id', '=', 'barang_pembelians.id_pembelian')
+            ->select('nama_barang', 'nama_satuan', 'exp_date', 'tanggal', 'batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
+            ->groupBy('tanggal', 'batch')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->tanggal . '-' . $item->batch;
+            });
+
+        // $sales = Penjualan::where('id_barang', $barang->id)
+        //     ->select('tanggal', 'batch', \DB::raw('SUM(jumlah) as total_sold'))
+        //     ->groupBy('tanggal', 'batch')
+        //     ->get()
+        //     ->keyBy(function ($item) {
+        //         return $item->tanggal . '-' . $item->batch;
+        //     });
+
+        // Combine purchases and sales data
+        $stockDetails = [];
+
+        foreach ($purchases as $key => $purchase) {
+            $stockDetails[$key] = [
+                'tanggal' => $purchase->tanggal,
+                'batch' => $purchase->batch,
+                'masuk' => $purchase->masuk,
+                // 'total_sold' => $sales->has($key) ? $sales[$key]->total_sold : 0,
+                'keluar' => 0,
+            ];
+        }
+
+        // foreach ($sales as $key => $sale) {
+        //     if (!isset($stockDetails[$key])) {
+        //         $stockDetails[$key] = [
+        //             'tanggal' => $sale->tanggal,
+        //             'batch' => $sale->batch,
+        //             'total_purchased' => 0,
+        //             'total_sold' => $sale->total_sold,
+        //         ];
+        //     }
+        // }
+
+        // Calculate remaining stock
+        foreach ($stockDetails as &$details) {
+            $details['sisa'] = $details['masuk'] - $details['keluar'];
+        }
+
+        $commonData = $purchases->first() ? [
+            'nama_barang' => $purchases->first()->nama_barang,
+            'nama_satuan' => $purchases->first()->nama_satuan,
+        ] : [];
+    
+        return response()->json([
+            'status' => true,
+            'data' => array_merge($commonData, ['list' => array_values($stockDetails)]),
+            'message' => 'Data Berhasil Ditemukan!',
+        ]);
+    }
+
+    // public function detailKartuStok(Barang $barang)
+    // {
+    //     // Get all purchase records for the given item, grouped by date and batch
+    //     $purchases = Pembelian::where('barang_pembelians.id_barang', $barang->id)
+    //         ->join('barang_pembelians', 'pembelians.id', '=', 'barang_pembelians.id_pembelian')
+    //         ->join('barangs', 'barang_pembelians.id_barang', '=', 'barangs.id')
+    //         ->join('satuans', 'barangs.id_satuan', '=', 'satuans.id')
+    //         ->select('barangs.nama_barang', 'satuans.nama_satuan', 'barangs.exp_date', 'barang_pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
+    //         ->groupBy('barangs.nama_barang', 'satuans.nama_satuan', 'barangs.exp_date', 'barang_pembelians.tanggal', 'barang_pembelians.batch')
+    //         ->get()
+    //         ->keyBy(function ($item) {
+    //             return $item->tanggal . '-' . $item->batch;
+    //         });
+
+    //     // Get all sales records for the given item, grouped by date and batch
+    //     $sales = Penjualan::where('barang_penjualans.id_barang', $barang->id)
+    //         ->join('barang_penjualans', 'penjualans.id', '=', 'barang_penjualans.id_penjualan')
+    //         ->select('barang_penjualans.tanggal', 'barang_penjualans.batch', \DB::raw('SUM(barang_penjualans.jumlah) as keluar'))
+    //         ->groupBy('barang_penjualans.tanggal', 'barang_penjualans.batch')
+    //         ->get()
+    //         ->keyBy(function ($item) {
+    //             return $item->tanggal . '-' . $item->batch;
+    //         });
+
+    //     // Combine purchases and sales data
+    //     $stockDetails = [];
+    //     foreach ($purchases as $key => $purchase) {
+    //         $stockDetails[$key] = [
+    //             'exp_date' => $purchase->exp_date,
+    //             'tanggal' => $purchase->tanggal,
+    //             'batch' => $purchase->batch,
+    //             'masuk' => $purchase->masuk,
+    //             'keluar' => $sales->has($key) ? $sales[$key]->keluar : 0,
+    //         ];
+    //     }
+
+    //     foreach ($sales as $key => $sale) {
+    //         if (!isset($stockDetails[$key])) {
+    //             $stockDetails[$key] = [
+    //                 'exp_date' => $barang->exp_date,  // Assuming exp_date should be included from barang
+    //                 'tanggal' => $sale->tanggal,
+    //                 'batch' => $sale->batch,
+    //                 'masuk' => 0,
+    //                 'keluar' => $sale->keluar,
+    //             ];
+    //         }
+    //     }
+
+    //     // Calculate remaining stock
+    //     foreach ($stockDetails as &$details) {
+    //         $details['sisa'] = $details['masuk'] - $details['keluar'];
+    //     }
+
+    //     // Include the common data in the response
+    //     $commonData = $purchases->first() ? [
+    //         'nama_barang' => $purchases->first()->nama_barang,
+    //         'nama_satuan' => $purchases->first()->nama_satuan,
+    //     ] : [];
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'data' => array_merge($commonData, ['list' => array_values($stockDetails)]),
+    //     ]);
+    // }
+
+
+
+    public function kartuStok(barang $barang)
+    {
+        return Excel::download(new KartuStockExport($barang), 'KartuStok.xlsx');
     }
 }

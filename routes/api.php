@@ -13,8 +13,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
-Route::get('kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'kartuStok']);
-
 Route::middleware(['auth:sanctum'])->group(function () {
     //Role
     Route::apiResource('roles', \App\Http\Controllers\RoleController::class)->only('index');
@@ -31,13 +29,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
     Route::post('barang-import', [\App\Http\Controllers\BarangController::class, 'import']);
     Route::get('detail-kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'detailKartuStok']);
-   
+    Route::get('kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'kartuStok']);
+
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
 
     //Vendor
-    Route::apiResource('vendor', \App\Http\Controllers\VendorController::class);    
+    Route::apiResource('vendor', \App\Http\Controllers\VendorController::class);
 
     //Sales
     Route::apiResource('sales', \App\Http\Controllers\SalesController::class)->only('index');
@@ -48,11 +47,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Pembelian
     Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
     Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
-    Route::get('retur-barang-pembelian/{pembelian}',[\App\Http\Controllers\PembelianController::class, 'returPembelian']);
+    Route::get('retur-barang-pembelian/{pembelian}', [\App\Http\Controllers\PembelianController::class, 'returPembelian']);
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
-   
+
     //Retur Pembelian
     Route::apiResource('retur-pembelian', \App\Http\Controllers\ReturPembelianController::class);
 
@@ -73,4 +72,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('dashboard-notif-stok', [\App\Http\Controllers\DashboardController::class, 'notifStok']);
     Route::get('dashboard-notif-exp', [\App\Http\Controllers\DashboardController::class, 'notifExp']);
 });
-

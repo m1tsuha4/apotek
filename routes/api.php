@@ -27,6 +27,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('beli-barang', [\App\Http\Controllers\BarangController::class, 'beliBarang']);
     Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
     Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
+    Route::post('barang-import', [\App\Http\Controllers\BarangController::class, 'import']);
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);

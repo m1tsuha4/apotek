@@ -6,7 +6,9 @@ use App\Models\Barang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Exports\BarangExport;
+use App\Imports\BarangImport;
 use App\Models\VariasiHargaJual;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BarangController extends Controller
@@ -204,5 +206,27 @@ class BarangController extends Controller
     public function export()
     {
         return Excel::download(new BarangExport, 'Barang.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx',
+        ]);
+
+        try {
+            Excel::import(new BarangImport, $request->file('file'));
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data Barang Berhasil Diimport!',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Import error: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat mengimport data: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

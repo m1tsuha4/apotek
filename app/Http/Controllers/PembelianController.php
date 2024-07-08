@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use App\Models\Pembelian;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Exports\PembelianExport;
 use App\Models\PembayaranPembelian;
+use App\Models\Satuan;
+use App\Models\SatuanBarang;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PembelianController extends Controller
@@ -55,7 +58,7 @@ class PembelianController extends Controller
             'barang_pembelians.*.exp_date' => 'required',
             'barang_pembelians.*.jumlah' => 'required',
             'barang_pembelians.*.id_satuan' => 'required',
-            'barang_pembelians.*.diskon' => 'required',
+            'barang_pembelians.*.diskon' => 'sometimes',
             'barang_pembelians.*.harga' => 'required',
             'barang_pembelians.*.total' => 'required'
         ]);
@@ -74,12 +77,25 @@ class PembelianController extends Controller
                 'total' => $barangPembelianData['total']
             ]);
 
-            StokBarang::create([
-                'id_barang' => $barangPembelianData['id_barang'],
-                'batch' => $barangPembelianData['batch'],
-                'exp_date' => $barangPembelianData['exp_date'],
-                'stok_gudang' => $barangPembelianData['jumlah']
-            ]);
+            $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+
+            if($barangPembelianData['id_satuan'] == $satuanDasar){
+                StokBarang::create([
+                    'id_barang' => $barangPembelianData['id_barang'],
+                    'batch' => $barangPembelianData['batch'],
+                    'exp_date' => $barangPembelianData['exp_date'],
+                    'stok_gudang' => $barangPembelianData['jumlah']
+                ]);
+            } else {
+                $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
+                $stok = $barangPembelianData['jumlah'] * $satuanBesar;
+                StokBarang::create([
+                    'id_barang' => $barangPembelianData['id_barang'],
+                    'batch' => $barangPembelianData['batch'],
+                    'exp_date' => $barangPembelianData['exp_date'],
+                    'stok_gudang' => $stok
+                ]);
+            }         
         }
 
         return response()->json([

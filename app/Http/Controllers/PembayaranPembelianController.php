@@ -69,24 +69,37 @@ class PembayaranPembelianController extends Controller
     {
         $total_dibayar = PembayaranPembelian::where('id_pembelian', $id)->sum('total_dibayar');
         $pembelian = Pembelian::findOrFail($id);
-        if ($total_dibayar == $pembelian->total) {
+
+        if ($total_dibayar == 0) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tidak ada pembayaran yang dilakukan.',
+            ]);
+        } elseif ($total_dibayar == $pembelian->total) {
             $pembelian->update([
                 'status' => 'Lunas',
             ]);
             return response()->json([
                 'success' => true,
                 'data' => $pembelian->status,
-                'message' => 'Data pembayaran pembelian diperbarui!',
+                'message' => 'Data pembayaran pembelian diperbarui menjadi Lunas!',
+            ]);
+        } elseif ($total_dibayar < $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Pembayaran Sebagian',
+            ]);
+            return response()->json([
+                'success' => true,
+                'data' => $pembelian->status,
+                'message' => 'Data pembayaran pembelian diperbarui menjadi Pembayaran Sebagian!',
             ]);
         } else {
             return response()->json([
-                'success' => true,
-                'message' => 'Pembayaran belum terpenuhi!',
+                'success' => false,
+                'message' => 'Terjadi kesalahan dalam pembaruan status pembayaran!',
             ]);
         }
-       
     }
-
     /**
      * Remove the specified resource from storage.
      */

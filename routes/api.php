@@ -1,8 +1,11 @@
 <?php
 
-use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VariasiHargaJualController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -31,15 +34,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('detail-kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'kartuStok']);
 
+    //Variasi Harga Jual
+    Route::delete('variasi-harga-jual/{variasi_harga_jual}', [VariasiHargaJualController::class, 'destroy']);
+
 
     //Pelanggan
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
 
     //Vendor
-    Route::apiResource('vendor', \App\Http\Controllers\VendorController::class);
+    Route::apiResource('vendor', VendorController::class);
 
     //Sales
-    Route::apiResource('sales', \App\Http\Controllers\SalesController::class)->only('index');
+    Route::get('sales', [SalesController::class, 'index']);
+    Route::delete('sales/{sales}', [SalesController::class, 'destroy']);
 
     //Metode Pembayaran
     Route::apiResource('metode-pembayaran', \App\Http\Controllers\MetodePembayaranController::class);

@@ -11,12 +11,12 @@ class VendorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $vendor = Vendor::paginate(10);
+        $vendor = Vendor::with(['sales'])->paginate($request->num);
         return response()->json([
             'success' => true,
-            'data' => $vendor->load(['sales']),
+            'data' => $vendor->items(),
             'last_page' => $vendor->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
@@ -56,7 +56,7 @@ class VendorController extends Controller
         if($vendor) {
             return response()->json([
                 'success' => true,
-                'data' => $vendor->load(['sales']),
+                'data' => $vendor,
                 'message' => 'Data vendor ditambahkan!',
             ], 200);
         }

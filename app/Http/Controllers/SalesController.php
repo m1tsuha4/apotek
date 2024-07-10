@@ -65,6 +65,11 @@ class SalesController extends Controller
      */
     public function destroy(Sales $sales)
     {
-        //
+        $sales->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data sales dihapus!',
+        ]);
     }
 }

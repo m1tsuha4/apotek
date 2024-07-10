@@ -32,19 +32,51 @@ class PembayaranPembelianController extends Controller
         $validatedData = $request->validate([
             'id_pembelian' => 'required',
             'id_metode_pembayaran' => 'required',
-            'total_dibayar' => 'required',
+            'total_dibayar' => 'required|numeric',
             'tanggal_pembayaran' => 'required',
             'referensi_pembayaran' => 'sometimes',
         ]);
-
+    
+        // Retrieve the total amount of the purchase
+        $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+        
+        // Sum the current total payments
+        $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+        
+        // Calculate new total after adding the new payment
+        $new_total_dibayar = $total_dibayar + $validatedData['total_dibayar'];
+    
+        // Check if the new total exceeds the purchase total
+        if ($new_total_dibayar > $pembelian->total) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jumlah pembayaran melebihi total tagihan!',
+            ], 400);
+        }
+    
+        // Create the new payment
         $pembayaranPembelian = PembayaranPembelian::create($validatedData);
-
+    
+        // Update the status of the purchase
+        if ($new_total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+            $status_message = 'Data pembayaran pembelian diperbarui menjadi Lunas!';
+        } else {
+            $pembelian->update([
+                'status' => 'Pembayaran Sebagian',
+            ]);
+            $status_message = 'Data pembayaran pembelian diperbarui menjadi Pembayaran Sebagian!';
+        }
+    
         return response()->json([
             'success' => true,
             'data' => $pembayaranPembelian,
-            'message' => 'Data pembayaran pembelian ditambahkan!',
+            'message' => 'Data pembayaran pembelian ditambahkan! ' . $status_message,
         ]);
     }
+    
 
     /**
      * Display the specified resource.

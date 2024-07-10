@@ -10,6 +10,10 @@ class Barang extends Model
 {
     use HasFactory;
 
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
     protected $fillable = [
         'id_kategori',
         'id_satuan',
@@ -46,5 +50,29 @@ class Barang extends Model
     public function barangPembelian()
     {
         return $this->hasMany(BarangPembelian::class, 'id_barang');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = self::generateId();
+            }
+        });
+    }
+
+    protected static function generateId()
+    {
+        $lastRecord = self::orderBy('id', 'desc')->first();
+        if (!$lastRecord) {
+            return 'SKU-00001';
+        }
+
+        $lastIdNumber = intval(substr($lastRecord->id, 4));
+        $newIdNumber = $lastIdNumber + 1;
+
+        return 'SKU-' . str_pad($newIdNumber, 5, '0', STR_PAD_LEFT);
     }
 }

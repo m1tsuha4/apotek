@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('stok_barangs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_barang');
+            $table->string('id_barang',10);
             $table->string('batch');
             $table->date('exp_date');
             $table->integer('stok_gudang');
-            $table->integer('min_stok_gudang')->nullable();
-            $table->integer('notif_exp')->nullable();
             $table->integer('stok_apotek')->nullable();
+            $table->integer('stok_total')->nullable();
             $table->timestamps();
 
             $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');

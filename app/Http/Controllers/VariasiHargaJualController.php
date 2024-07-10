@@ -60,6 +60,10 @@ class VariasiHargaJualController extends Controller
      */
     public function destroy(VariasiHargaJual $variasiHargaJual)
     {
-        //
+        $variasiHargaJual->delete();
+        return response()->json([
+            'success' => true,
+            'messages' => 'Data Berhasil dihapus!'
+        ]);
     }
 }

@@ -19,16 +19,40 @@ class BarangController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $barang = Barang::paginate(10);
+        // Ambil data yang dipaginate
+        $barang = Barang::select('id', 'id_satuan', 'id_kategori', 'nama_barang', 'min_stok_total', 'notif_exp', 'harga_beli', 'harga_jual')
+            ->with([
+                'satuan:id,nama_satuan',
+                'kategori:id,nama_kategori',
+            ])
+            ->paginate($request->num);
 
         return response()->json([
             'success' => true,
-            'data'    =>  $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
+            'data' => $barang->items(),
             'last_page' => $barang->lastPage(),
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
+    }
+
+
+    public function searchBarang(Request $request)
+    {
+        $search = $request->input('search');
+        $result = Barang::select('id', 'id_satuan', 'id_kategori', 'nama_barang', 'min_stok_total', 'notif_exp', 'harga_beli', 'harga_jual')
+            ->with([
+                'satuan:id,nama_satuan',
+                'kategori:id,nama_kategori',
+            ])
+            ->where('nama_barang', 'like', '%' . $search . '%')
+            ->get();
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+            'message' => 'Data Berhasil Ditemukan!',
+        ]);
     }
 
     public function beliBarang()
@@ -74,6 +98,8 @@ class BarangController extends Controller
             'id_kategori' => ['required'],
             'id_satuan' => ['required'],
             'nama_barang' => ['required', 'string', 'max:255'],
+            'min_stok_total' => 'sometimes',
+            'notif_exp' => 'sometimes',
             'harga_beli' => ['required'],
             'harga_jual' => ['required'],
             'variasi_harga_juals' => 'sometimes|array',
@@ -87,26 +113,30 @@ class BarangController extends Controller
 
         $barang = Barang::create($validatedData);
 
-        foreach ($validatedData['variasi_harga_juals'] as $variasiHargaJual) {
-            $barang->variasiHargaJual()->create([
-                'id_barang' => $barang->id,
-                'min_kuantitas' => $variasiHargaJual['min_kuantitas'],
-                'harga' => $variasiHargaJual['harga']
-            ]);
+        if (isset($validatedData['variasi_harga_juals'])) {
+            foreach ($validatedData['variasi_harga_juals'] as $variasiHargaJual) {
+                $barang->variasiHargaJual()->create([
+                    'id_barang' => $barang->id,
+                    'min_kuantitas' => $variasiHargaJual['min_kuantitas'],
+                    'harga' => $variasiHargaJual['harga']
+                ]);
+            }
         }
 
-        $barang->satuanBarang()->create([
-            'id_barang' => $barang->id,
-            'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
-            'jumlah' => $validatedData['satuan_barangs_jumlah'],
-            'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
-            'harga_jual' => $validatedData['satuan_barangs_harga_jual']
-        ]);
+        if (isset($validatedData['satuan_barangs_id_satuan']) && isset($validatedData['satuan_barangs_jumlah']) && isset($validatedData['satuan_barangs_harga_beli']) && isset($validatedData['satuan_barangs_harga_jual'])) {
+            $barang->satuanBarang()->create([
+                'id_barang' => $barang->id,
+                'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+                'jumlah' => $validatedData['satuan_barangs_jumlah'],
+                'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+                'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+            ]);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Ditambahkan!',
-            'data' => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
+            'data' => $barang,
         ], 200);
     }
 
@@ -116,10 +146,19 @@ class BarangController extends Controller
      */
     public function show($id)
     {
-        $barang = Barang::where('id', $id)->first();
+        $barang = Barang::select('id', 'id_satuan', 'id_kategori', 'nama_barang', 'min_stok_total', 'notif_exp', 'harga_beli', 'harga_jual')
+            ->with([
+                'satuan:id,nama_satuan',
+                'kategori:id,nama_kategori',
+                'variasiHargaJual:id,id_barang,min_kuantitas,harga',
+                'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
+                'satuanBarang.satuan:id,nama_satuan',
+            ])
+            ->where('id', $id)
+            ->first();
         return response()->json([
             'success' => true,
-            'data'    => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
+            'data'    => $barang,
             'message' => 'Data Berhasil Ditemukan!',
         ], 200);
     }
@@ -143,6 +182,8 @@ class BarangController extends Controller
             'nama_barang' => ['required', 'string', 'max:255'],
             'harga_beli' => ['required'],
             'harga_jual' => ['required'],
+            'min_stok_total' => 'sometimes',
+            'notif_exp' => 'sometimes',
             'variasi_harga_juals' => 'sometimes|array',
             'variasi_harga_juals.*.min_kuantitas' => 'sometimes',
             'variasi_harga_juals.*.harga' => 'sometimes',
@@ -188,7 +229,7 @@ class BarangController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Data Barang Berhasil Diupdate!',
-            'data' => $barang->load(['satuan', 'kategori', 'variasiHargaJual', 'satuanBarang.satuan']),
+            'data' => $barang,
         ], 200);
     }
 
@@ -235,11 +276,11 @@ class BarangController extends Controller
     public function detailKartuStok(Barang $barang)
     {
         $purchases = $barang->barangPembelian()
-                ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
-                ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
-                ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
-                ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
-                ->paginate(10);
+            ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
+            ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
+            ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
+            ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
+            ->paginate(10);
         // dd($purchases);
 
 
@@ -285,7 +326,7 @@ class BarangController extends Controller
             'nama_barang' => $barang->nama_barang,
             'nama_satuan' => $barang->satuan->nama_satuan,
         ] : [];
-    
+
         return response()->json([
             'status' => true,
             'data' => array_merge($commonData, ['list' => array_values($stockDetails)]),

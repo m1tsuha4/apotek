@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('variasi_harga_juals', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_barang');
+            $table->string('id_barang',10);
             $table->integer('min_kuantitas');
             $table->integer('harga');
             $table->timestamps();

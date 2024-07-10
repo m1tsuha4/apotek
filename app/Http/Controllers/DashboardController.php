@@ -24,9 +24,9 @@ class DashboardController extends Controller
         ]);
     }
     
-    public function stokBarang()
+    public function stokBarang(Request $request)
     {
-        $stokBarang = StokBarang::paginate(10);
+        $stokBarang = StokBarang::paginate($request->num);
 
         $data = $stokBarang->map(function ($item) {
             return [
@@ -43,6 +43,24 @@ class DashboardController extends Controller
             'data' => $data,
             'last_page' => $stokBarang->lastPage(),
             'message' => 'Data Stok Barang Berhasil ditemukan!',
+        ]);
+    }
+
+    public function searchStokBarang(Request $request)
+    {
+        $search = $request->input('search');
+        $result = StokBarang::select('id', 'id_barang', 'stok_total')
+                ->with([
+                    'satuan:id,nama_satuan', 
+                    'kategori:id,nama_kategori', 
+                ])
+                ->where('nama_barang','like','%'.$search.'%')
+                ->groupBy('nama_barang')
+                ->get();
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+            'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
 

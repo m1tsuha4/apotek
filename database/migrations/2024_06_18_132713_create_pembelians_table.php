@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('status');
             $table->date('tanggal_jatuh_tempo');
             $table->string('referensi')->nullable();
-            $table->integer('sub_total');
-            $table->integer('diskon')->nullable();
-            $table->integer('total');
+            $table->float('sub_total');
+            $table->float('diskon')->nullable();
+            $table->float('total');
             $table->string('catatan')->nullable();
             $table->timestamps();
         });

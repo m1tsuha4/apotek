@@ -17,12 +17,13 @@ class PembelianController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pembelian = Pembelian::paginate(10);
+        $pembelian = Pembelian::with('barangPembelian','jenis:id,nama_jenis','vendor:id,nama_perusahaan','vendor.sales:id,id_vendor,nama_sales')
+            ->paginate($request->num);
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian','jenis','sales','sales.vendor']),
+            'data' => $pembelian->items(),
             'last_page' => $pembelian->lastPage(),
             'message' => 'Data pembelian berhasil ditemukan',
         ]);
@@ -31,9 +32,14 @@ class PembelianController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function generateId()
     {
-       
+        $newId = Pembelian::generateId();
+        return response()->json([
+            'success' => true,
+            'data' => $newId,
+            'message' => 'ID pembelian berhasil digenerate',
+        ]);
     }
 
     /**
@@ -42,13 +48,14 @@ class PembelianController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'id_sales' => 'required',
+            'id_vendor' => 'required',
             'id_jenis' => 'required',
             'tanggal' => 'required',
             'status' => 'required',
             'tanggal_jatuh_tempo' => 'required',
             'referensi' => 'sometimes',
             'sub_total' => 'required',
+            'total_diskon_satuan' => 'sometimes',
             'diskon' => 'sometimes',
             'total' => 'required',
             'catatan' => 'sometimes',
@@ -100,7 +107,7 @@ class PembelianController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $pembelian->load(['barangPembelian']),
+            'data' => $pembelian,
             'message' => 'Pembelian Berhasil!',
         ],200);
     }
@@ -116,8 +123,8 @@ class PembelianController extends Controller
         $data = [
             'id' => $pembelian->id,
             'status' => $pembelian->status,
-            'id_sales' => $pembelian->id_sales,
-            'nama_sales' => $pembelian->sales->vendor->nama_perusahaan,
+            'id_vendor' => $pembelian->id_vendor,
+            'nama_perusahaan' => $pembelian->vendor->nama_perusahaan,
             'tanggal' => $pembelian->tanggal,
             'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
             'catatan' => $pembelian->catatan,
@@ -180,6 +187,7 @@ class PembelianController extends Controller
             'referensi' => 'sometimes',
             'sub_total' => 'sometimes',
             'diskon' => 'sometimes',
+            'total_diskon_satuan' => 'sometimes',
             'total' => 'sometimes',
             'catatan' => 'sometimes',
             'barang_pembelians' => 'sometimes|array',
@@ -254,5 +262,17 @@ class PembelianController extends Controller
             'data' => $data,
             'messages' => 'Data Retur Berhasil ditampilkan!'
         ]);
+    }
+
+    public function setPembelian(Pembelian $pembelian)
+    {
+        $pembelian->update([
+            'id_jenis' => '2'
+        ]);
+        return response()->json([
+            'success' => true,
+            'data' => $pembelian,
+            'message' => 'Pembelian Berhasil!',
+        ],200);
     }
 }

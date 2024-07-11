@@ -4,7 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\BarangController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\VariasiHargaJualController;
 
 Route::get('/user', function (Request $request) {
@@ -27,12 +29,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('satuan', \App\Http\Controllers\SatuanController::class);
 
     //Barang
-    Route::get('beli-barang', [\App\Http\Controllers\BarangController::class, 'beliBarang']);
-    Route::apiResource('barang', \App\Http\Controllers\BarangController::class);
-    Route::get('barang-export', [\App\Http\Controllers\BarangController::class, 'export']);
-    Route::post('barang-import', [\App\Http\Controllers\BarangController::class, 'import']);
-    Route::get('detail-kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'detailKartuStok']);
-    Route::get('kartu-stok/{barang}', [\App\Http\Controllers\BarangController::class, 'kartuStok']);
+    Route::get('beli-barang', [BarangController::class, 'beliBarang']);
+    Route::apiResource('barang', BarangController::class);
+    Route::get('barang-export', [BarangController::class, 'export']);
+    Route::post('barang-import', [BarangController::class, 'import']);
+    Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
+    Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
 
     //Variasi Harga Jual
     Route::delete('variasi-harga-jual/{variasi_harga_jual}', [VariasiHargaJualController::class, 'destroy']);
@@ -52,9 +54,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('metode-pembayaran', \App\Http\Controllers\MetodePembayaranController::class);
 
     //Pembelian
-    Route::apiResource('pembelian', \App\Http\Controllers\PembelianController::class);
-    Route::get('pembelian-export', [\App\Http\Controllers\PembelianController::class, 'export']);
-    Route::get('retur-barang-pembelian/{pembelian}', [\App\Http\Controllers\PembelianController::class, 'returPembelian']);
+    Route::get('pembelian-id', [PembelianController::class, 'generateId']);
+    Route::apiResource('pembelian', PembelianController::class);
+    Route::get('pembelian-export', [PembelianController::class, 'export']);
+    Route::put('set-pembelian/{pembelian}', [PembelianController::class, 'setPembelian']);
+    Route::get('retur-barang-pembelian/{pembelian}', [PembelianController::class, 'returPembelian']);
 
     //Pembayaran Pembelian
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);

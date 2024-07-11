@@ -13,9 +13,9 @@ class StokOpnameController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stokOpname = StokOpname::paginate(10);
+        $stokOpname = StokOpname::paginate($request->num);
         return response()->json([
             'success' => true,
             'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),

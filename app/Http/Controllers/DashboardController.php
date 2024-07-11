@@ -92,6 +92,7 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Stok Aman',
+            'data' => []
         ]);
     }
 
@@ -125,6 +126,7 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Obat Aman',
+            'data' => []
         ]);
     }
 }

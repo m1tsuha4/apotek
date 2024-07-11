@@ -10,9 +10,9 @@ class ReturPembelianController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])->paginate(10);
+        $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])->paginate($request->num);
 
         $data = collect($returPembelians->items())->map(function ($returPembelian) {
             $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');

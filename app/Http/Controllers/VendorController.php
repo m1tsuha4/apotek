@@ -13,7 +13,9 @@ class VendorController extends Controller
      */
     public function index(Request $request)
     {
-        $vendor = Vendor::with(['sales'])->paginate($request->num);
+        $vendor = Vendor::select('id', 'nama_perusahaan', 'no_telepon', 'alamat')
+            ->with(['sales:id,id_vendor,nama_sales,no_telepon'])
+            ->paginate($request->num);
         return response()->json([
             'success' => true,
             'data' => $vendor->items(),
@@ -39,19 +41,22 @@ class VendorController extends Controller
             'nama_perusahaan' => ['required', 'string', 'max:255', 'unique:' . Vendor::class],
             'no_telepon' => ['required', 'unique:' . Vendor::class],
             'alamat' => ['required', 'string', 'max:255'],
-            'sales' => 'required|array',
-            'sales.*.nama_sales' => ['required', 'string', 'max:255'],
-            'sales.*.no_telepon' => ['required'],
+            'sales' => 'sometimes|array',
+            'sales.*.nama_sales' => ['sometimes', 'string', 'max:255'],
+            'sales.*.no_telepon' => ['sometimes'],
         ]);
 
         $vendor = Vendor::create($validatedData);
 
-        foreach ($validatedData['sales'] as $salesData) {
-            $vendor->sales()->create([
-                'nama_sales' => $salesData['nama_sales'],
-                'no_telepon' => $salesData['no_telepon'],
-            ]);
+        if(isset($validatedData['sales'])){
+            foreach ($validatedData['sales'] as $salesData) {
+                $vendor->sales()->create([
+                    'nama_sales' => $salesData['nama_sales'],
+                    'no_telepon' => $salesData['no_telepon'],
+                ]);
+            }    
         }
+        
 
         if($vendor) {
             return response()->json([
@@ -72,11 +77,13 @@ class VendorController extends Controller
      */
     public function show(Vendor $vendor)
     {
-        $vendor = Vendor::findOrFail($vendor->id);
+        $vendor = Vendor::select('id', 'nama_perusahaan', 'no_telepon', 'alamat')
+            ->with(['sales:id,id_vendor,nama_sales,no_telepon'])
+            ->findOrFail($vendor->id);
         
         return response()->json([
             'success' => true,
-            'data' => $vendor->load(['sales']),
+            'data' => $vendor,
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
@@ -104,14 +111,16 @@ class VendorController extends Controller
         ]);
     
         $vendor->update($validatedData);
-    
-        foreach ($validatedData['sales'] as $index => $salesData) {
-            $sales = $vendor->sales()->get()[$index] ?? null;
-            if ($sales) {
-                $sales->update($salesData);
-            } else {
-                $vendor->sales()->create($salesData);
-            }
+
+        if(isset($validatedData['sales'])){
+            foreach ($validatedData['sales'] as $index => $salesData) {
+                $sales = $vendor->sales()->get()[$index] ?? null;
+                if ($sales) {
+                    $sales->update($salesData);
+                } else {
+                    $vendor->sales()->create($salesData);
+                }
+            }    
         }
     
         return response()->json([

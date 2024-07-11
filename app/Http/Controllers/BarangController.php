@@ -57,27 +57,30 @@ class BarangController extends Controller
 
     public function beliBarang()
     {
-        $barang = Barang::with(['satuan', 'satuanBarang.satuan'])->get();
+        $barang = Barang::select('id','id_satuan', 'nama_barang', 'harga_beli', 'harga_jual')
+                ->with(['satuan:id,nama_satuan', 'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
+                'satuanBarang.satuan:id,nama_satuan',])
+                ->get();
 
-        $data = $barang->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'nama_barang' => $item->nama_barang,
-                'harga_beli' => $item->harga_beli,
-                'satuan_dasar' => [
-                    'id' => $item->satuan->id,
-                    'nama_satuan' => $item->satuan->nama_satuan,
-                ],
-                'satuan_barang' => [
-                    'id' => $item->satuanBarang->id,
-                    'nama_satuan' => $item->satuanBarang->satuan->nama_satuan,
-                ]
-            ];
-        });
+        // $data = $barang->map(function ($item) {
+        //     return [
+        //         'id' => $item->id,
+        //         'nama_barang' => $item->nama_barang,
+        //         'harga_beli' => $item->harga_beli,
+        //         'satuan_dasar' => [
+        //             'id' => $item->satuan->id,
+        //             'nama_satuan' => $item->satuan->nama_satuan,
+        //         ],
+        //         'satuan_barang' => [
+        //             'id' => $item->satuanBarang->id,
+        //             'nama_satuan' => $item->satuanBarang->satuan->nama_satuan,
+        //         ]
+        //     ];
+        // });
 
         return response()->json([
             'success' => true,
-            'data' => $data,
+            'data' => $barang,
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
@@ -197,15 +200,16 @@ class BarangController extends Controller
         $barang->update($validatedData);
 
         // Update or create VariasiHargaJual
-        foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
-            $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
-            if ($variasiHargaJual) {
-                $variasiHargaJual->update($variasiHargaJualData);
-            } else {
-                $barang->variasiHargaJual()->create($variasiHargaJualData);
+        if(!isset($validatedData['variasi_harga_juals'])) {
+            foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
+                $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
+                if ($variasiHargaJual) {
+                    $variasiHargaJual->update($variasiHargaJualData);
+                } else {
+                    $barang->variasiHargaJual()->create($variasiHargaJualData);
+                }
             }
         }
-
         // Update or create SatuanBarang
         $satuanBarang = $barang->satuanBarang;
 

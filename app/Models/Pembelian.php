@@ -16,7 +16,7 @@ class Pembelian extends Model
 
     protected $fillable = [
         'id',
-        'id_sales',
+        'id_vendor',
         'id_jenis',
         'tanggal',
         'status',
@@ -24,10 +24,15 @@ class Pembelian extends Model
         'referensi',
         'sub_total',
         'diskon',
+        'total_diskon_satuan',
         'total',
         'catatan',
     ];
 
+    public function vendor() {
+        return $this->belongsTo(Vendor::class, 'id_vendor');
+    }
+    
     public function sales() {
         return $this->belongsTo(Sales::class, 'id_sales');
     }

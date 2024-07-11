@@ -10,9 +10,9 @@ class PelangganController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pelanggan = Pelanggan::paginate(10);
+        $pelanggan = Pelanggan::paginate($request->num);
         return response()->json([
             'success' => true,
             'data' => $pelanggan,

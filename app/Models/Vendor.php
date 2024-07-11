@@ -19,4 +19,9 @@ class Vendor extends Model
     {
         return $this->hasMany(Sales::class, 'id_vendor');
     }
+
+    public function pembelian()
+    {
+        return $this->hasMany(Pembelian::class, 'id_vendor');
+    }
 }

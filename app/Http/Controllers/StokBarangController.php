@@ -12,9 +12,9 @@ class StokBarangController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stok = StokBarang::paginate(10);
+        $stok = StokBarang::paginate($request->num);
 
         return response()->json([
             'success' => true,

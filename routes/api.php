@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('barang-import', [BarangController::class, 'import']);
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
+    Route::get('search-barang', [BarangController::class, 'searchBarang']);
 
     //Variasi Harga Jual
     Route::delete('variasi-harga-jual/{variasi_harga_jual}', [VariasiHargaJualController::class, 'destroy']);

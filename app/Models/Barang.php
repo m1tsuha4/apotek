@@ -18,6 +18,8 @@ class Barang extends Model
         'id_kategori',
         'id_satuan',
         'nama_barang',
+        'min_stok_total',
+        'notif_exp',
         'harga_beli',
         'harga_jual',
     ];

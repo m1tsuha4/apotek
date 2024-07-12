@@ -30,31 +30,45 @@ class BarangImport implements ToModel, WithHeadingRow
             return null; // or throw an exception, or handle accordingly
         }
 
-        $barang = Barang::create([
-            'id_kategori' => $kategori->id,
-            'id_satuan' => $satuan->id,
-            'nama_barang' => $row['nama_barang'],
-            'harga_beli' => $row['harga_beli'],
-            'harga_jual' => $row['harga_jual'],
-        ]);
+        // Update or create Barang
+        $barang = Barang::updateOrCreate(
+            ['nama_barang' => $row['nama_barang']],
+            [
+                'id_kategori' => $kategori->id,
+                'id_satuan' => $satuan->id,
+                'min_stok_total' => $row['min_stok_total'],
+                'notif_exp' => $row['notif_exp'],
+                'harga_beli' => $row['harga_beli'],
+                'harga_jual' => $row['harga_jual'],
+            ]
+        );
 
         // Handle variations
         for ($i = 1; $i <= 5; $i++) { // Assuming up to 5 variations for simplicity
             if (isset($row["variasi_min_kuantitas_$i"]) && isset($row["variasi_harga_$i"])) {
-                VariasiHargaJual::create([
-                    'id_barang' => $barang->id,
-                    'min_kuantitas' => $row["variasi_min_kuantitas_$i"],
-                    'harga' => $row["variasi_harga_$i"],
-                ]);
+                VariasiHargaJual::updateOrCreate(
+                    [
+                        'id_barang' => $barang->id,
+                        'min_kuantitas' => $row["variasi_min_kuantitas_$i"]
+                    ],
+                    [
+                        'harga' => $row["variasi_harga_$i"],
+                    ]
+                );
             }
         }
 
-        SatuanBarang::create([
-            'id_barang' => $barang->id,
-            'id_satuan' => $satuanBarang->id,
-            'jumlah' => $row['satuan_barangs_jumlah'],
-            'harga_beli' => $row['satuan_barangs_harga_beli'],
-            'harga_jual' => $row['satuan_barangs_harga_jual'],
-        ]);
+        // Update or create SatuanBarang
+        SatuanBarang::updateOrCreate(
+            [
+                'id_barang' => $barang->id,
+                'id_satuan' => $satuanBarang->id,
+            ],
+            [
+                'jumlah' => $row['satuan_barangs_jumlah'],
+                'harga_beli' => $row['satuan_barangs_harga_beli'],
+                'harga_jual' => $row['satuan_barangs_harga_jual'],
+            ]
+        );
     }
 }

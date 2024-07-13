@@ -200,7 +200,7 @@ class BarangController extends Controller
         $barang->update($validatedData);
 
         // Update or create VariasiHargaJual
-        if(!isset($validatedData['variasi_harga_juals'])) {
+        if(isset($validatedData['variasi_harga_juals'])) {
             foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
                 $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
                 if ($variasiHargaJual) {
@@ -212,23 +212,26 @@ class BarangController extends Controller
         }
         // Update or create SatuanBarang
         $satuanBarang = $barang->satuanBarang;
-
-        if ($satuanBarang) {
-            $satuanBarang->update([
-                'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
-                'jumlah' => $validatedData['satuan_barangs_jumlah'],
-                'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
-                'harga_jual' => $validatedData['satuan_barangs_harga_jual']
-            ]);
-        } else {
-            $barang->satuanBarang()->create([
-                'id_barang' => $barang->id,
-                'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
-                'jumlah' => $validatedData['satuan_barangs_jumlah'],
-                'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
-                'harga_jual' => $validatedData['satuan_barangs_harga_jual']
-            ]);
+        if(isset($validatedData['satuan_barangs_id_satuan']) && isset($validatedData['satuan_barangs_jumlah']) && isset($validatedData['satuan_barangs_harga_beli']) && isset($validatedData['satuan_barangs_harga_jual'])) {
+            if ($satuanBarang) {
+                $satuanBarang->update([
+                    'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+                    'jumlah' => $validatedData['satuan_barangs_jumlah'],
+                    'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+                    'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+                ]);
+            } else {
+                $barang->satuanBarang()->create([
+                    'id_barang' => $barang->id,
+                    'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
+                    'jumlah' => $validatedData['satuan_barangs_jumlah'],
+                    'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
+                    'harga_jual' => $validatedData['satuan_barangs_harga_jual']
+                ]);
+            }       
         }
+        
+       
 
         return response()->json([
             'status' => true,

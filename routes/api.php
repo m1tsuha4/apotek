@@ -84,4 +84,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('dashboard-stok-barang', [\App\Http\Controllers\DashboardController::class, 'stokBarang']);
     Route::get('dashboard-notif-stok', [\App\Http\Controllers\DashboardController::class, 'notifStok']);
     Route::get('dashboard-notif-exp', [\App\Http\Controllers\DashboardController::class, 'notifExp']);
+
+    //Change password
+    Route::post('change-password', [AuthController::class, 'changePassword']);
 });

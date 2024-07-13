@@ -180,11 +180,11 @@ class BarangController extends Controller
     public function update(Request $request, Barang $barang)
     {
         $validatedData = $request->validate([
-            'id_kategori' => ['required'],
-            'id_satuan' => ['required'],
-            'nama_barang' => ['required', 'string', 'max:255'],
-            'harga_beli' => ['required'],
-            'harga_jual' => ['required'],
+            'id_kategori' => ['sometimes'],
+            'id_satuan' => ['sometimes'],
+            'nama_barang' => ['sometimes', 'string', 'max:255'],
+            'harga_beli' => ['sometimes'],
+            'harga_jual' => ['sometimes'],
             'min_stok_total' => 'sometimes',
             'notif_exp' => 'sometimes',
             'variasi_harga_juals' => 'sometimes|array',

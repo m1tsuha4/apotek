@@ -19,7 +19,7 @@ class PembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $pembelian = Pembelian::with('barangPembelian','jenis:id,nama_jenis','vendor:id,nama_perusahaan','vendor.sales:id,id_vendor,nama_sales')
+        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'vendor.sales:id,id_vendor,nama_sales')
             ->paginate($request->num);
         return response()->json([
             'success' => true,
@@ -86,7 +86,7 @@ class PembelianController extends Controller
 
             $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
 
-            if($barangPembelianData['id_satuan'] == $satuanDasar){
+            if ($barangPembelianData['id_satuan'] == $satuanDasar) {
                 StokBarang::create([
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
@@ -102,14 +102,14 @@ class PembelianController extends Controller
                     'exp_date' => $barangPembelianData['exp_date'],
                     'stok_gudang' => $stok
                 ]);
-            }         
+            }
         }
 
         return response()->json([
             'success' => true,
             'data' => $pembelian,
             'message' => 'Pembelian Berhasil!',
-        ],200);
+        ], 200);
     }
 
     /**
@@ -179,7 +179,7 @@ class PembelianController extends Controller
     public function update(Request $request, Pembelian $pembelian)
     {
         $validatedData = $request->validate([
-            'id_sales' => 'sometimes',
+            'id_vendor' => 'sometimes',
             'id_jenis' => 'sometimes',
             'tanggal' => 'sometimes',
             'status' => 'sometimes',
@@ -208,7 +208,50 @@ class PembelianController extends Controller
             if ($barangPembelian) {
                 $barangPembelian->update($barangPembelianData);
             } else {
-                $pembelian->barangPembelian()->create($barangPembelianData);
+                $barangPembelian = $pembelian->barangPembelian()->create($barangPembelianData);
+            }
+
+            $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+
+            if ($barangPembelianData['id_satuan'] == $satuanDasar) {
+                $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
+                    ->where('batch', $barangPembelianData['batch'])
+                    ->first();
+
+                if ($stokBarang) {
+                    $stokBarang->update([
+                        'exp_date' => $barangPembelianData['exp_date'],
+                        'stok_gudang' => $barangPembelianData['jumlah']
+                    ]);
+                } else {
+                    StokBarang::create([
+                        'id_barang' => $barangPembelianData['id_barang'],
+                        'batch' => $barangPembelianData['batch'],
+                        'exp_date' => $barangPembelianData['exp_date'],
+                        'stok_gudang' => $barangPembelianData['jumlah']
+                    ]);
+                }
+            } else {
+                $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
+                $stok = $barangPembelianData['jumlah'] * $satuanBesar;
+
+                $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
+                    ->where('batch', $barangPembelianData['batch'])
+                    ->first();
+
+                if ($stokBarang) {
+                    $stokBarang->update([
+                        'exp_date' => $barangPembelianData['exp_date'],
+                        'stok_gudang' => $stok
+                    ]);
+                } else {
+                    StokBarang::create([
+                        'id_barang' => $barangPembelianData['id_barang'],
+                        'batch' => $barangPembelianData['batch'],
+                        'exp_date' => $barangPembelianData['exp_date'],
+                        'stok_gudang' => $stok
+                    ]);
+                }
             }
         }
 
@@ -216,8 +259,9 @@ class PembelianController extends Controller
             'success' => true,
             'data' => $pembelian->load(['barangPembelian']),
             'message' => 'Pembelian Berhasil!',
-        ],200);
+        ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -273,6 +317,6 @@ class PembelianController extends Controller
             'success' => true,
             'data' => $pembelian,
             'message' => 'Pembelian Berhasil!',
-        ],200);
+        ], 200);
     }
 }

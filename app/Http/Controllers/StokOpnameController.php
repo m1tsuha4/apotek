@@ -6,6 +6,7 @@ use App\Models\StokBarang;
 use App\Models\StokOpname;
 use Illuminate\Http\Request;
 use App\Exports\StokOpnameExport;
+use App\Imports\StokOpnameImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class StokOpnameController extends Controller
@@ -100,5 +101,14 @@ class StokOpnameController extends Controller
     public function export()
     {
         return Excel::download(new StokOpnameExport, 'StokOpname.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $validatedData = $request->validate([
+            'file' => 'required|mimes:xlsx',
+        ]);
+
+        Excel::import(new StokOpnameImport, $request->file('file'));
     }
 }

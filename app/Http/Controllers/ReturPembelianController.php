@@ -47,9 +47,14 @@ class ReturPembelianController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function generateId()
     {
-        //
+        $newId = ReturPembelian::generateId();
+        return response()->json([
+            'success' => true,
+            'data' => $newId,
+            'message' => 'ID retur pembelian berhasil digenerate',
+        ]);
     }
 
     /**

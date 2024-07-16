@@ -7,6 +7,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\VariasiHargaJualController;
 
 Route::get('/user', function (Request $request) {
@@ -66,7 +67,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
 
     //Retur Pembelian
-    Route::apiResource('retur-pembelian', \App\Http\Controllers\ReturPembelianController::class);
+    Route::get('retur-pembelian-id', [ReturPembelianController::class, 'generateId']);
+    Route::apiResource('retur-pembelian', ReturPembelianController::class);
 
     //Stok Barang
     Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);

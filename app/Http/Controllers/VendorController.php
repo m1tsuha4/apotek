@@ -48,17 +48,17 @@ class VendorController extends Controller
 
         $vendor = Vendor::create($validatedData);
 
-        if(isset($validatedData['sales'])){
+        if (isset($validatedData['sales'])) {
             foreach ($validatedData['sales'] as $salesData) {
                 $vendor->sales()->create([
                     'nama_sales' => $salesData['nama_sales'],
                     'no_telepon' => $salesData['no_telepon'],
                 ]);
-            }    
+            }
         }
-        
 
-        if($vendor) {
+
+        if ($vendor) {
             return response()->json([
                 'success' => true,
                 'data' => $vendor,
@@ -80,7 +80,7 @@ class VendorController extends Controller
         $vendor = Vendor::select('id', 'nama_perusahaan', 'no_telepon', 'alamat')
             ->with(['sales:id,id_vendor,nama_sales,no_telepon'])
             ->findOrFail($vendor->id);
-        
+
         return response()->json([
             'success' => true,
             'data' => $vendor,
@@ -105,14 +105,14 @@ class VendorController extends Controller
             'nama_perusahaan' => ['sometimes', 'string', 'max:255'],
             'no_telepon' => ['sometimes'],
             'alamat' => ['sometimes', 'string', 'max:255'],
-            'sales' => 'required|array',
-            'sales.*.nama_sales' => ['required', 'string', 'max:255'],
-            'sales.*.no_telepon' => ['required'],
+            'sales' => 'sometimes|array',
+            'sales.*.nama_sales' => ['sometimes', 'string', 'max:255'],
+            'sales.*.no_telepon' => ['sometimes'],
         ]);
-    
+
         $vendor->update($validatedData);
 
-        if(isset($validatedData['sales'])){
+        if (isset($validatedData['sales'])) {
             foreach ($validatedData['sales'] as $index => $salesData) {
                 $sales = $vendor->sales()->get()[$index] ?? null;
                 if ($sales) {
@@ -120,16 +120,16 @@ class VendorController extends Controller
                 } else {
                     $vendor->sales()->create($salesData);
                 }
-            }    
+            }
         }
-    
+
         return response()->json([
             'success' => true,
             'data' => $vendor->load(['sales']),
             'message' => 'Data vendor diupdate!',
         ]);
     }
-    
+
     /**
      * Remove the specified resource from storage.
      */

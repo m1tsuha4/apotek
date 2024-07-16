@@ -13,6 +13,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('barang-export', [BarangController::class, 'export']);
+
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -31,7 +33,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Barang
     Route::get('beli-barang', [BarangController::class, 'beliBarang']);
     Route::apiResource('barang', BarangController::class);
-    Route::get('barang-export', [BarangController::class, 'export']);
     Route::post('barang-import', [BarangController::class, 'import']);
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);

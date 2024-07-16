@@ -16,7 +16,7 @@ class StokBarangController extends Controller
     public function index(Request $request)
     {
         $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
-            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,id_barang,stok_total'])
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->paginate($request->num);
 
         return response()->json([
@@ -94,7 +94,7 @@ class StokBarangController extends Controller
         $barang_gudang = StokBarang::where('id_barang', $id_barang)->sum('stok_gudang');
         $barang_apotek = StokBarang::where('id_barang', $id_barang)->sum('stok_apotek');
         $stok_entries = StokBarang::where('id_barang', $id_barang)
-            ->get(['id', 'batch', 'stok_gudang', 'stok_apotek', 'stok_total']);
+            ->get(['id', 'batch','exp_date', 'stok_gudang', 'stok_apotek', 'stok_total']);
 
         return response()->json([
             'success' => true,

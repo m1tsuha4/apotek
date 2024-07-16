@@ -34,7 +34,7 @@ class DashboardController extends Controller
                 'nama_barang' => $item->barang->nama_barang,
                 'kategori' => $item->barang->kategori->nama_kategori,
                 'satuan' => $item->barang->satuan->nama_satuan,
-                'total' => $item->stok_gudang + $item->stok_apotek
+                'total' => $item->stok_total
             ];
         });
 
@@ -71,8 +71,8 @@ class DashboardController extends Controller
         $messages = [];
 
         foreach ($stokBarang as $item) {
-            $total = $item->stok_gudang + $item->stok_apotek;
-            if ($total <= $item->min_stok_gudang) {
+            $total = $item->stok_total;
+            if ($total <= $item->barang->min_stok_total) {
                 $messages[] = [
                     'nama_barang' => $item->barang->nama_barang,
                     'batch' => $item->batch,
@@ -104,7 +104,7 @@ class DashboardController extends Controller
 
         foreach ($stokBarang as $item) {
             $expDate = Carbon::parse($item->exp_date);
-            $notifDate = now()->addDays($item->notif_exp);
+            $notifDate = now()->addDays($item->barang->notif_exp);
             if ($expDate->lessThanOrEqualTo($notifDate) && $expDate->greaterThan(now())) {
                 $messages[] = [
                     'nama_barang' => $item->barang->nama_barang,

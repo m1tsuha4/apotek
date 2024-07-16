@@ -17,6 +17,7 @@ class StokBarang extends Model
         'min_stok_gudang',
         'notif_exp',
         'stok_apotek',
+        'stok_total'
     ];
 
     public function barang()

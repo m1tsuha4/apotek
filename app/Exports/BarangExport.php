@@ -12,8 +12,6 @@ class BarangExport implements FromQuery, WithMapping, WithHeadings
     /**
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    private $rowNumber = 1;
-
     public function query()
     {
         return Barang::query();
@@ -26,10 +24,12 @@ class BarangExport implements FromQuery, WithMapping, WithHeadings
     public function map($barang): array
     {
         return [
-            $this->rowNumber++,
+            $barang->id,
             $barang->nama_barang,
             $barang->kategori->nama_kategori,
             $barang->satuan->nama_satuan,
+            $barang->notif_exp,
+            $barang->min_stok_total,
             $barang->harga_beli,
             $barang->harga_jual,
         ];
@@ -41,10 +41,12 @@ class BarangExport implements FromQuery, WithMapping, WithHeadings
     public function headings(): array
     {
         return [
-            'No',
+            'SKU',
             'Nama Barang',
             'Kategori',
             'Satuan',
+            'Peringatan Exp',
+            'Peringatan Stok',
             'Harga Beli',
             'Harga Jual',
         ];

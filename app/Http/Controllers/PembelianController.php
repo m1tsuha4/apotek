@@ -91,7 +91,8 @@ class PembelianController extends Controller
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
                     'exp_date' => $barangPembelianData['exp_date'],
-                    'stok_gudang' => $barangPembelianData['jumlah']
+                    'stok_gudang' => $barangPembelianData['jumlah'],
+                    'stok_total' => $barangPembelianData['jumlah']
                 ]);
             } else {
                 $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
@@ -100,7 +101,8 @@ class PembelianController extends Controller
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
                     'exp_date' => $barangPembelianData['exp_date'],
-                    'stok_gudang' => $stok
+                    'stok_gudang' => $stok,
+                    'stok_total' => $stok
                 ]);
             }
         }
@@ -221,14 +223,16 @@ class PembelianController extends Controller
                 if ($stokBarang) {
                     $stokBarang->update([
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $barangPembelianData['jumlah']
+                        'stok_gudang' => $barangPembelianData['jumlah'],
+                        'stok_total' => $barangPembelianData['jumlah']
                     ]);
                 } else {
                     StokBarang::create([
                         'id_barang' => $barangPembelianData['id_barang'],
                         'batch' => $barangPembelianData['batch'],
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $barangPembelianData['jumlah']
+                        'stok_gudang' => $barangPembelianData['jumlah'],
+                        'stok_total' => $barangPembelianData['jumlah']
                     ]);
                 }
             } else {
@@ -242,14 +246,16 @@ class PembelianController extends Controller
                 if ($stokBarang) {
                     $stokBarang->update([
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $stok
+                        'stok_gudang' => $stok,
+                        'stok_total' => $stok
                     ]);
                 } else {
                     StokBarang::create([
                         'id_barang' => $barangPembelianData['id_barang'],
                         'batch' => $barangPembelianData['batch'],
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $stok
+                        'stok_gudang' => $stok,
+                        'stok_total' => $stok
                     ]);
                 }
             }

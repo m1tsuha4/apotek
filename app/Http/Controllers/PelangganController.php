@@ -15,7 +15,7 @@ class PelangganController extends Controller
         $pelanggan = Pelanggan::paginate($request->num);
         return response()->json([
             'success' => true,
-            'data' => $pelanggan,
+            'data' => $pelanggan->items(),
             'last_page' => $pelanggan->lastPage(),
             'message' => 'Data pelanggan berhasil ditemukan',
         ]);

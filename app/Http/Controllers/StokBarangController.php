@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Exports\StokBarangExport;
@@ -14,11 +15,13 @@ class StokBarangController extends Controller
      */
     public function index(Request $request)
     {
-        $stok = StokBarang::paginate($request->num);
+        $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,id_barang,stok_total'])
+            ->paginate($request->num);
 
         return response()->json([
             'success' => true,
-            'data' => $stok->load(['barang','barang.kategori','barang.satuan']),
+            'data' => $stok->items(),
             'last_page' => $stok->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
@@ -56,8 +59,8 @@ class StokBarangController extends Controller
         if ($request->dari == 'gudang') {
             if ($stokBarang->stok_gudang < $request->jumlah) {
                 return response()->json([
-                  'success' => false,
-                  'message' => 'Stok gudang tidak mencukupi',
+                    'success' => false,
+                    'message' => 'Stok gudang tidak mencukupi',
                 ], 400);
             }
             $stokBarang->stok_gudang -= $request->jumlah;
@@ -65,8 +68,8 @@ class StokBarangController extends Controller
         } else {
             if ($stokBarang->stok_apotek < $request->jumlah) {
                 return response()->json([
-                  'success' => false,
-                  'message' => 'Stok apotek tidak mencukupi',
+                    'success' => false,
+                    'message' => 'Stok apotek tidak mencukupi',
                 ], 400);
             }
             $stokBarang->stok_apotek -= $request->jumlah;
@@ -84,13 +87,24 @@ class StokBarangController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(StokBarang $stokBarang)
+    public function show($id_barang)
     {
-        $stok = StokBarang::findOrFail($stokBarang->id);
+        $barang = Barang::select('id', 'nama_barang')->findOrFail($id_barang);
+        $barang_total = StokBarang::where('id_barang', $id_barang)->sum('stok_total');
+        $barang_gudang = StokBarang::where('id_barang', $id_barang)->sum('stok_gudang');
+        $barang_apotek = StokBarang::where('id_barang', $id_barang)->sum('stok_apotek');
+        $stok_entries = StokBarang::where('id_barang', $id_barang)
+            ->get(['id', 'batch', 'stok_gudang', 'stok_apotek', 'stok_total']);
 
         return response()->json([
             'success' => true,
-            'data' => $stok->load(['barang','barang.kategori','barang.satuan']),
+            'data' => [
+                'barang' => $barang,
+                'total_stok' => $barang_total,
+                'stok_gudang' => $barang_gudang,
+                'stok_apotek' => $barang_apotek,
+                'stok_entries' => $stok_entries
+            ],
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
@@ -117,7 +131,7 @@ class StokBarangController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $stokBarang->load(['barang','barang.kategori','barang.satuan']),
+            'data' => $stokBarang->load(['barang', 'barang.kategori', 'barang.satuan']),
             'message' => 'Data Berhasil diperbarui!',
         ]);
     }
@@ -139,5 +153,4 @@ class StokBarangController extends Controller
     {
         return Excel::download(new StokBarangExport, 'StokBarang.xlsx');
     }
-
 }

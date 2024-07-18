@@ -27,9 +27,14 @@ class VendorController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function getVendor()
     {
-        //
+        $vendor = Vendor::select('id', 'nama_perusahaan')->get();
+        return response()->json([
+            'success' => true,
+            'data' => $vendor,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**

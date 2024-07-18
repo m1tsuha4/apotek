@@ -5,8 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\VariasiHargaJualController;
 
@@ -47,6 +49,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
 
     //Vendor
+    Route::get('nama-vendor', [VendorController::class, 'getVendor']);
     Route::apiResource('vendor', VendorController::class);
 
     //Sales
@@ -75,9 +78,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
 
     //Stok Opname
-    Route::apiResource('stok-opname', \App\Http\Controllers\StokOpnameController::class);
-    Route::get('stok-opname-export', [\App\Http\Controllers\StokOpnameController::class, 'export']);
-
+    Route::apiResource('stok-opname', StokOpnameController::class);
+    Route::get('stok-opname-export', [StokOpnameController::class, 'export']);
+    Route::post('stock-opname-import', [StokOpnameController::class, 'import']);
 
     //Jenis
     Route::apiResource('jenis', \App\Http\Controllers\JenisController::class)->only('index');
@@ -90,4 +93,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Change password
     Route::post('change-password', [AuthController::class, 'changePassword']);
+
+    //Karyawan
+    Route::get('karyawan', [KaryawanController::class, 'index']);
+    Route::get('karyawan/{karyawan}', [KaryawanController::class, 'show']);
+    Route::post('karyawan', [KaryawanController::class, 'store']);
+    Route::put('karyawan/{karyawan}', [KaryawanController::class, 'update']);
+    Route::delete('karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
 });

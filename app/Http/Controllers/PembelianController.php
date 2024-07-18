@@ -19,7 +19,7 @@ class PembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'vendor.sales:id,id_vendor,nama_sales')
+        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan')
             ->paginate($request->num);
         return response()->json([
             'success' => true,

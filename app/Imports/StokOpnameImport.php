@@ -3,9 +3,12 @@
 namespace App\Imports;
 
 use App\Models\Barang;
+use App\Models\StokBarang;
+use App\Models\StokOpname;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class StokOpnameImport implements ToModel
+class StokOpnameImport implements ToModel, WithHeadingRow
 {
     /**
     * @param array $row
@@ -14,8 +17,28 @@ class StokOpnameImport implements ToModel
     */
     public function model(array $row)
     {
-        return new Barang([
-            //
+        $stokBarang = StokBarang::where('batch', $row['batch'])->first();
+
+        if(!$stokBarang){
+            return null;
+        }
+       
+        StokOpname::create([
+            'id_stok_barang' => $stokBarang->id,
+            'sumber_stok' => $row['sumber_stok'],
+            'tanggal' => $row['tanggal'],
+            'stok_tercatat' => $row['stok_tercatat'],
+            'stok_aktual' => $row['stok_aktual']
         ]);
+        
+        if ($row['sumber_stok'] == 'Gudang') {
+            $stokBarang->stok_gudang = $row['stok_aktual'];
+        } elseif ($row['sumber_stok'] == 'Apotek') {
+            $stokBarang->stok_apotek = $row['stok_aktual'];
+        }
+
+        $stokBarang->stok_total = $stokBarang->stok_gudang + $stokBarang->stok_apotek;
+        
+        $stokBarang->save();
     }
 }

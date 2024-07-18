@@ -16,10 +16,16 @@ class StokOpnameController extends Controller
      */
     public function index(Request $request)
     {
-        $stokOpname = StokOpname::paginate($request->num);
+        $stokOpname = StokOpname::select('id','id_stok_barang','tanggal', 'sumber_stok', 'stok_tercatat', 'stok_aktual')
+            ->with([
+                'stokBarang:id,id_barang,exp_date',
+                'stokBarang.barang:id,nama_barang',
+                'stokBarang.barang.kategori:id,nama_kategori'
+            ])
+            ->paginate($request->num);
         return response()->json([
             'success' => true,
-            'data' => $stokOpname->load(['stokBarang','stokBarang.barang','stokBarang.barang.kategori']),
+            'data' => $stokOpname->items(),
             'last_page' => $stokOpname->lastPage(),
             'message' => 'Data Stok Opname Berhasil ditemukan!',
         ]);
@@ -54,6 +60,9 @@ class StokOpnameController extends Controller
         } elseif ($request->sumber_stok == 'Apotek') {
             $stokBarang->stok_apotek = $request->stok_aktual;
         }
+
+        $stokBarang->stok_total = $stokBarang->stok_gudang + $stokBarang->stok_apotek;
+
         $stokBarang->save();
 
         return response()->json([
@@ -110,5 +119,10 @@ class StokOpnameController extends Controller
         ]);
 
         Excel::import(new StokOpnameImport, $request->file('file'));
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data Barang Berhasil Diimport!',
+        ], 200);
     }
 }

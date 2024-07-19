@@ -18,7 +18,13 @@ class StokBarangController extends Controller
         $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
             ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->paginate($request->num);
+        
+        $data = $stok->items();
 
+        foreach ($data as $item) {
+            $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
+        }
+    
         return response()->json([
             'success' => true,
             'data' => $stok->items(),
@@ -89,7 +95,7 @@ class StokBarangController extends Controller
      */
     public function show($id_barang)
     {
-        $barang = Barang::select('id', 'nama_barang')->findOrFail($id_barang);
+        $barang = Barang::select('id','id_satuan', 'nama_barang')->with('satuan:id,nama_satuan')->findOrFail($id_barang);
         $barang_total = StokBarang::where('id_barang', $id_barang)->sum('stok_total');
         $barang_gudang = StokBarang::where('id_barang', $id_barang)->sum('stok_gudang');
         $barang_apotek = StokBarang::where('id_barang', $id_barang)->sum('stok_apotek');

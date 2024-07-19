@@ -2,49 +2,42 @@
 
 namespace App\Exports;
 
+use App\Models\Barang;
 use App\Models\StokBarang;
-use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class StokBarangExport implements FromQuery, WithMapping, WithHeadings
 {
-    private $rowNumber = 1;
     public function query()
     {
-        return StokBarang::query();
+        return Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total']);
     }
 
-    public function map($stokBarang): array
+    public function map($barang): array
     {
+        $total_stok = StokBarang::where('id_barang', $barang->id)->sum('stok_total');
+
         return [
-            $this->rowNumber++,
-            $stokBarang->batch,
-            $stokBarang->barang->nama_barang,
-            $stokBarang->barang->kategori->nama_kategori,
-            $stokBarang->exp_date,
-            $stokBarang->notif_exp,
-            $stokBarang->barang->satuan->nama_satuan,
-            $stokBarang->stok_gudang,
-            $stokBarang->min_stok_gudang,
-            $stokBarang->stok_apotek,
+            $barang->id,
+            $barang->nama_barang,
+            $barang->kategori->nama_kategori,
+            $barang->satuan->nama_satuan,
+            $total_stok,
         ];
     }
 
     public function headings(): array
     {
         return [
-            'No',
-            'Batch',
+            'SKU',
             'Nama Barang',
             'Kategori',
-            'Exp Date',
-            'Notif Exp',
             'Satuan',
-            'Stok Gudang',
-            'Min Stok Gudang',
-            'Stok Apotek',
+            'Stok Total',
         ];
     }
 }

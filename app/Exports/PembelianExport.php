@@ -20,8 +20,7 @@ class PembelianExport implements FromQuery, WithMapping, WithHeadings
         return [
             $pembelian->id,
             $pembelian->tanggal,
-            $pembelian->sales->vendor->nama_perusahaan,
-            $pembelian->sales->nama_sales,
+            $pembelian->vendor->nama_perusahaan,
             $pembelian->referensi,
             $pembelian->tanggal_jatuh_tempo,
             $pembelian->status,
@@ -36,7 +35,6 @@ class PembelianExport implements FromQuery, WithMapping, WithHeadings
             'Nomor',
             'Tanggal',
             'Vendor',
-            'Sales',
             'Referensi',
             'Tanggal Jatuh Tempo',
             'Status',

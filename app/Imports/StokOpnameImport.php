@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\StokBarang;
 use App\Models\StokOpname;
 use Maatwebsite\Excel\Concerns\ToModel;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class StokOpnameImport implements ToModel, WithHeadingRow
@@ -22,11 +23,17 @@ class StokOpnameImport implements ToModel, WithHeadingRow
         if(!$stokBarang){
             return null;
         }
+
+        if (is_numeric($row['tanggal'])) {
+            $tanggal = Date::excelToDateTimeObject($row['tanggal'])->format('Y-m-d');
+        } else {
+            $tanggal = $row['tanggal'];
+        }
        
         StokOpname::create([
             'id_stok_barang' => $stokBarang->id,
             'sumber_stok' => $row['sumber_stok'],
-            'tanggal' => $row['tanggal'],
+            'tanggal' => $tanggal,
             'stok_tercatat' => $row['stok_tercatat'],
             'stok_aktual' => $row['stok_aktual']
         ]);

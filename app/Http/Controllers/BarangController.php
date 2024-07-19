@@ -280,14 +280,14 @@ class BarangController extends Controller
         }
     }
 
-    public function detailKartuStok(Barang $barang)
+    public function detailKartuStok(Barang $barang, Request $request)
     {
         $purchases = $barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
             ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
             ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
             ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
-            ->paginate(10);
+            ->paginate($request->num);
         // dd($purchases);
 
 

@@ -65,6 +65,7 @@ class PembelianController extends Controller
             'barang_pembelians.*.exp_date' => 'required',
             'barang_pembelians.*.jumlah' => 'required',
             'barang_pembelians.*.id_satuan' => 'required',
+            'barang_pembelians.*.jenis_diskon' => 'sometimes',
             'barang_pembelians.*.diskon' => 'sometimes',
             'barang_pembelians.*.harga' => 'required',
             'barang_pembelians.*.total' => 'required'
@@ -79,6 +80,7 @@ class PembelianController extends Controller
                 'exp_date' => $barangPembelianData['exp_date'],
                 'jumlah' => $barangPembelianData['jumlah'],
                 'id_satuan' => $barangPembelianData['id_satuan'],
+                'jenis_diskon' => $barangPembelianData['jenis_diskon'],
                 'diskon' => $barangPembelianData['diskon'],
                 'harga' => $barangPembelianData['harga'],
                 'total' => $barangPembelianData['total']
@@ -142,9 +144,11 @@ class PembelianController extends Controller
                     'id_barang' => $barangPembelian->id_barang,
                     'nama_barang' => $barangPembelian->barang->nama_barang,
                     'batch' => $barangPembelian->batch,
+                    'exp_date' => $barangPembelian->exp_date,
                     'jumlah' => $barangPembelian->jumlah,
                     'id_satuan' => $barangPembelian->id_satuan,
                     'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPembelian->jenis_diskon,
                     'diskon' => $barangPembelian->diskon,
                     'harga' => $barangPembelian->harga,
                     'total' => $barangPembelian->total
@@ -199,6 +203,7 @@ class PembelianController extends Controller
             'barang_pembelians.*.exp_date' => 'sometimes',
             'barang_pembelians.*.jumlah' => 'sometimes',
             'barang_pembelians.*.id_satuan' => 'sometimes',
+            'barang_pembelians.*.jenis_diskon' => 'sometimes',
             'barang_pembelians.*.diskon' => 'sometimes',
             'barang_pembelians.*.harga' => 'sometimes',
             'barang_pembelians.*.total' => 'sometimes'

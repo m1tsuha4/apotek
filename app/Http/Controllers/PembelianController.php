@@ -129,6 +129,7 @@ class PembelianController extends Controller
             'nama_perusahaan' => $pembelian->vendor->nama_perusahaan,
             'tanggal' => $pembelian->tanggal,
             'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
+            'jenis' => $pembelian->jenis->nama_jenis,
             'catatan' => $pembelian->catatan,
             'sub_total' => $pembelian->sub_total,
             'diskon' => $pembelian->diskon,

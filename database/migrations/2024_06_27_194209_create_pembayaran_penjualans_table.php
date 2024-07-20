@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('pembayaran_penjualans', function (Blueprint $table) {
             $table->id();
+            $table->string('id_penjualan',10);
+            $table->foreignId('id_metode_pembayaran')->constrained('metode_pembayarans')->onDelete('cascade');
+            $table->integer('total_dibayar');
+            $table->date('tanggal_pembayaran');
+            $table->string('referensi_pembayaran');
             $table->timestamps();
+
+            $table->foreign('id_penjualan')->references('id')->on('penjualans')->onDelete('cascade');
         });
     }
 

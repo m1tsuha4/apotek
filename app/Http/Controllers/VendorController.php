@@ -29,7 +29,7 @@ class VendorController extends Controller
      */
     public function getVendor()
     {
-        $vendor = Vendor::select('id', 'nama_perusahaan')->get();
+        $vendor = Vendor::select('id', 'nama_perusahaan')->with('sales:id,id_vendor,nama_sales')->get();
         return response()->json([
             'success' => true,
             'data' => $vendor,

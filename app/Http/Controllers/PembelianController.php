@@ -19,7 +19,7 @@ class PembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan')
+        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'sales:id,nama_sales')
             ->paginate($request->num);
         return response()->json([
             'success' => true,
@@ -49,6 +49,7 @@ class PembelianController extends Controller
     {
         $validatedData = $request->validate([
             'id_vendor' => 'required',
+            'id_sales' => 'required',
             'id_jenis' => 'required',
             'tanggal' => 'required',
             'status' => 'required',
@@ -129,6 +130,8 @@ class PembelianController extends Controller
             'status' => $pembelian->status,
             'id_vendor' => $pembelian->id_vendor,
             'nama_perusahaan' => $pembelian->vendor->nama_perusahaan,
+            'id_sales' => $pembelian->id_sales,
+            'nama_sales' => $pembelian->sales->nama_sales,
             'tanggal' => $pembelian->tanggal,
             'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
             'jenis' => $pembelian->jenis->nama_jenis,
@@ -187,6 +190,7 @@ class PembelianController extends Controller
     {
         $validatedData = $request->validate([
             'id_vendor' => 'sometimes',
+            'id_sales' => 'sometimes',
             'id_jenis' => 'sometimes',
             'tanggal' => 'sometimes',
             'status' => 'sometimes',

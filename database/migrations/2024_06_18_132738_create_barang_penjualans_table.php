@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('barang_penjualans', function (Blueprint $table) {
             $table->id();
+            $table->string('id_penjualan',10);
+            $table->string('id_barang',10);
+            $table->integer('jumlah');
+            $table->foreignId('id_satuan')->constrained('satuans')->onDelete('cascade');
+            $table->string('jenis_diskon')->nullable();
+            $table->integer('diskon');
+            $table->integer('harga');
+            $table->integer('total');
             $table->timestamps();
+
+            $table->foreign('id_penjualan')->references('id')->on('penjualans')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

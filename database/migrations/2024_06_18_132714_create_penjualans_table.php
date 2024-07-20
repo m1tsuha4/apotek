@@ -19,6 +19,11 @@ return new class extends Migration
             $table->string('status')->default('Belum Dibayar');
             $table->date('tanggal_jatuh_tempo');
             $table->string('referensi')->nullable();
+            $table->float('sub_total');
+            $table->float('total_diskon_satuan')->nullable();
+            $table->float('diskon')->nullable();
+            $table->float('total');
+            $table->string('catatan')->nullable();
             $table->timestamps();
         });
     }

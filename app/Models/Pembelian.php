@@ -17,6 +17,7 @@ class Pembelian extends Model
     protected $fillable = [
         'id',
         'id_vendor',
+        'id_sales',
         'id_jenis',
         'tanggal',
         'status',

@@ -5,9 +5,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
-use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\VariasiHargaJualController;
@@ -100,6 +101,14 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
  Route::post('karyawan', [KaryawanController::class, 'store']);
  Route::put('karyawan/{karyawan}', [KaryawanController::class, 'update']);
  Route::delete('karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
+
+ //Penjualan
+ Route::get('penjualan-id', [PenjualanController::class, 'generateId']);
+ Route::get('penjualan', [PenjualanController::class, 'index']);
+ Route::get('penjualan/{penjualan}', [PenjualanController::class, 'show']);
+ Route::post('penjualan', [PenjualanController::class, 'store']);
+ Route::put('penjualan/{penjualan}', [PenjualanController::class, 'update']);
+ Route::delete('penjualan/{penjualan}', [PenjualanController::class, 'destroy']);
  
 Route::middleware(['auth:sanctum'])->group(function () {
    

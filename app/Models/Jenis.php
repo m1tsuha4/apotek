@@ -13,4 +13,9 @@ class Jenis extends Model
     {
         return $this->hasMany(Pembelian::class, 'id_jenis');
     }
+
+    public function penjualan()
+    {
+        return $this->hasMany(Penjualan::class, 'id_jenis');
+    }
 }

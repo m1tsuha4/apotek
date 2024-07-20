@@ -14,4 +14,9 @@ class Pelanggan extends Model
         'no_telepon',
         'alamat'
     ];
+
+    public function penjualan()
+    {
+        return $this->hasMany(Penjualan::class);
+    }
 }

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->date('tanggal_jatuh_tempo');
             $table->string('referensi')->nullable();
             $table->float('sub_total');
-            $table->string('jenis_diskon')->nullable();
             $table->float('total_diskon_satuan')->nullable();
             $table->float('diskon')->nullable();
             $table->float('total');

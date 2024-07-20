@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('penjualans', function (Blueprint $table) {
-            $table->id();
+            $table->string('id',10)->primary();
+            $table->foreignId('id_pelanggan')->constrained('pelanggans')->onDelete('cascade');
+            $table->foreignId('id_jenis')->constrained('jenis')->onDelete('cascade');
+            $table->date('tanggal');
+            $table->string('status')->default('Belum Dibayar');
+            $table->date('tanggal_jatuh_tempo');
+            $table->string('referensi')->nullable();
             $table->timestamps();
         });
     }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('exp_date');
             $table->integer('jumlah');
             $table->foreignId('id_satuan')->constrained('satuans')->onDelete('cascade');
+            $table->string('jenis_diskon')->nullable();
             $table->integer('diskon');
             $table->integer('harga');
             $table->integer('total');

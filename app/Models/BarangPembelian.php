@@ -16,6 +16,7 @@ class BarangPembelian extends Model
         'exp_date',
         'jumlah',
         'id_satuan',
+        'jenis_diskon',
         'diskon',
         'harga',
         'total',

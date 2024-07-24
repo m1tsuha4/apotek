@@ -57,10 +57,12 @@ class BarangController extends Controller
 
     public function beliBarang()
     {
-        $barang = Barang::select('id','id_satuan', 'nama_barang', 'harga_beli', 'harga_jual')
-                ->with(['satuan:id,nama_satuan', 'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
-                'satuanBarang.satuan:id,nama_satuan',])
-                ->get();
+        $barang = Barang::select('id', 'id_satuan', 'nama_barang', 'harga_beli', 'harga_jual')
+            ->with([
+                'satuan:id,nama_satuan', 'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
+                'satuanBarang.satuan:id,nama_satuan',
+            ])
+            ->get();
 
         // $data = $barang->map(function ($item) {
         //     return [
@@ -77,6 +79,30 @@ class BarangController extends Controller
         //         ]
         //     ];
         // });
+
+        return response()->json([
+            'success' => true,
+            'data' => $barang,
+            'message' => 'Data Berhasil Ditemukan!',
+        ]);
+    }
+
+    public function jualBarang()
+    {
+        $barang = Barang::select('id', 'id_satuan', 'nama_barang',  'harga_jual')
+            ->with([
+                'satuan:id,nama_satuan',
+                'satuanBarang:id,id_barang,id_satuan,jumlah,harga_jual',
+                'satuanBarang.satuan:id,nama_satuan',
+                'variasiHargaJual:id,id_barang,min_kuantitas,harga',
+                'stokBarang:id,batch,exp_date,id_barang,stok_apotek',
+            ])
+            ->orderBy('exp_date', 'asc')
+            ->get();
+
+        $barang->each(function ($item) {
+            $item->stok_total = $item->stokBarang->sum('stok_apotek');
+        });
 
         return response()->json([
             'success' => true,
@@ -200,7 +226,7 @@ class BarangController extends Controller
         $barang->update($validatedData);
 
         // Update or create VariasiHargaJual
-        if(isset($validatedData['variasi_harga_juals'])) {
+        if (isset($validatedData['variasi_harga_juals'])) {
             foreach ($validatedData['variasi_harga_juals'] as $index => $variasiHargaJualData) {
                 $variasiHargaJual = $barang->variasiHargaJual()->get()[$index] ?? null;
                 if ($variasiHargaJual) {
@@ -212,7 +238,7 @@ class BarangController extends Controller
         }
         // Update or create SatuanBarang
         $satuanBarang = $barang->satuanBarang;
-        if(isset($validatedData['satuan_barangs_id_satuan']) && isset($validatedData['satuan_barangs_jumlah']) && isset($validatedData['satuan_barangs_harga_beli']) && isset($validatedData['satuan_barangs_harga_jual'])) {
+        if (isset($validatedData['satuan_barangs_id_satuan']) && isset($validatedData['satuan_barangs_jumlah']) && isset($validatedData['satuan_barangs_harga_beli']) && isset($validatedData['satuan_barangs_harga_jual'])) {
             if ($satuanBarang) {
                 $satuanBarang->update([
                     'id_satuan' => $validatedData['satuan_barangs_id_satuan'],
@@ -228,10 +254,10 @@ class BarangController extends Controller
                     'harga_beli' => $validatedData['satuan_barangs_harga_beli'],
                     'harga_jual' => $validatedData['satuan_barangs_harga_jual']
                 ]);
-            }       
+            }
         }
-        
-       
+
+
 
         return response()->json([
             'status' => true,

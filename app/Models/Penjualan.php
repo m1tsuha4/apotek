@@ -24,7 +24,8 @@ class Penjualan extends Model
         'sub_total',
         'total_diskon_satuan',
         'diskon',
-        'catatan'
+        'total',
+        'catatan',
     ];
 
     public static function boot()

@@ -27,4 +27,9 @@ class Satuan extends Model
     {
         return $this->hasMany(BarangPembelian::class, 'id_satuan');
     }
+
+    public function barangPenjualan()
+    {
+        return $this->hasMany(BarangPenjualan::class, 'id_satuan');
+    }
 }

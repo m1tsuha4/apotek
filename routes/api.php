@@ -12,6 +12,7 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\VariasiHargaJualController;
+use App\Http\Controllers\PembayaranPenjualanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -36,6 +37,7 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
 
  //Barang
  Route::get('beli-barang', [BarangController::class, 'beliBarang']);
+ Route::get('jual-barang', [BarangController::class, 'jualBarang']);
  Route::apiResource('barang', BarangController::class);
  Route::post('barang-import', [BarangController::class, 'import']);
  Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
@@ -109,6 +111,12 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
  Route::post('penjualan', [PenjualanController::class, 'store']);
  Route::put('penjualan/{penjualan}', [PenjualanController::class, 'update']);
  Route::delete('penjualan/{penjualan}', [PenjualanController::class, 'destroy']);
+ Route::put('set-penjualan/{penjualan}', [PenjualanController::class, 'setPenjualan']);
+ Route::get('retur-barang-penjualan/{penjualan}', [PenjualanController::class, 'returPenjualan']);
+ Route::get('penjualan-export', [PenjualanController::class, 'export']);
+
+ //Pembayaran Penjualan
+ Route::post('pembayaran-penjualan', [PembayaranPenjualanController::class, 'store']);
  
 Route::middleware(['auth:sanctum'])->group(function () {
    

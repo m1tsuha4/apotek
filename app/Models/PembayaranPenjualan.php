@@ -21,4 +21,8 @@ class PembayaranPenjualan extends Model
     {
         return $this->belongsTo(Penjualan::class, 'id_penjualan');
     }
+    public function metodePembayaran()
+    {
+        return $this->belongsTo(MetodePembayaran::class, 'id_metode_pembayaran');
+    }
 }

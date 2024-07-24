@@ -12,6 +12,7 @@ class BarangPenjualan extends Model
     protected $fillable = [
         'id_penjualan',
         'id_barang',
+        'id_stok_barang',
         'jumlah',
         'id_satuan',
         'jenis_diskon',
@@ -22,6 +23,17 @@ class BarangPenjualan extends Model
 
     public function penjualan()
     {
-        return $this->belongsTo(Penjualan::class);
+        return $this->belongsTo(Penjualan::class, 'id_penjualan');
+    }
+
+    public function barang()
+    {
+        return $this->belongsTo(Barang::class, 'id_barang');
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(Satuan::class, 'id_satuan');
     }
 }
+

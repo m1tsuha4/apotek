@@ -108,7 +108,7 @@ class ReturPembelianController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $returPembelian->load('barangReturPembelian'),
+            'data' => $returPembelian,
             'message' => 'Data retur pembelian berhasil ditambahkan',
         ]);
     }

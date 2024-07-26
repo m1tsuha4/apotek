@@ -376,10 +376,12 @@ class PenjualanController extends Controller
                     'id' => $barangPenjualan->id,
                     'id_barang' => $barangPenjualan->id_barang,
                     'nama_barang' => $barangPenjualan->barang->nama_barang,
-                    'batch' => $barangPenjualan->batch,
+                    'id_stok_barang' => $barangPenjualan->id_stok_barang,
+                    'batch' => $barangPenjualan->StokBarang->batch,
                     'jumlah' => $barangPenjualan->jumlah,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPenjualan->jenis_diskon,
                     'diskon' => $barangPenjualan->diskon,
                     'harga' => $barangPenjualan->harga,
                     'total' => $barangPenjualan->total

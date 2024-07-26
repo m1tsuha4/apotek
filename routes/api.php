@@ -11,6 +11,7 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\VariasiHargaJualController;
 use App\Http\Controllers\PembayaranPenjualanController;
 
@@ -117,6 +118,14 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
 
  //Pembayaran Penjualan
  Route::post('pembayaran-penjualan', [PembayaranPenjualanController::class, 'store']);
+
+ //Retur Penjualan
+ Route::get('retur-penjualan-id', [ReturPenjualanController::class, 'generateId']);
+ Route::get('retur-penjualan', [ReturPenjualanController::class, 'index']);
+ Route::get('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'show']);
+ Route::post('retur-penjualan', [ReturPenjualanController::class, 'store']);
+ Route::put('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'update']);
+ Route::delete('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'destroy']);
  
 Route::middleware(['auth:sanctum'])->group(function () {
    

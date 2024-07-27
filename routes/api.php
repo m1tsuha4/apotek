@@ -7,6 +7,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\StokOpnameController;
@@ -44,13 +45,15 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
  Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
  Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
  Route::get('search-barang', [BarangController::class, 'searchBarang']);
+ Route::post('atur-notif', [BarangController::class,'aturNotif']);
 
  //Variasi Harga Jual
  Route::delete('variasi-harga-jual/{variasi_harga_jual}', [VariasiHargaJualController::class, 'destroy']);
 
 
  //Pelanggan
- Route::apiResource('pelanggan', \App\Http\Controllers\PelangganController::class);
+ Route::get('nama-pelanggan', [PelangganController::class, 'getPelanggan']);
+ Route::apiResource('pelanggan', PelangganController::class);
 
  //Vendor
  Route::get('nama-vendor', [VendorController::class, 'getVendor']);

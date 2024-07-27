@@ -24,9 +24,15 @@ class PelangganController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function getPelanggan()
     {
-        //
+        $pelanggan = Pelanggan::select('id','nama_pelanggan')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pelanggan,
+            'message' => 'Data pelanggan berhasil ditemukan',
+        ]);
     }
 
     /**

@@ -439,4 +439,24 @@ class BarangController extends Controller
     {
         return Excel::download(new KartuStockExport($barang), 'KartuStok.xlsx');
     }
+
+    public function aturNotif(Request $request)
+    {
+        $validatedData = $request->validate([
+            'notif_exp' => 'required',
+            'min_stok_total' => 'required'
+        ]);
+
+        $barangs = Barang::all();
+
+        foreach ($barangs as $barang)
+        {
+            $barang->update($validatedData);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Atur Peringatan Notifikasi berhasil diperbarui!'
+        ]);
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Exports\PembelianExport;
 use App\Models\PembayaranPembelian;
+use App\Models\PergerakanStokPembelian;
 use App\Models\Satuan;
 use App\Models\SatuanBarang;
 use Maatwebsite\Excel\Facades\Excel;
@@ -88,6 +89,21 @@ class PembelianController extends Controller
             ]);
 
             $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+
+            $hargaAsli = Barang::where($barangPembelianData['id_barang'])->value('harga_beli');
+
+            if ($barangPembelianData['harga'] != $hargaAsli) {
+                // Update the harga_beli with the new price
+                Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
+    
+                $selisih = $barangPembelianData['harga'] - $hargaAsli;
+    
+                // Create a new record in the PergerakanStokPembelian table
+                PergerakanStokPembelian::create([
+                    'id_pembelian' => $pembelian->id,
+                    'pergerakan_stok' => $selisih
+                ]);
+            }
 
             if ($barangPembelianData['id_satuan'] == $satuanDasar) {
                 StokBarang::create([

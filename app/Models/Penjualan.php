@@ -70,4 +70,9 @@ class Penjualan extends Model
     public function jenis() {
         return $this->belongsTo(Jenis::class, 'id_jenis');
     }
+
+    public function PergerakanStokPenjualan()
+    {
+        return $this->hasMany(PergerakanStokPenjualan::class, 'id_penjualan');
+    }
 }

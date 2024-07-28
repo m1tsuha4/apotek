@@ -10,9 +10,15 @@ class PergerakanStokPenjualanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $data = PergerakanStokPenjualan::with('penjualan:id,id_pelanggan,tanggal','penjualan.pelanggan:id,nama_pelanggan,no_telepon')->orderBy('created_at', 'desc')->where('id_barang', $request->id_barang)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
 
     /**

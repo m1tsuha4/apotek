@@ -11,6 +11,7 @@ use App\Exports\PenjualanExport;
 use App\Models\LaporanKeuanganMasuk;
 use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPenjualan;
+use App\Models\PergerakanStokPenjualan;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PenjualanController extends Controller
@@ -85,6 +86,14 @@ class PenjualanController extends Controller
 
                 // Ambil satuan dasar barang
                 $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
+                $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
+                $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
+
+                if($barangPenjualanData['harga'] != $hargaAsli){
+                    Barang::where('id', $idBarang)->update([
+                        'harga_jual' => $barangPenjualanData['harga']
+                    ]);
+                }
 
                 // Dapatkan stok barang yang tersedia berdasarkan barang dan satuan
                 $stokBarangs = StokBarang::where('id_barang', $idBarang)
@@ -131,6 +140,14 @@ class PenjualanController extends Controller
                     $stokBarang->save();
                 }
 
+                PergerakanStokPenjualan::create([
+                    'id_penjualan' => $penjualan->id,
+                    'id_barang' => $idBarang,
+                    'harga' => $barangPenjualanData['harga'],
+                    'pergerakan_stok' => $stokPengurangan,
+                    'stok_keseluruhan' => $totalStok - $stokPengurangan
+                ]);
+
                 if ($jumlah > 0) {
                     // Rollback transaction if stock is insufficient
                     DB::rollBack();
@@ -144,7 +161,7 @@ class PenjualanController extends Controller
 
             if  ($validatedData['id_jenis'] == '3') {
                 LaporanKeuanganMasuk::create([
-                    'id_penjualan' => $penjualan->id,,
+                    'id_penjualan' => $penjualan->id,
                     'piutang' => $penjualan->total,
                 ]);
             }
@@ -199,6 +216,8 @@ class PenjualanController extends Controller
                     'id' => $barangPenjualan->id,
                     'id_barang' => $barangPenjualan->id_barang,
                     'nama_barang' => $barangPenjualan->barang->nama_barang,
+                    'id_stok_barang' => $barangPenjualan->id_stok_barang,
+                    'batch' => $barangPenjualan->stokBarang->batch,
                     'jumlah' => $barangPenjualan->jumlah,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
@@ -277,6 +296,8 @@ class PenjualanController extends Controller
             // Find existing barang penjualan
             $existingBarangPenjualan = $penjualan->barangPenjualan()->where('id_barang', $idBarang)->first();
 
+            $existingPergerakanStok = PergerakanStokPenjualan::where('id_penjualan', $penjualan->id)->first();
+
             if ($existingBarangPenjualan) {
                 // Calculate the difference between old and new quantity
                 $jumlahLama = $existingBarangPenjualan->jumlah;
@@ -287,6 +308,14 @@ class PenjualanController extends Controller
 
             // Get satuan dasar
             $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
+            $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
+            $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
+
+            if($barangPenjualanData['harga'] != $hargaAsli){
+                Barang::where('id', $idBarang)->update([
+                    'harga_jual' => $barangPenjualanData['harga']
+                ]);
+            }
 
             // Get available stock
             $stokBarangs = StokBarang::where('id_barang', $idBarang)
@@ -326,6 +355,13 @@ class PenjualanController extends Controller
                         'harga' => $barangPenjualanData['harga'],
                         'total' => $barangPenjualanData['total'],
                     ]);
+                    if($existingPergerakanStok){
+                        $existingPergerakanStok->update([
+                            'harga' => $barangPenjualanData['harga'],
+                            'pergerakan_stok' => $jumlahBaru,
+                            'stok_keseluruhan' => $totalStok - $jumlahBaru
+                        ]);
+                    }
                 } else {
                     // Create new barang penjualan
                     $penjualan->barangPenjualan()->create([
@@ -345,6 +381,14 @@ class PenjualanController extends Controller
                 $stokBarang->stok_total -= $stokPengurangan;
                 $stokBarang->save();
             }
+
+            PergerakanStokPenjualan::create([
+                'id_penjualan' => $penjualan->id,
+                'id_barang' => $idBarang,
+                'harga' => $barangPenjualanData['harga'],
+                'pergerakan_stok' => $stokPengurangan,
+                'stok_keseluruhan' => $totalStok - $stokPengurangan
+            ]);
 
             if ($jumlahDifference > 0) {
                 return response()->json([

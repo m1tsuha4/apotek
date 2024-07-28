@@ -21,7 +21,8 @@ class PembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $pembelian = Pembelian::with('barangPembelian', 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'sales:id,nama_sales')
+        $pembelian = Pembelian::with( 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'sales:id,nama_sales')
+            ->select('id', 'id_vendor', 'id_sales','id_jenis', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
             ->paginate($request->num);
         return response()->json([
             'success' => true,
@@ -89,17 +90,9 @@ class PembelianController extends Controller
 
             $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
             $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
+            $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
 
             if ($barangPembelianData['harga'] != $hargaAsli) {
-
-                $selisih = $barangPembelianData['harga'] - $hargaAsli;
-
-                // Create a new record in the PergerakanStokPembelian table
-                PergerakanStokPembelian::create([
-                    'id_pembelian' => $pembelian->id,
-                    'pergerakan_stok' => $selisih
-                ]);
-
                 // Update the harga_beli with the new price
                 Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
             }
@@ -112,6 +105,14 @@ class PembelianController extends Controller
                     'stok_gudang' => $barangPembelianData['jumlah'],
                     'stok_total' => $barangPembelianData['jumlah']
                 ]);
+
+                PergerakanStokPembelian::create([
+                    'id_pembelian' => $pembelian->id,
+                    'id_barang' => $barangPembelianData['id_barang'],
+                    'harga' => $barangPembelianData['harga'],
+                    'pergerakan_stok' => $barangPembelianData['jumlah'],
+                    'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
+                ]);
             } else {
                 $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
                 $stok = $barangPembelianData['jumlah'] * $satuanBesar;
@@ -121,6 +122,14 @@ class PembelianController extends Controller
                     'exp_date' => $barangPembelianData['exp_date'],
                     'stok_gudang' => $stok,
                     'stok_total' => $stok
+                ]);
+
+                PergerakanStokPembelian::create([
+                    'id_pembelian' => $pembelian->id,
+                    'id_barang' => $barangPembelianData['id_barang'],
+                    'harga' => $barangPembelianData['harga'],
+                    'pergerakan_stok' => $stok,
+                    'stok_keseluruhan' => $totalStok + $stok
                 ]);
             }
         }
@@ -344,11 +353,21 @@ class PembelianController extends Controller
             }
 
             $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+            $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
+            $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
+
+            $pergerakanStok = PergerakanStokPembelian::where('id_pembelian', $pembelian->id)->first();
+
+            if ($barangPembelianData['harga'] != $hargaAsli) {
+                // Update the harga_beli with the new price
+                Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
+            }
 
             if ($barangPembelianData['id_satuan'] == $satuanDasar) {
                 $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
                     ->where('batch', $barangPembelianData['batch'])
                     ->first();
+
 
                 if ($stokBarang) {
                     $stokBarang->update([
@@ -356,6 +375,14 @@ class PembelianController extends Controller
                         'stok_gudang' => $barangPembelianData['jumlah'],
                         'stok_total' => $barangPembelianData['jumlah']
                     ]);
+
+                    if ($pergerakanStok) {
+                        $pergerakanStok->update([
+                            'harga' => $barangPembelianData['harga'],
+                            'pergerakan_stok' => $barangPembelianData['jumlah'],
+                            'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
+                        ]);
+                    }
                 } else {
                     StokBarang::create([
                         'id_barang' => $barangPembelianData['id_barang'],
@@ -363,6 +390,13 @@ class PembelianController extends Controller
                         'exp_date' => $barangPembelianData['exp_date'],
                         'stok_gudang' => $barangPembelianData['jumlah'],
                         'stok_total' => $barangPembelianData['jumlah']
+                    ]);
+                    PergerakanStokPembelian::create([
+                        'id_pembelian' => $pembelian->id,
+                        'id_barang' => $barangPembelianData['id_barang'],
+                        'harga' => $barangPembelianData['harga'],
+                        'pergerakan_stok' => $barangPembelianData['jumlah'],
+                        'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
                     ]);
                 }
             } else {
@@ -379,6 +413,13 @@ class PembelianController extends Controller
                         'stok_gudang' => $stok,
                         'stok_total' => $stok
                     ]);
+                    if($pergerakanStok){
+                        $pergerakanStok->update([
+                            'harga' => $barangPembelianData['harga'],
+                            'pergerakan_stok' => $stok,
+                            'stok_keseluruhan' => $totalStok + $stok
+                        ]);
+                    }
                 } else {
                     StokBarang::create([
                         'id_barang' => $barangPembelianData['id_barang'],
@@ -386,6 +427,13 @@ class PembelianController extends Controller
                         'exp_date' => $barangPembelianData['exp_date'],
                         'stok_gudang' => $stok,
                         'stok_total' => $stok
+                    ]);
+                    PergerakanStokPembelian::create([
+                        'id_pembelian' => $pembelian->id,
+                        'id_barang' => $barangPembelianData['id_barang'],
+                        'harga' => $barangPembelianData['harga'],
+                        'pergerakan_stok' => $stok,
+                        'stok_keseluruhan' => $totalStok + $stok
                     ]);
                 }
             }

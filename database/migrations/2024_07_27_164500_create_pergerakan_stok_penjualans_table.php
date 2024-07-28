@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('pergerakan_stok_penjualans', function (Blueprint $table) {
             $table->id();
             $table->string('id_penjualan',10);
+            $table->string('id_barang',10);
+            $table->integer('harga');
             $table->integer('pergerakan_stok');
             $table->integer('stok_keseluruhan')->nullable();
             $table->timestamps();
 
             $table->foreign('id_penjualan')->references('id')->on('penjualans')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id')->on('barangs')->onDelete('cascade');
         });
     }
 

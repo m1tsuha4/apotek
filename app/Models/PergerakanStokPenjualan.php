@@ -11,6 +11,8 @@ class PergerakanStokPenjualan extends Model
 
     protected $fillable = [
         'id_penjualan',
+        'id_barang',
+        'harga',
         'pergerakan_stok',
         'stok_keseluruhan'
     ];

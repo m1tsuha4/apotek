@@ -13,6 +13,7 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
+use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\VariasiHargaJualController;
 use App\Http\Controllers\PembayaranPenjualanController;
 
@@ -129,6 +130,10 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanct
  Route::post('retur-penjualan', [ReturPenjualanController::class, 'store']);
  Route::put('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'update']);
  Route::delete('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'destroy']);
+
+ //Laporan Keuangan
+ Route::get('laporan-keuangan', [LaporanKeuanganController::class, 'index']);
+ Route::get('laporan-keuangan-export', [LaporanKeuanganController::class, 'export']);
  
 Route::middleware(['auth:sanctum'])->group(function () {
    

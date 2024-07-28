@@ -7,6 +7,7 @@ use App\Models\Pembelian;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Exports\PembelianExport;
+use App\Models\LaporanKeuanganKeluar;
 use App\Models\PembayaranPembelian;
 use App\Models\PergerakanStokPembelian;
 use App\Models\Satuan;
@@ -43,11 +44,9 @@ class PembelianController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
+        // Validate the request data
         $validatedData = $request->validate([
             'id_vendor' => 'required',
             'id_sales' => 'required',
@@ -88,21 +87,21 @@ class PembelianController extends Controller
                 'total' => $barangPembelianData['total']
             ]);
 
-            $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
-
-            $hargaAsli = Barang::where($barangPembelianData['id_barang'])->value('harga_beli');
+            $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
+            $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
 
             if ($barangPembelianData['harga'] != $hargaAsli) {
-                // Update the harga_beli with the new price
-                Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
-    
+
                 $selisih = $barangPembelianData['harga'] - $hargaAsli;
-    
+
                 // Create a new record in the PergerakanStokPembelian table
                 PergerakanStokPembelian::create([
                     'id_pembelian' => $pembelian->id,
                     'pergerakan_stok' => $selisih
                 ]);
+
+                // Update the harga_beli with the new price
+                Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
             }
 
             if ($barangPembelianData['id_satuan'] == $satuanDasar) {
@@ -126,12 +125,117 @@ class PembelianController extends Controller
             }
         }
 
+        if ($validatedData['id_jenis'] == '2') {
+            LaporanKeuanganKeluar::create([
+                'id_pembelian' => $pembelian->id,
+                'utang' => $validatedData['total']
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $pembelian,
             'message' => 'Pembelian Berhasil!',
         ], 200);
     }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    // public function store(Request $request)
+    // {
+    //     $validatedData = $request->validate([
+    //         'id_vendor' => 'required',
+    //         'id_sales' => 'required',
+    //         'id_jenis' => 'required',
+    //         'tanggal' => 'required',
+    //         'status' => 'required',
+    //         'tanggal_jatuh_tempo' => 'required',
+    //         'referensi' => 'sometimes',
+    //         'sub_total' => 'required',
+    //         'total_diskon_satuan' => 'sometimes',
+    //         'diskon' => 'sometimes',
+    //         'total' => 'required',
+    //         'catatan' => 'sometimes',
+    //         'barang_pembelians' => 'required|array',
+    //         'barang_pembelians.*.id_barang' => 'required',
+    //         'barang_pembelians.*.batch' => 'required',
+    //         'barang_pembelians.*.exp_date' => 'required',
+    //         'barang_pembelians.*.jumlah' => 'required',
+    //         'barang_pembelians.*.id_satuan' => 'required',
+    //         'barang_pembelians.*.jenis_diskon' => 'sometimes',
+    //         'barang_pembelians.*.diskon' => 'sometimes',
+    //         'barang_pembelians.*.harga' => 'required',
+    //         'barang_pembelians.*.total' => 'required'
+    //     ]);
+
+    //     $pembelian = Pembelian::create($validatedData);
+
+    //     foreach ($validatedData['barang_pembelians'] as $barangPembelianData) {
+    //         $pembelian->barangPembelian()->create([
+    //             'id_barang' => $barangPembelianData['id_barang'],
+    //             'batch' => $barangPembelianData['batch'],
+    //             'exp_date' => $barangPembelianData['exp_date'],
+    //             'jumlah' => $barangPembelianData['jumlah'],
+    //             'id_satuan' => $barangPembelianData['id_satuan'],
+    //             'jenis_diskon' => $barangPembelianData['jenis_diskon'],
+    //             'diskon' => $barangPembelianData['diskon'],
+    //             'harga' => $barangPembelianData['harga'],
+    //             'total' => $barangPembelianData['total']
+    //         ]);
+
+    //         $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+
+    //         $hargaAsli = Barang::where($barangPembelianData['id_barang'])->value('harga_beli');
+
+    //         if ($barangPembelianData['harga'] != $hargaAsli) {
+    //             $selisih = $barangPembelianData['harga'] - $hargaAsli;
+
+    //             // Create a new record in the PergerakanStokPembelian table
+    //             PergerakanStokPembelian::create([
+    //                 'id_pembelian' => $pembelian->id,
+    //                 'pergerakan_stok' => $selisih
+    //             ]);
+
+    //             // Update the harga_beli with the new price
+    //             Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
+    //         }
+
+    //         if ($barangPembelianData['id_satuan'] == $satuanDasar) {
+    //             StokBarang::create([
+    //                 'id_barang' => $barangPembelianData['id_barang'],
+    //                 'batch' => $barangPembelianData['batch'],
+    //                 'exp_date' => $barangPembelianData['exp_date'],
+    //                 'stok_gudang' => $barangPembelianData['jumlah'],
+    //                 'stok_total' => $barangPembelianData['jumlah']
+    //             ]);
+    //         } else {
+    //             $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
+    //             $stok = $barangPembelianData['jumlah'] * $satuanBesar;
+    //             StokBarang::create([
+    //                 'id_barang' => $barangPembelianData['id_barang'],
+    //                 'batch' => $barangPembelianData['batch'],
+    //                 'exp_date' => $barangPembelianData['exp_date'],
+    //                 'stok_gudang' => $stok,
+    //                 'stok_total' => $stok
+    //             ]);
+    //         }
+    //     }
+
+    //     if ($validatedData['id_jenis'] == '2') {
+    //         LaporanKeuanganKeluar::create([
+    //             'id_pembelian' => $pembelian->id,
+    //             'utang' => $validatedData['total']
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $pembelian,
+    //         'message' => 'Pembelian Berhasil!',
+    //     ], 200);
+    // }
 
     /**
      * Display the specified resource.
@@ -344,6 +448,10 @@ class PembelianController extends Controller
     {
         $pembelian->update([
             'id_jenis' => '2'
+        ]);
+        LaporanKeuanganKeluar::create([
+            'id_pembelian' => $pembelian->id,
+            'utang' => $pembelian->total
         ]);
         return response()->json([
             'success' => true,

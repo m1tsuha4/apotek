@@ -8,6 +8,7 @@ use App\Models\StokBarang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Exports\PenjualanExport;
+use App\Models\LaporanKeuanganMasuk;
 use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPenjualan;
 use Maatwebsite\Excel\Facades\Excel;
@@ -139,6 +140,13 @@ class PenjualanController extends Controller
                         'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
                     ], 400);
                 }
+            }
+
+            if  ($validatedData['id_jenis'] == '3') {
+                LaporanKeuanganMasuk::create([
+                    'id_penjualan' => $penjualan->id,,
+                    'piutang' => $penjualan->total,
+                ]);
             }
 
             // Commit transaction
@@ -400,6 +408,10 @@ class PenjualanController extends Controller
     {
         $penjualan->update([
             'id_jenis' => '3',
+        ]);
+        LaporanKeuanganMasuk::create([
+            'id_penjualan' => $penjualan->id,
+            'piutang' => $penjualan->total,
         ]);
 
         return response()->json([

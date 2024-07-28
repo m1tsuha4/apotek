@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('laporan_keuangan_keluars', function (Blueprint $table) {
             $table->id();
             $table->string('id_pembelian', 10);
-            $table->float('pengeluaran');
-            $table->float('utang');
+            $table->float('pengeluaran')->nullable();
+            $table->float('utang')->nullable();
             $table->timestamps();
 
             $table->foreign('id_pembelian')->references('id')->on('pembelians')->onDelete('cascade');

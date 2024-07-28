@@ -5,16 +5,23 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
+use App\Models\LaporanKeuanganMasuk;
+use App\Models\LaporanKeuanganKeluar;
 
 class DashboardController extends Controller
 {
 
     public function keuangan(){
+        $totalPemasukkan = LaporanKeuanganMasuk::sum('pemasukkan');
+        $totalPiutang = LaporanKeuanganMasuk::sum('piutang');
+        $totalPengeluaran = LaporanKeuanganKeluar::sum('pengeluaran');
+        $totalUtang = LaporanKeuanganKeluar::sum('utang');
+
         $data = [
-            'pemasukan' => 1000000,
-            'pengeluaran' => 500000,
-            'utang' => 500000,
-            'piutang' => 1000000
+            'pemasukan' => $totalPemasukkan,
+            'pengeluaran' => $totalPengeluaran,
+            'utang' => $totalUtang,
+            'piutang' => $totalPiutang
         ];
 
         return response()->json([

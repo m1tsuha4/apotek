@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaporanKeuanganKeluar;
+use App\Models\LaporanKeuanganMasuk;
 use App\Models\PembayaranPembelian;
 use App\Models\Pembelian;
 use Illuminate\Http\Request;
@@ -46,6 +48,11 @@ class PembayaranPembelianController extends Controller
         // Calculate new total after adding the new payment
         $new_total_dibayar = $total_dibayar + $validatedData['total_dibayar'];
 
+        $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+
+        $current_pengeluaran = $laporanKeuangan->pengeluaran;
+        $current_utang = $laporanKeuangan->utang;
+
         // Check if the new total exceeds the purchase total
         if ($new_total_dibayar > $pembelian->total) {
             return response()->json([
@@ -62,10 +69,18 @@ class PembayaranPembelianController extends Controller
             $pembelian->update([
                 'status' => 'Lunas',
             ]);
+            $laporanKeuangan->update([
+                'utang' => 0,
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+            ]);
             $status_message = 'Data pembayaran pembelian diperbarui menjadi Lunas!';
         } else {
             $pembelian->update([
                 'status' => 'Dibayar Sebagian',
+            ]);
+            $laporanKeuangan->update([
+                'utang' => $current_utang - $validatedData['total_dibayar'],
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
             ]);
             $status_message = 'Data pembayaran pembelian diperbarui menjadi Pembayaran Sebagian!';
         }

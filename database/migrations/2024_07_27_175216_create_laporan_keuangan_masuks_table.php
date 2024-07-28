@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('laporan_keuangan_masuks', function (Blueprint $table) {
             $table->id();
             $table->string('id_penjualan',10);
-            $table->float('pemasukkan');
-            $table->float('piutang');
+            $table->float('pemasukkan')->nullable();
+            $table->float('piutang')->nullable();
             $table->timestamps();
 
             

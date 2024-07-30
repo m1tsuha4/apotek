@@ -478,6 +478,7 @@ class PembelianController extends Controller
                     'jumlah' => $barangPembelian->jumlah,
                     'id_satuan' => $barangPembelian->id_satuan,
                     'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPembelian->jenis_diskon,
                     'diskon' => $barangPembelian->diskon,
                     'harga' => $barangPembelian->harga,
                     'total' => $barangPembelian->total

@@ -18,6 +18,7 @@ use App\Http\Controllers\VariasiHargaJualController;
 use App\Http\Controllers\PembayaranPenjualanController;
 use App\Http\Controllers\PergerakanStokPembelianController;
 use App\Http\Controllers\PergerakanStokPenjualanController;
+use App\Http\Controllers\StokBarangController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -87,8 +88,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('retur-pembelian', ReturPembelianController::class);
 
     //Stok Barang
-    Route::apiResource('stok-barang', \App\Http\Controllers\StokBarangController::class);
-    Route::get('stok-barang-export', [\App\Http\Controllers\StokBarangController::class, 'export']);
+    Route::apiResource('stok-barang', StokBarangController::class);
+    Route::get('stok-barang-export', [StokBarangController::class, 'export']);
+    Route::delete('delete-stokBarang', [StokBarangController::class, 'deleteStokBarang']);
 
     //Stok Opname
     Route::apiResource('stok-opname', StokOpnameController::class);
@@ -116,6 +118,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);
+    Route::post('penjualan-stok-detail', [PenjualanController::class, 'getStockDetails']);
     Route::get('penjualan', [PenjualanController::class, 'index']);
     Route::get('penjualan/{penjualan}', [PenjualanController::class, 'show']);
     Route::post('penjualan', [PenjualanController::class, 'store']);

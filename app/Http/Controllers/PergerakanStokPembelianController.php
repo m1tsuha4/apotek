@@ -12,12 +12,20 @@ class PergerakanStokPembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $data = PergerakanStokPembelian::with('pembelian:id, id_vendor,id_sales,tanggal','pembelian.vendor:id,nama_perusahaans','pembelian.sales:id,nama_sales')
-        ->orderBy('created_at', 'desc')
-        ->where('id_barang', $request->id_barang)->get();
+        $data = PergerakanStokPembelian::select('id','id_barang','id_pembelian','harga','pergerakan_stok','stok_keseluruhan')
+            ->with('pembelian:id,id_vendor,id_sales,tanggal',
+                'pembelian.barangPembelian:id,id_pembelian,batch',
+                'pembelian.vendor:id,nama_perusahaan',
+                'pembelian.sales:id,nama_sales',
+                'barang:id,id_satuan,nama_barang',
+                'barang.satuan:id,nama_satuan')
+            ->orderBy('created_at', 'desc')
+            ->where('id_barang', $request->id_barang)
+            ->paginate(10);
         return response()->json([
             'success' => true,
-            'data' => $data,
+            'data' => $data->items(),
+            'last_page' => $data->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }

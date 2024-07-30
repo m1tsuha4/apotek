@@ -159,4 +159,13 @@ class StokBarangController extends Controller
     {
         return Excel::download(new StokBarangExport, 'StokBarang.xlsx');
     }
+
+    public function deleteStokBarang(Request $request, StokBarang $stokBarang)
+    {
+        $stokBarang->where('id_barang','=', $request->id_barang)->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil dihapus!',
+        ]);
+    }
 }

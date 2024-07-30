@@ -1,15 +1,20 @@
 <?php
 
+use App\Models\Akses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\AksesController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\StokBarangController;
 use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
@@ -18,7 +23,6 @@ use App\Http\Controllers\VariasiHargaJualController;
 use App\Http\Controllers\PembayaranPenjualanController;
 use App\Http\Controllers\PergerakanStokPembelianController;
 use App\Http\Controllers\PergerakanStokPenjualanController;
-use App\Http\Controllers\StokBarangController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -28,18 +32,30 @@ Route::get('barang-export', [BarangController::class, 'export']);
 
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/register', [AuthController::class, 'register'])->name('register');
+
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
-
-
-
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/register', [AuthController::class, 'register'])->middleware('superadmin')->name('register');
+
+    //Akses and Users
+    Route::get('akses', [AksesController::class, 'index']);
+    Route::post('akses', [AksesController::class, 'store']);
+    Route::put('update-akses-users', [AksesController::class, 'update']);
+    Route::delete('users/{user}', [AksesController::class, 'destroy'])->middleware('superadmin');
+    Route::get('list-users', [AksesController::class, 'getUsers']);
+    Route::get('akses-user', [AksesController::class, 'getAksesUser']);
+
+
     //Role
-    Route::apiResource('roles', \App\Http\Controllers\RoleController::class)->only('index');
+    Route::get('roles', [RoleController::class, 'index'])->middleware('superadmin');
 
     //Kategori
-    Route::apiResource('kategori', \App\Http\Controllers\KategoriController::class);
+    Route::get('kategori', [KategoriController::class, 'index'])->middleware('hak_akses:6');
+    Route::post('kategori', [KategoriController::class, 'store'])->middleware('hak_akses:5');
+    Route::put('kategori/{kategori}', [KategoriController::class, 'update'])->middleware('hak_akses:7');
+    Route::delete('kategori/{kategori}', [KategoriController::class, 'destroy'])->middleware('hak_akses:8');
+
 
     //Satuan
     Route::apiResource('satuan', \App\Http\Controllers\SatuanController::class);
@@ -115,6 +131,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('karyawan', [KaryawanController::class, 'store']);
     Route::put('karyawan/{karyawan}', [KaryawanController::class, 'update']);
     Route::delete('karyawan/{karyawan}', [KaryawanController::class, 'destroy']);
+    Route::post('karyawan-import', [KaryawanController::class, 'import']);
 
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);

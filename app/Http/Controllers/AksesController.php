@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Akses;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AksesController extends Controller
@@ -12,7 +13,60 @@ class AksesController extends Controller
      */
     public function index()
     {
-        //
+        $data = Akses::select('id','hak_akses')->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+            'message' => 'Data Berhasil ditemukan!'
+        ]);
+    }
+
+    public function getUsers(Request $request)
+    {        
+        $users = User::with('akses')->paginate($request->num);
+
+        $result = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'access_count' => $user->akses->count(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data'    => $result,
+            'last_page' => $users->lastPage(),
+            'message' => 'Data Berhasil ditemukan!'
+        ]);
+    }
+
+    public function getAksesUser(Request $request)
+    {
+        $users = User::with('akses')->where('id', $request->user_id)->get();
+
+        $result = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'access_count' => $user->akses->count(),
+                'access_rights' => $user->akses->map(function ($akses) {
+                return [
+                    'id' => $akses->id,
+                    'hak_akses' => $akses->hak_akses,
+                ];
+            }),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data'    => $result,
+            'message' => 'Data Berhasil ditemukan!'
+        ]);
     }
 
     /**
@@ -28,7 +82,27 @@ class AksesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'akses_id' => 'required|array',
+            'akses_id.*' => 'exists:akses,id',
+        ]);
+
+        $user = User::find($request->user_id);
+        $aksesIds = $request->akses_id;
+
+        if ($user) {
+            $user->akses()->attach($aksesIds);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Penambahan hak akses berhasil ditambahkan!'
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'User tidak ditemukan!',
+        ]);
     }
 
     /**
@@ -52,14 +126,39 @@ class AksesController extends Controller
      */
     public function update(Request $request, Akses $akses)
     {
-        //
+        $request->validate([
+            'user_id' => 'sometimes|exists:users,id',
+            'akses_id' => 'sometimes|array',
+            'akses_id.*' => 'exists:akses,id',
+        ]);
+
+        $user = User::find($request->user_id);
+        $aksesIds = $request->akses_id;
+
+        if ($user) {
+            $user->akses()->sync($aksesIds);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Penambahan hak akses berhasil diupdate!'
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'User tidak ditemukan!',
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Akses $akses)
+    public function destroy(User $user)
     {
-        //
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil dihapus!'
+        ]);
     }
 }

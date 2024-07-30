@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             SatuanSeeder::class,
             KategoriSeeder::class,
             JenisSeeder::class,
+            AksesSeeder::class
         ]);
     }
 }

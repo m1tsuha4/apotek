@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'superadmin' => \App\Http\Middleware\SuperAdmin::class,
+            'hak_akses' => \App\Http\Middleware\CheckAksesId::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

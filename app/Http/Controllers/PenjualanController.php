@@ -486,6 +486,35 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function returPenjualan(Penjualan $penjualan)
+    {
+        $data = [
+            'id' => $penjualan->id,
+            'barangPenjualan' => $penjualan->barangPenjualan->map(function ($barangPenjualan) {
+                return [
+                    'id' => $barangPenjualan->id,
+                    'id_barang' => $barangPenjualan->id_barang,
+                    'nama_barang' => $barangPenjualan->barang->nama_barang,
+                    'id_stok_barang' => $barangPenjualan->id_stok_barang,
+                    'batch' => $barangPenjualan->StokBarang->batch,
+                    'jumlah' => $barangPenjualan->jumlah,
+                    'id_satuan' => $barangPenjualan->id_satuan,
+                    'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPenjualan->jenis_diskon,
+                    'diskon' => $barangPenjualan->diskon,
+                    'harga' => $barangPenjualan->harga,
+                    'total' => $barangPenjualan->total
+                ];
+            }),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'messages' => 'Data Retur Berhasil ditampilkan!'
+        ]);
+    }
+
     public function setPenjualan(Penjualan $penjualan)
     {
         $penjualan->update([

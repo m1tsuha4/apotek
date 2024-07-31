@@ -37,6 +37,8 @@ class AksesSeeder extends Seeder
                 ["hak_akses" => "Update Barang"],
                 ["hak_akses" => "Delete Barang"],
                 ["hak_akses" => "Detail Barang"],
+                ["hak_akses" => "Export Barang"],
+                ["hak_akses" => "Import Barang"],
 
                 ["hak_akses" => "Get Pergerakan Stok Pembelian"],
                 ["hak_akses" => "Get Pergerakan Stok Penjualan"],
@@ -46,14 +48,18 @@ class AksesSeeder extends Seeder
                 ["hak_akses" => "Penyesuain Stok Barang"],
                 ["hak_akses" => "Delete Stok Barang"],
                 ["hak_akses" => "Detail Stok Barang"],
+                ["hak_akses" => "Export Stok Barang"],
 
                 ["hak_akses" => "Read Stok Opname"],
+                ["hak_akses" => "Export Stok Opname"],
+                ["hak_akses" => "Import Stok Opname"],
 
                 ["hak_akses" => "Create Pembelian"],
                 ["hak_akses" => "Read Pembelian"],
                 ["hak_akses" => "Update Pembelian"],
                 ["hak_akses" => "Delete Pembelian"],
                 ["hak_akses" => "Detail Pembelian"],
+                ["hak_akses" => "Export Pembelian"],
 
                 ["hak_akses" => "Create Retur Pembelian"],
                 ["hak_akses" => "Read Retur Pembelian"],
@@ -66,6 +72,7 @@ class AksesSeeder extends Seeder
                 ["hak_akses" => "Update Penjualan"],
                 ["hak_akses" => "Delete Penjualan"],
                 ["hak_akses" => "Detail Penjualan"],
+                ["hak_akses" => "Export Penjualan"],
 
                 ["hak_akses" => "Create Retur Penjualan"],
                 ["hak_akses" => "Read Retur Penjualan"],
@@ -90,6 +97,7 @@ class AksesSeeder extends Seeder
                 ["hak_akses" => "Update Karyawan"],
                 ["hak_akses" => "Delete Karyawan"],
                 ["hak_akses" => "Detail Karyawan"],
+                ["hak_akses" => "Import Karyawan"],
 
                 ["hak_akses" => "Create Vendor"],
                 ["hak_akses" => "Read Vendor"],

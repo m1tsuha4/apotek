@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AksesController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\KategoriController;
@@ -55,14 +56,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     //Satuan
-    Route::apiResource('satuan', \App\Http\Controllers\SatuanController::class);
+    Route::get('satuan', [SatuanController::class, 'index']);
+    Route::post('satuan', [SatuanController::class, 'store']);
+    Route::put('satuan/{satuan}', [SatuanController::class, 'update']);
+    Route::delete('satuan/{satuan}', [SatuanController::class, 'destroy']);
 
     //Barang
     Route::get('beli-barang', [BarangController::class, 'beliBarang']);
     Route::get('jual-barang', [BarangController::class, 'jualBarang']);
 
-    Route::apiResource('barang', BarangController::class);
-    
+    Route::get('barang', [BarangController::class, 'index']);
+    Route::post('barang', [BarangController::class, 'store']);
+    Route::put('barang/{barang}', [BarangController::class, 'update']);
+    Route::delete('barang/{barang}', [BarangController::class, 'destroy']);
+
     Route::post('barang-import', [BarangController::class, 'import']);
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
@@ -77,7 +84,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Pelanggan
     Route::get('nama-pelanggan', [PelangganController::class, 'getPelanggan']);
-    Route::apiResource('pelanggan', PelangganController::class);
+    Route::get('pelanggan', [PelangganController::class, 'index']);
+    Route::post('pelanggan', [PelangganController::class, 'store']);
+    Route::put('pelanggan/{pelanggan}', [PelangganController::class, 'update']);
+    Route::delete('pelanggan/{pelanggan}', [PelangganController::class, 'destroy']);
 
     //Vendor
     Route::get('nama-vendor', [VendorController::class, 'getVendor']);

@@ -473,6 +473,19 @@ class PenjualanController extends Controller
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Penjualan $penjualan)
+    {
+        $penjualan->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data penjualan berhasil dihapus!'
+        ]);
+    }
+
     public function setPenjualan(Penjualan $penjualan)
     {
         $penjualan->update([

@@ -28,11 +28,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('barang-export', [BarangController::class, 'export']);
-
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -63,12 +60,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Barang
     Route::get('beli-barang', [BarangController::class, 'beliBarang']);
     Route::get('jual-barang', [BarangController::class, 'jualBarang']);
+
     Route::apiResource('barang', BarangController::class);
+    
     Route::post('barang-import', [BarangController::class, 'import']);
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
     Route::get('search-barang', [BarangController::class, 'searchBarang']);
     Route::post('atur-notif', [BarangController::class, 'aturNotif']);
+    Route::get('barang-export', [BarangController::class, 'export']);
+
 
     //Variasi Harga Jual
     Route::delete('variasi-harga-jual/{variasi_harga_jual}', [VariasiHargaJualController::class, 'destroy']);

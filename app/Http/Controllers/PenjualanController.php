@@ -164,6 +164,9 @@ class PenjualanController extends Controller
                     ->orderBy('exp_date', 'asc')
                     ->get();
 
+                // Initialize $stokPengurangan
+                $stokPengurangan = 0;
+
                 foreach ($stokBarangs as $stokBarang) {
                     if ($jumlah <= 0) {
                         break;
@@ -247,6 +250,7 @@ class PenjualanController extends Controller
             ], 500);
         }
     }
+
 
 
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AksesController;
+use App\Http\Controllers\JenisController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\SatuanController;
@@ -20,7 +21,9 @@ use App\Http\Controllers\StokOpnameController;
 use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\LaporanKeuanganController;
+use App\Http\Controllers\MetodePembayaranController;
 use App\Http\Controllers\VariasiHargaJualController;
+use App\Http\Controllers\PembayaranPembelianController;
 use App\Http\Controllers\PembayaranPenjualanController;
 use App\Http\Controllers\PergerakanStokPembelianController;
 use App\Http\Controllers\PergerakanStokPenjualanController;
@@ -51,6 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Kategori
     Route::get('kategori', [KategoriController::class, 'index'])->middleware('hak_akses:6');
     Route::post('kategori', [KategoriController::class, 'store'])->middleware('hak_akses:5');
+    Route::get('kategori/{kategori}', [KategoriController::class, 'show']);
     Route::put('kategori/{kategori}', [KategoriController::class, 'update'])->middleware('hak_akses:7');
     Route::delete('kategori/{kategori}', [KategoriController::class, 'destroy'])->middleware('hak_akses:8');
 
@@ -58,6 +62,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Satuan
     Route::get('satuan', [SatuanController::class, 'index']);
     Route::post('satuan', [SatuanController::class, 'store']);
+    Route::get('satuan/{satuan}', [SatuanController::class, 'show']);
     Route::put('satuan/{satuan}', [SatuanController::class, 'update']);
     Route::delete('satuan/{satuan}', [SatuanController::class, 'destroy']);
 
@@ -67,6 +72,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('barang', [BarangController::class, 'index']);
     Route::post('barang', [BarangController::class, 'store']);
+    Route::get('barang/{barang}', [BarangController::class, 'show']);
     Route::put('barang/{barang}', [BarangController::class, 'update']);
     Route::delete('barang/{barang}', [BarangController::class, 'destroy']);
 
@@ -86,46 +92,71 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('nama-pelanggan', [PelangganController::class, 'getPelanggan']);
     Route::get('pelanggan', [PelangganController::class, 'index']);
     Route::post('pelanggan', [PelangganController::class, 'store']);
+    Route::get('pelanggan/{pelanggan}', [PelangganController::class, 'show']);
     Route::put('pelanggan/{pelanggan}', [PelangganController::class, 'update']);
     Route::delete('pelanggan/{pelanggan}', [PelangganController::class, 'destroy']);
 
     //Vendor
     Route::get('nama-vendor', [VendorController::class, 'getVendor']);
-    Route::apiResource('vendor', VendorController::class);
+    Route::get('vendor', [VendorController::class, 'index']);
+    Route::post('vendor', [VendorController::class, 'store']);
+    Route::get('vendor/{vendor}', [VendorController::class, 'show']);
+    Route::put('vendor/{vendor}', [VendorController::class, 'update']);
+    Route::delete('vendor/{vendor}', [VendorController::class, 'destroy']);
 
     //Sales
     Route::get('sales', [SalesController::class, 'index']);
     Route::delete('sales/{sales}', [SalesController::class, 'destroy']);
 
     //Metode Pembayaran
-    Route::apiResource('metode-pembayaran', \App\Http\Controllers\MetodePembayaranController::class);
+    Route::get('metode-pembayaran', [MetodePembayaranController::class, 'index']);
+    Route::post('metode-pembayaran', [MetodePembayaranController::class, 'store']);
+    Route::get('metode-pembayaran/{metode_pembayaran}', [MetodePembayaranController::class, 'show']);
+    Route::put('metode-pembayaran/{metode_pembayaran}', [MetodePembayaranController::class, 'update']);
+    Route::delete('metode-pembayaran/{metode_pembayaran}', [MetodePembayaranController::class, 'destroy']);
 
     //Pembelian
     Route::get('pembelian-id', [PembelianController::class, 'generateId']);
-    Route::apiResource('pembelian', PembelianController::class);
+
+    Route::get('pembelian', [PembelianController::class, 'index']);
+    Route::post('pembelian', [PembelianController::class, 'store']);
+    Route::get('pembelian/{pembelian}', [PembelianController::class, 'show']);
+    Route::put('pembelian/{pembelian}', [PembelianController::class, 'update']);
+    Route::delete('pembelian/{pembelian}', [PembelianController::class, 'destroy']);
+
     Route::get('pembelian-export', [PembelianController::class, 'export']);
     Route::put('set-pembelian/{pembelian}', [PembelianController::class, 'setPembelian']);
     Route::get('retur-barang-pembelian/{pembelian}', [PembelianController::class, 'returPembelian']);
 
     //Pembayaran Pembelian
-    Route::apiResource('pembayaran-pembelian', \App\Http\Controllers\PembayaranPembelianController::class);
+    Route::post('pembayaran-pembelian', [PembayaranPembelianController::class, 'store']);
 
     //Retur Pembelian
     Route::get('retur-pembelian-id', [ReturPembelianController::class, 'generateId']);
-    Route::apiResource('retur-pembelian', ReturPembelianController::class);
+    Route::get('retur-pembelian', [ReturPembelianController::class, 'index']);
+    Route::get('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'show']);
+    Route::put('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'update']);
+    Route::delete('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'destroy']);
 
     //Stok Barang
-    Route::apiResource('stok-barang', StokBarangController::class);
+    Route::get('stok-barang', [StokBarangController::class, 'index']);
+    Route::post('stok-barang', [StokBarangController::class, 'store']);
+    Route::get('stok-barang/{stok_barang}', [StokBarangController::class, 'show']);
+    Route::put('stok-barang/{stok_barang}', [StokBarangController::class, 'update']);
+    Route::delete('stok-barang/{stok_barang}', [StokBarangController::class, 'destroy']);
+
     Route::get('stok-barang-export', [StokBarangController::class, 'export']);
     Route::delete('delete-stokBarang', [StokBarangController::class, 'deleteStokBarang']);
 
     //Stok Opname
-    Route::apiResource('stok-opname', StokOpnameController::class);
+    Route::get('stok-opname', [StokOpnameController::class, 'index']);
+    Route::post('stok-opname', [StokOpnameController::class, 'store']);
+
     Route::get('stok-opname-export', [StokOpnameController::class, 'export']);
     Route::post('stock-opname-import', [StokOpnameController::class, 'import']);
 
     //Jenis
-    Route::apiResource('jenis', \App\Http\Controllers\JenisController::class)->only('index');
+    Route::get('jenis', [JenisController::class, 'index']);
 
     //Dashboard
     Route::get('dashboard-keuangan', [\App\Http\Controllers\DashboardController::class, 'keuangan']);
@@ -147,11 +178,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);
     Route::post('penjualan-stok-detail', [PenjualanController::class, 'getStockDetails']);
+
     Route::get('penjualan', [PenjualanController::class, 'index']);
     Route::get('penjualan/{penjualan}', [PenjualanController::class, 'show']);
     Route::post('penjualan', [PenjualanController::class, 'store']);
     Route::put('penjualan/{penjualan}', [PenjualanController::class, 'update']);
     Route::delete('penjualan/{penjualan}', [PenjualanController::class, 'destroy']);
+    
     Route::put('set-penjualan/{penjualan}', [PenjualanController::class, 'setPenjualan']);
     Route::get('retur-barang-penjualan/{penjualan}', [PenjualanController::class, 'returPenjualan']);
     Route::get('penjualan-export', [PenjualanController::class, 'export']);

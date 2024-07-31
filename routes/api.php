@@ -53,34 +53,34 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Kategori
     Route::get('kategori', [KategoriController::class, 'index'])->middleware('hak_akses:6');
     Route::post('kategori', [KategoriController::class, 'store'])->middleware('hak_akses:5');
-    Route::get('kategori/{kategori}', [KategoriController::class, 'show']);
+    Route::get('kategori/{kategori}', [KategoriController::class, 'show'])->middleware('hak_akses:9');
     Route::put('kategori/{kategori}', [KategoriController::class, 'update'])->middleware('hak_akses:7');
     Route::delete('kategori/{kategori}', [KategoriController::class, 'destroy'])->middleware('hak_akses:8');
 
 
     //Satuan
-    Route::get('satuan', [SatuanController::class, 'index']);
-    Route::post('satuan', [SatuanController::class, 'store']);
-    Route::get('satuan/{satuan}', [SatuanController::class, 'show']);
-    Route::put('satuan/{satuan}', [SatuanController::class, 'update']);
-    Route::delete('satuan/{satuan}', [SatuanController::class, 'destroy']);
+    Route::get('satuan', [SatuanController::class, 'index'])->middleware('hak_akses:11');
+    Route::post('satuan', [SatuanController::class, 'store'])->middleware('hak_akses:10');
+    Route::get('satuan/{satuan}', [SatuanController::class, 'show'])->middleware('hak_akses:14');
+    Route::put('satuan/{satuan}', [SatuanController::class, 'update'])->middleware('hak_akses:12');
+    Route::delete('satuan/{satuan}', [SatuanController::class, 'destroy'])->middleware('hak_akses:13');
 
     //Barang
     Route::get('beli-barang', [BarangController::class, 'beliBarang']);
     Route::get('jual-barang', [BarangController::class, 'jualBarang']);
 
-    Route::get('barang', [BarangController::class, 'index']);
-    Route::post('barang', [BarangController::class, 'store']);
-    Route::get('barang/{barang}', [BarangController::class, 'show']);
-    Route::put('barang/{barang}', [BarangController::class, 'update']);
-    Route::delete('barang/{barang}', [BarangController::class, 'destroy']);
+    Route::get('barang', [BarangController::class, 'index'])->middleware('hak_akses:16');
+    Route::post('barang', [BarangController::class, 'store'])->middleware('hak_akses:15');
+    Route::get('barang/{barang}', [BarangController::class, 'show'])->middleware('hak_akses:19');
+    Route::put('barang/{barang}', [BarangController::class, 'update'])->middleware('hak_akses:17');
+    Route::delete('barang/{barang}', [BarangController::class, 'destroy'])->middleware('hak_akses:18');
 
-    Route::post('barang-import', [BarangController::class, 'import']);
+    Route::post('barang-import', [BarangController::class, 'import'])->middleware('hak_akses:21');
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
     Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
     Route::get('search-barang', [BarangController::class, 'searchBarang']);
     Route::post('atur-notif', [BarangController::class, 'aturNotif']);
-    Route::get('barang-export', [BarangController::class, 'export']);
+    Route::get('barang-export', [BarangController::class, 'export'])->middleware('hak_akses:20');
 
 
     //Variasi Harga Jual
@@ -138,30 +138,30 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'destroy']);
 
     //Stok Barang
-    Route::get('stok-barang', [StokBarangController::class, 'index']);
-    Route::post('stok-barang', [StokBarangController::class, 'store']);
-    Route::get('stok-barang/{stok_barang}', [StokBarangController::class, 'show']);
-    Route::put('stok-barang/{stok_barang}', [StokBarangController::class, 'update']);
-    Route::delete('stok-barang/{stok_barang}', [StokBarangController::class, 'destroy']);
+    Route::get('stok-barang', [StokBarangController::class, 'index'])->middleware('hak_akses:24');
+    Route::post('stok-barang', [StokBarangController::class, 'store'])->middleware('hak_akses:25');
+    Route::get('stok-barang/{stok_barang}', [StokBarangController::class, 'show'])->middleware('hak_akses:28');
+    Route::put('stok-barang/{stok_barang}', [StokBarangController::class, 'update'])->middleware('hak_akses:26');
+    Route::delete('stok-barang/{stok_barang}', [StokBarangController::class, 'destroy'])->middleware('hak_akses:27');
 
-    Route::get('stok-barang-export', [StokBarangController::class, 'export']);
+    Route::get('stok-barang-export', [StokBarangController::class, 'export'])->middleware('hak_akses:29');
     Route::delete('delete-stokBarang', [StokBarangController::class, 'deleteStokBarang']);
 
     //Stok Opname
-    Route::get('stok-opname', [StokOpnameController::class, 'index']);
+    Route::get('stok-opname', [StokOpnameController::class, 'index'])->middleware('hak_akses:30');
     Route::post('stok-opname', [StokOpnameController::class, 'store']);
 
-    Route::get('stok-opname-export', [StokOpnameController::class, 'export']);
-    Route::post('stock-opname-import', [StokOpnameController::class, 'import']);
+    Route::get('stok-opname-export', [StokOpnameController::class, 'export'])->middleware('hak_akses:31');
+    Route::post('stock-opname-import', [StokOpnameController::class, 'import'])->middleware('hak_akses:32');
 
     //Jenis
     Route::get('jenis', [JenisController::class, 'index']);
 
     //Dashboard
-    Route::get('dashboard-keuangan', [\App\Http\Controllers\DashboardController::class, 'keuangan']);
-    Route::get('dashboard-stok-barang', [\App\Http\Controllers\DashboardController::class, 'stokBarang']);
-    Route::get('dashboard-notif-stok', [\App\Http\Controllers\DashboardController::class, 'notifStok']);
-    Route::get('dashboard-notif-exp', [\App\Http\Controllers\DashboardController::class, 'notifExp']);
+    Route::get('dashboard-keuangan', [\App\Http\Controllers\DashboardController::class, 'keuangan'])->middleware('hak_akses:2');
+    Route::get('dashboard-stok-barang', [\App\Http\Controllers\DashboardController::class, 'stokBarang'])->middleware('hak_akses:1');
+    Route::get('dashboard-notif-stok', [\App\Http\Controllers\DashboardController::class, 'notifStok'])->middleware('hak_akses:3');
+    Route::get('dashboard-notif-exp', [\App\Http\Controllers\DashboardController::class, 'notifExp'])->middleware('hak_akses:4');
 
     //Change password
     Route::post('change-password', [AuthController::class, 'changePassword']);

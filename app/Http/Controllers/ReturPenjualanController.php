@@ -111,7 +111,7 @@ class ReturPenjualanController extends Controller
      */
     public function show(ReturPenjualan $returPenjualan)
     {
-        $returPenjualan->load('penjualan', 'penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan', 'penjualan.barangPenjualan.barang', 'penjualan.barangPenjualan.satuan');
+        $returPenjualan->load('penjualan', 'penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan', 'penjualan.barangPenjualan.barang', 'penjualan.barangPenjualan.satuan', 'penjualan.barangPenjualan.stokBarang');
         
         return response()->json([
             'success' => true,

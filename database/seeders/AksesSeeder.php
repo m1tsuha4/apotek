@@ -112,7 +112,7 @@ class AksesSeeder extends Seeder
                 ["hak_akses" => "Detail Sales"],
 
                 ["hak_akses" => "Read Laporan Keuangan"],
-                ["hak_akses" => "Read List Laporan Keuangan"],
+                ["hak_akses" => "Export Laporan Keuangan"],
             ]
         );
     }

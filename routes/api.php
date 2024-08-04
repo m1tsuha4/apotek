@@ -31,6 +31,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('invoice/{penjualan}', [PenjualanController::class, 'invoice']);
+
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
@@ -188,6 +190,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('set-penjualan/{penjualan}', [PenjualanController::class, 'setPenjualan']);
     Route::get('retur-barang-penjualan/{penjualan}', [PenjualanController::class, 'returPenjualan']);
     Route::get('penjualan-export', [PenjualanController::class, 'export'])->middleware('hak_akses:49');
+   
 
     //Pembayaran Penjualan
     Route::post('pembayaran-penjualan', [PembayaranPenjualanController::class, 'store']);

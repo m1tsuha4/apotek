@@ -102,7 +102,7 @@ class PembelianController extends Controller
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
                     'exp_date' => $barangPembelianData['exp_date'],
-                    'stok_gudang' => $barangPembelianData['jumlah'],
+                    'stok_apotek' => $barangPembelianData['jumlah'],
                     'stok_total' => $barangPembelianData['jumlah']
                 ]);
 
@@ -120,7 +120,7 @@ class PembelianController extends Controller
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
                     'exp_date' => $barangPembelianData['exp_date'],
-                    'stok_gudang' => $stok,
+                    'stok_apotek' => $stok,
                     'stok_total' => $stok
                 ]);
 

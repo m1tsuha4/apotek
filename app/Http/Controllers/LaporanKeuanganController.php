@@ -20,10 +20,10 @@ class LaporanKeuanganController extends Controller
     {
         $numPerPage = $request->num;
 
-        $pembelian = Pembelian::select('id','id_vendor','id_sales','tanggal','status','tanggal_jatuh_tempo','total')->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')
+        $pembelian = Pembelian::select('id','id_vendor','id_sales','tanggal','referensi','status','tanggal_jatuh_tempo','total')->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')
         ->paginate($numPerPage);
 
-        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
+        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'referensi','status', 'tanggal_jatuh_tempo', 'total')
             ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')->paginate($numPerPage);
 
         $totalItems = $pembelian->total() + $penjualan->total();

@@ -7,12 +7,13 @@ use App\Models\Penjualan;
 use App\Models\StokBarang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
+use App\Exports\InvoiceExport;
 use App\Exports\PenjualanExport;
-use App\Models\LaporanKeuanganMasuk;
 use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPenjualan;
-use App\Models\PergerakanStokPenjualan;
+use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\PergerakanStokPenjualan;
 
 class PenjualanController extends Controller
 {
@@ -49,13 +50,23 @@ class PenjualanController extends Controller
     {
         $validatedData = $request->validate([
             'id_barang' => 'required',
-            'jumlah' => 'required|integer'
+            'jumlah' => 'required|integer',
+            'id_satuan' => 'required|integer',
         ]);
 
         $idBarang = $validatedData['id_barang'];
         $jumlah = $validatedData['jumlah'];
+        $idSatuan = $validatedData['id_satuan'];
+
+        $barang = Barang::find($idBarang);
 
         try {
+            // Check if the unit is basic (e.g., pieces) or larger (e.g., box)
+            $isBasicUnit = $idSatuan == $barang->id_satuan;
+            $conversionRate = $isBasicUnit ? 1 : $barang->satuanBarang->jumlah; // Assume conversion_rate is the number of pieces per box
+
+            // Convert the requested quantity to the basic unit if needed
+            $requestedQuantityInBasicUnit = $jumlah * $conversionRate;
             // Get the stock items ordered by expiration date
             $stokBarangs = StokBarang::where('id_barang', $idBarang)
                 ->where('stok_apotek', '>', 0)
@@ -63,7 +74,7 @@ class PenjualanController extends Controller
                 ->get();
 
             $stockDetails = [];
-            $remainingQuantity = $jumlah;
+            $remainingQuantity = $requestedQuantityInBasicUnit;
 
             foreach ($stokBarangs as $stokBarang) {
                 if ($remainingQuantity <= 0) {
@@ -89,7 +100,7 @@ class PenjualanController extends Controller
                     'success' => false,
                     'message' => 'Stok tidak mencukupi untuk jumlah yang diminta.',
                     'required_quantity' => $jumlah,
-                    'remaining_quantity' => $remainingQuantity,
+                    'remaining_quantity' => $remainingQuantity / $conversionRate,
                     'stock_details' => $stockDetails,
                 ], 400);
             }
@@ -534,5 +545,10 @@ class PenjualanController extends Controller
     public function export()
     {
         return Excel::download(new PenjualanExport, 'penjualan.xlsx');
+    }
+
+    public function invoice(Penjualan $penjualan)
+    {
+        return Excel::download(new InvoiceExport($penjualan), 'invoice.pdf', \Maatwebsite\Excel\Excel::DOMPDF);
     }
 }

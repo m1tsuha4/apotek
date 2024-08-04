@@ -97,6 +97,7 @@ class BarangController extends Controller
                 'variasiHargaJual:id,id_barang,min_kuantitas,harga',
                 'stokBarang:id,batch,exp_date,id_barang,stok_apotek',
             ])
+            ->where('stok_apotek', '>', 0)
             ->orderBy('exp_date', 'asc')
             ->get();
 

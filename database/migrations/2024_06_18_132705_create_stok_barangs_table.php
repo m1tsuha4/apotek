@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('id_barang',10);
             $table->string('batch');
             $table->date('exp_date');
-            $table->integer('stok_gudang');
+            $table->integer('stok_gudang')->nullable();
             $table->integer('stok_apotek')->nullable();
             $table->integer('stok_total')->nullable();
             $table->timestamps();

@@ -372,7 +372,7 @@ class PembelianController extends Controller
                 if ($stokBarang) {
                     $stokBarang->update([
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $barangPembelianData['jumlah'],
+                        'stok_apotek' => $barangPembelianData['jumlah'],
                         'stok_total' => $barangPembelianData['jumlah']
                     ]);
 
@@ -388,7 +388,7 @@ class PembelianController extends Controller
                         'id_barang' => $barangPembelianData['id_barang'],
                         'batch' => $barangPembelianData['batch'],
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $barangPembelianData['jumlah'],
+                        'stok_apotek' => $barangPembelianData['jumlah'],
                         'stok_total' => $barangPembelianData['jumlah']
                     ]);
                     PergerakanStokPembelian::create([
@@ -410,7 +410,7 @@ class PembelianController extends Controller
                 if ($stokBarang) {
                     $stokBarang->update([
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $stok,
+                        'stok_apotek' => $stok,
                         'stok_total' => $stok
                     ]);
                     if($pergerakanStok){
@@ -425,7 +425,7 @@ class PembelianController extends Controller
                         'id_barang' => $barangPembelianData['id_barang'],
                         'batch' => $barangPembelianData['batch'],
                         'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_gudang' => $stok,
+                        'stok_apotek' => $stok,
                         'stok_total' => $stok
                     ]);
                     PergerakanStokPembelian::create([

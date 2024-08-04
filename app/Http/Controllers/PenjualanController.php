@@ -61,9 +61,13 @@ class PenjualanController extends Controller
         $barang = Barang::find($idBarang);
 
         try {
+            $totalStockInBasicUnit = StokBarang::where('id_barang', $idBarang)
+            ->where('stok_apotek', '>', 0)
+            ->sum('stok_apotek');
             // Check if the unit is basic (e.g., pieces) or larger (e.g., box)
             $isBasicUnit = $idSatuan == $barang->id_satuan;
             $conversionRate = $isBasicUnit ? 1 : $barang->satuanBarang->jumlah; // Assume conversion_rate is the number of pieces per box
+            $totalStockInLargerUnit = $totalStockInBasicUnit / $conversionRate;
 
             // Convert the requested quantity to the basic unit if needed
             $requestedQuantityInBasicUnit = $jumlah * $conversionRate;
@@ -102,6 +106,8 @@ class PenjualanController extends Controller
                     'required_quantity' => $jumlah,
                     'remaining_quantity' => $remainingQuantity / $conversionRate,
                     'stock_details' => $stockDetails,
+                    'total_stokk_satuan_dasar' => $totalStockInBasicUnit,
+                    'total_stock_satuan_besar' => $totalStockInLargerUnit,
                 ], 400);
             }
 
@@ -109,6 +115,8 @@ class PenjualanController extends Controller
                 'success' => true,
                 'message' => 'Detail stok barang yang diambil berhasil diambil.',
                 'data' => $stockDetails,
+                'total_stokk_satuan_dasar' => $totalStockInBasicUnit,
+                'total_stock_satuan_besar' => $totalStockInLargerUnit,
             ]);
         } catch (\Exception $e) {
             return response()->json([

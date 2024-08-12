@@ -22,7 +22,7 @@ class PembelianController extends Controller
     public function index(Request $request)
     {
         $pembelian = Pembelian::with( 'jenis:id,nama_jenis', 'vendor:id,nama_perusahaan', 'sales:id,nama_sales')
-            ->select('id', 'id_vendor', 'id_sales','id_jenis', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
+            ->select('id', 'id_vendor', 'id_sales','id_jenis', 'referensi', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
             ->paginate($request->num);
         return response()->json([
             'success' => true,
@@ -50,7 +50,7 @@ class PembelianController extends Controller
         // Validate the request data
         $validatedData = $request->validate([
             'id_vendor' => 'required',
-            'id_sales' => 'required',
+            'id_sales' => 'sometimes',
             'id_jenis' => 'required',
             'tanggal' => 'required',
             'status' => 'required',
@@ -260,7 +260,7 @@ class PembelianController extends Controller
             'id_vendor' => $pembelian->id_vendor,
             'nama_perusahaan' => $pembelian->vendor->nama_perusahaan,
             'id_sales' => $pembelian->id_sales,
-            'nama_sales' => $pembelian->sales->nama_sales,
+            'nama_sales' => $pembelian->sales ? $pembelian->sales->nama_sales : null,
             'tanggal' => $pembelian->tanggal,
             'tanggal_jatuh_tempo' => $pembelian->tanggal_jatuh_tempo,
             'jenis' => $pembelian->jenis->nama_jenis,

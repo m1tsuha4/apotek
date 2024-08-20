@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('jenis_kelamin');
             $table->string('posisi');
             $table->date('tanggal_bergabung');
-            $table->integer('jumlah_gaji');
+            $table->integer('jumlah_gaji')->nullable();
             $table->timestamps();
         });
     }

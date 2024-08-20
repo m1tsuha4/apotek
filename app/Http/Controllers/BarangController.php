@@ -11,6 +11,7 @@ use App\Imports\BarangImport;
 use App\Models\BarangPembelian;
 use App\Models\VariasiHargaJual;
 use App\Exports\KartuStockExport;
+use App\Models\Penjualan;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -330,6 +331,13 @@ class BarangController extends Controller
         //     ->keyBy(function ($item) {
         //         return $item->tanggal . '-' . $item->batch;
         //     });
+
+        // $sales = $barang->barangPenjualan()
+        //     ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
+        //     ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
+        //     ->select('barang_penjualans.exp_date', 'penjualans.tanggal', 'barang_penjualans.batch', \DB::raw('SUM(barang_penjualans.jumlah) as total_sold'))
+        //     ->groupBy('barang_penjualans.exp_date', 'penjualans.tanggal', 'barang_penjualans.batch')
+        //     ->paginate($request->num);
 
         // Combine purchases and sales data
         $stockDetails = [];

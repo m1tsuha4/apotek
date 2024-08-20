@@ -41,7 +41,7 @@ class KaryawanController extends Controller
             'jenis_kelamin' => 'required',
             'posisi' => 'required',
             'tanggal_bergabung' => 'required',
-            'jumlah_gaji' => 'required',
+            'jumlah_gaji' => 'sometimes',
         ]);
 
         $karyawan = Karyawan::create($validatedData);

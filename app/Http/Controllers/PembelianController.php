@@ -55,6 +55,7 @@ class PembelianController extends Controller
             'tanggal' => 'required',
             'status' => 'required',
             'tanggal_jatuh_tempo' => 'required',
+            'net_termin' => 'required',
             'referensi' => 'sometimes',
             'sub_total' => 'required',
             'total_diskon_satuan' => 'sometimes',
@@ -268,6 +269,7 @@ class PembelianController extends Controller
             'sub_total' => $pembelian->sub_total,
             'diskon' => $pembelian->diskon,
             'total' => $pembelian->total,
+            'net_termin' => $pembelian->net_termin,
             'referensi' => $pembelian->referensi,
             'sisa_tagihan' => $pembelian->total - $pembayaranPembelian,
             'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {

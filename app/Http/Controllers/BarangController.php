@@ -60,7 +60,8 @@ class BarangController extends Controller
     {
         $barang = Barang::select('id', 'id_satuan', 'nama_barang', 'harga_beli', 'harga_jual')
             ->with([
-                'satuan:id,nama_satuan', 'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
+                'satuan:id,nama_satuan',
+                'satuanBarang:id,id_barang,id_satuan,jumlah,harga_beli,harga_jual',
                 'satuanBarang.satuan:id,nama_satuan',
             ])
             ->get();
@@ -105,7 +106,7 @@ class BarangController extends Controller
         //     $item->stok_total = $item->stokBarang->sum('stok_apotek');
         // });
 
-         // Filter out Barang without stock
+        // Filter out Barang without stock
         $barang = $barang->filter(function ($item) {
             $item->stok_total = $item->stokBarang->sum('stok_apotek');
             return $item->stok_total > 0;
@@ -121,9 +122,7 @@ class BarangController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -321,23 +320,14 @@ class BarangController extends Controller
             ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
             ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
             ->paginate($request->num);
-        // dd($purchases);
 
-
-        // $sales = Penjualan::where('id_barang', $barang->id)
-        //     ->select('tanggal', 'batch', \DB::raw('SUM(jumlah) as total_sold'))
-        //     ->groupBy('tanggal', 'batch')
-        //     ->get()
-        //     ->keyBy(function ($item) {
-        //         return $item->tanggal . '-' . $item->batch;
-        //     });
-
-        // $sales = $barang->barangPenjualan()
-        //     ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
-        //     ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
-        //     ->select('barang_penjualans.exp_date', 'penjualans.tanggal', 'barang_penjualans.batch', \DB::raw('SUM(barang_penjualans.jumlah) as total_sold'))
-        //     ->groupBy('barang_penjualans.exp_date', 'penjualans.tanggal', 'barang_penjualans.batch')
-        //     ->paginate($request->num);
+        $sales = $barang->barangPenjualan()
+            ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
+            ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
+            ->join('stok_barangs', 'barang_penjualans.id_stok_barang', '=', 'stok_barangs.id')
+            ->select('penjualans.tanggal', 'stok_barangs.batch','stok_barangs.exp_date', \DB::raw('SUM(barang_penjualans.jumlah) as total_sold'))
+            ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date')
+            ->paginate($request->num);
 
         // Combine purchases and sales data
         $stockDetails = [];
@@ -348,21 +338,21 @@ class BarangController extends Controller
                 'batch' => $purchase->batch,
                 'exp_date' => $purchase->exp_date,
                 'masuk' => $purchase->masuk,
-                // 'total_sold' => $sales->has($key) ? $sales[$key]->total_sold : 0,
-                'keluar' => 0,
+                'keluar' => $sales->has($key) ? $sales[$key]->total_sold : 0,
             ];
         }
 
-        // foreach ($sales as $key => $sale) {
-        //     if (!isset($stockDetails[$key])) {
-        //         $stockDetails[$key] = [
-        //             'tanggal' => $sale->tanggal,
-        //             'batch' => $sale->batch,
-        //             'total_purchased' => 0,
-        //             'total_sold' => $sale->total_sold,
-        //         ];
-        //     }
-        // }
+        foreach ($sales as $key => $sale) {
+            if (!isset($stockDetails[$key])) {
+                $stockDetails[$key] = [
+                    'tanggal' => $sale->tanggal,
+                    'batch' => $sale->batch,
+                    'exp_date' => $sale->exp_date,
+                    'masuk' => 0,
+                    'keluar' => $sale->total_sold,
+                ];
+            }
+        }
 
         // Calculate remaining stock
         foreach ($stockDetails as &$details) {
@@ -463,8 +453,7 @@ class BarangController extends Controller
 
         $barangs = Barang::all();
 
-        foreach ($barangs as $barang)
-        {
+        foreach ($barangs as $barang) {
             $barang->update($validatedData);
         }
 

@@ -20,6 +20,7 @@ class Penjualan extends Model
         'tanggal',
         'status',
         'tanggal_jatuh_tempo',
+        'net_termin',
         'referensi',
         'sub_total',
         'total_diskon_satuan',

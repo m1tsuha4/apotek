@@ -12,6 +12,7 @@ use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
@@ -161,10 +162,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('jenis', [JenisController::class, 'index']);
 
     //Dashboard
-    Route::get('dashboard-keuangan', [\App\Http\Controllers\DashboardController::class, 'keuangan'])->middleware('hak_akses:2');
-    Route::get('dashboard-stok-barang', [\App\Http\Controllers\DashboardController::class, 'stokBarang'])->middleware('hak_akses:1');
-    Route::get('dashboard-notif-stok', [\App\Http\Controllers\DashboardController::class, 'notifStok'])->middleware('hak_akses:3');
-    Route::get('dashboard-notif-exp', [\App\Http\Controllers\DashboardController::class, 'notifExp'])->middleware('hak_akses:4');
+    Route::get('search-dashboard', [DashboardController::class, 'searchStokBarang']);
+    Route::get('dashboard-keuangan', [DashboardController::class, 'keuangan'])->middleware('hak_akses:2');
+    Route::get('dashboard-stok-barang', [DashboardController::class, 'stokBarang'])->middleware('hak_akses:1');
+    Route::get('dashboard-notif-stok', [DashboardController::class, 'notifStok'])->middleware('hak_akses:3');
+    Route::get('dashboard-notif-exp', [DashboardController::class, 'notifExp'])->middleware('hak_akses:4');
 
     //Change password
     Route::post('change-password', [AuthController::class, 'changePassword']);

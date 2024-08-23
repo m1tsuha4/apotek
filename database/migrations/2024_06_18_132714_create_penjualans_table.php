@@ -18,6 +18,7 @@ return new class extends Migration
             $table->date('tanggal');
             $table->string('status')->default('Belum Dibayar');
             $table->date('tanggal_jatuh_tempo');
+            $table->integer('net_termin');
             $table->string('referensi')->nullable();
             $table->float('sub_total');
             $table->float('total_diskon_satuan')->nullable();

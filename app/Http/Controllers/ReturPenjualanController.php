@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Barang;
 use App\Models\StokBarang;
+use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Models\ReturPenjualan;
-use App\Models\SatuanBarang;
+use App\Models\BarangPenjualan;
 
 class ReturPenjualanController extends Controller
 {
@@ -83,14 +84,21 @@ class ReturPenjualanController extends Controller
 
             $satuanDasar = Barang::where('id', $barangReturPenjualan['id_barang'])->value('id_satuan');
 
+            $barangPenjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_stok_barang', $stokBarang->id)->first();
+
             if($stokBarang) {
                 if ($barangReturPenjualan['id_satuan'] == $satuanDasar) {
                     $stokBarang->stok_apotek -= $barangReturPenjualan['jumlah_retur'];
+                    $stokBarang->stok_total -= $barangReturPenjualan['jumlah_retur'];
+                    $barangPenjualan->jumlah -= $barangReturPenjualan['jumlah_retur'];
                 } else {
                     $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualan['id_barang'])->where('id_satuan', $barangReturPenjualan['id_satuan'])->value('jumlah');
                     $stokBarang->stok_apotek -= $satuanBesar * $barangReturPenjualan['jumlah_retur'];
+                    $stokBarang->stok_total -= $satuanBesar * $barangReturPenjualan['jumlah_retur'];
+                    $barangPenjualan->jumlah -= $satuanBesar * $barangReturPenjualan['jumlah_retur'];
                 }
                 $stokBarang->save();
+                $barangPenjualan->save();
             } else {
                 return response()->json([
                     'success' => false,
@@ -154,6 +162,8 @@ class ReturPenjualanController extends Controller
             if($barangReturPenjualan) {
                 $stokBarang = StokBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('batch', $barangReturPenjualanData['batch'])->first();
 
+                $barangPenjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_stok_barang', $stokBarang->id)->first();
+
                 if($stokBarang) {
                     $jumlahReturLama = $barangReturPenjualan->jumlah_retur;
                     $jumlahReturBaru = $barangReturPenjualanData['jumlah_retur'];
@@ -163,13 +173,22 @@ class ReturPenjualanController extends Controller
                     if ($barangReturPenjualanData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek += $jumlahReturLama;
                         $stokBarang->stok_apotek -= $jumlahReturBaru;
+                        $stokBarang->stok_total += $jumlahReturLama;
+                        $stokBarang->stok_total -= $jumlahReturBaru;
+                        $barangPenjualan->jumlah += $jumlahReturLama;
+                        $barangPenjualan->jumlah -= $jumlahReturBaru;
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('id_satuan', $barangReturPenjualanData['id_satuan'])->value('jumlah');
                         $stokBarang->stok_apotek += $satuanBesar * $jumlahReturLama;
                         $stokBarang->stok_apotek -= $satuanBesar * $jumlahReturBaru;
+                        $stokBarang->stok_total += $satuanBesar * $jumlahReturLama;
+                        $stokBarang->stok_total -= $satuanBesar * $jumlahReturBaru;
+                        $barangPenjualan->jumlah += $satuanBesar * $jumlahReturLama;
+                        $barangPenjualan->jumlah -= $satuanBesar * $jumlahReturBaru;
                     }
 
                     $stokBarang->save();
+                    $barangPenjualan->save();
 
                 }
 
@@ -180,17 +199,24 @@ class ReturPenjualanController extends Controller
 
                 $stokBarang = StokBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('batch', $barangReturPenjualanData['batch'])->first();
 
+                $barangPenjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_stok_barang', $stokBarang->id)->first();
+
                 $satuanDasar = Barang::where('id', $barangReturPenjualanData['id_barang'])->value('id_satuan');
 
                 if($stokBarang) {
                     if($barangReturPenjualanData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek -= $barangReturPenjualanData['jumlah_retur'];
-                        $stokBarang->save();
+                        $stokBarang->stok_total -= $barangReturPenjualanData['jumlah_retur'];
+                        $barangPenjualan->jumlah -= $barangReturPenjualanData['jumlah_retur'];
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('id_satuan', $barangReturPenjualanData['id_satuan'])->value('jumlah');
                         $stokBarang->stok_apotek -= $satuanBesar * $barangReturPenjualanData['jumlah_retur'];
-                        $stokBarang->save();
+                        $stokBarang->stok_total -= $satuanBesar * $barangReturPenjualanData['jumlah_retur'];
+                        $barangPenjualan->jumlah -= $satuanBesar * $barangReturPenjualanData['jumlah_retur'];
                     }
+
+                    $stokBarang->save();
+                    $barangPenjualan->save();
                 }else{
                     return response()->json([
                         'success' => false,

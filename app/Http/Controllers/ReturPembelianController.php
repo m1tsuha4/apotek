@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\BarangPembelian;
 use App\Models\StokBarang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
@@ -83,20 +84,29 @@ class ReturPembelianController extends Controller
                 ->where('batch', $barangReturPembelian['batch'])
                 ->first();
 
+            $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
+                ->where('batch', $barangReturPembelian['batch'])
+                ->first();
+
             $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
 
             if ($stokBarang) {
                 if ($barangReturPembelian['id_satuan'] == $satuanDasar) {
                     // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
                     $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
+                    $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
+                    $barangPembelian->jumlah -= $barangReturPembelian['jumlah_retur'];
                 } else {
                     // Jika satuan retur berbeda dengan satuan dasar, konversi jumlah retur
                     $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
                         ->where('id_satuan', $barangReturPembelian['id_satuan'])
                         ->value('jumlah');
                     $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                    $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                    $barangPembelian->jumlah -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
                 }
                 $stokBarang->save();
+                $barangPembelian->save();
             } else {
                 // Handle the case where the stock doesn't exist
                 return response()->json([
@@ -184,6 +194,10 @@ class ReturPembelianController extends Controller
                     ->where('batch', $barangReturPembelianData['batch'])
                     ->first();
 
+                $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
+                    ->where('batch', $barangReturPembelianData['batch'])
+                    ->first();
+
                 if ($stokBarang) {
                     // Calculate the stock difference
                     $jumlahReturLama = $barangReturPembelian->jumlah_retur;
@@ -194,15 +208,22 @@ class ReturPembelianController extends Controller
                     if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek += $jumlahReturLama;
                         $stokBarang->stok_apotek -= $jumlahReturBaru;
+                        $barangPembelian->jumlah += $jumlahReturLama;
+                        $barangPembelian->jumlah -= $jumlahReturBaru;
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                             ->where('id_satuan', $barangReturPembelianData['id_satuan'])
                             ->value('jumlah');
                         $stokBarang->stok_apotek += $jumlahReturLama * $satuanBesar;
                         $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
+                        $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
+                        $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
+                        $barangPembelian->jumlah += $jumlahReturLama * $satuanBesar;
+                        $barangPembelian->jumlah -= $jumlahReturBaru * $satuanBesar;
                     }
 
                     $stokBarang->save();
+                    $barangPembelian->save();
                 }
 
                 $barangReturPembelian->update($barangReturPembelianData);
@@ -214,18 +235,27 @@ class ReturPembelianController extends Controller
                     ->where('batch', $barangReturPembelianData['batch'])
                     ->first();
 
+                $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
+                    ->where('batch', $barangReturPembelianData['batch'])
+                    ->first();
+
                 $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
 
                 if ($stokBarang) {
                     if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'];
+                        $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'];
+                        $barangPembelian->jumlah -= $barangReturPembelianData['jumlah_retur'];
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                             ->where('id_satuan', $barangReturPembelianData['id_satuan'])
                             ->value('jumlah');
                         $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
+                        $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
+                        $barangPembelian->jumlah -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
                     }
                     $stokBarang->save();
+                    $barangPembelian->save();
                 } else {
                     // Handle the case where the stock doesn't exist
                     return response()->json([

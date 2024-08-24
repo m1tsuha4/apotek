@@ -43,8 +43,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Akses and Users
     Route::get('akses', [AksesController::class, 'index']);
-    Route::post('akses', [AksesController::class, 'store']);
-    Route::put('update-akses-users', [AksesController::class, 'update']);
+    Route::post('akses', [AksesController::class, 'store'])->middleware('superadmin');
+    Route::put('update-akses-users', [AksesController::class, 'update'])->middleware('superadmin');
     Route::delete('users/{user}', [AksesController::class, 'destroy'])->middleware('superadmin');
     Route::get('list-users', [AksesController::class, 'getUsers']);
     Route::get('akses-user', [AksesController::class, 'getAksesUser']);

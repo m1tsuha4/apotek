@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->foreignId('id_satuan')->constrained('satuans')->onDelete('cascade');
             $table->string('jenis_diskon')->nullable();
-            $table->integer('diskon');
+            $table->integer('diskon')->default(0);
             $table->integer('harga');
             $table->integer('total');
             $table->timestamps();

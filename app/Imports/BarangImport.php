@@ -24,8 +24,7 @@ class BarangImport implements ToModel, WithHeadingRow
 
         // Find id_satuan using nama_satuan
         $satuan = Satuan::where('nama_satuan', $row['nama_satuan'])->first();
-        $satuanBarang = Satuan::where('nama_satuan', $row['satuan_barangs_nama_satuan'])->first();
-        if (!$satuan || !$satuanBarang) {
+        if (!$satuan) {
             // Handle the case where the satuan is not found
             return null; // or throw an exception, or handle accordingly
         }
@@ -43,9 +42,9 @@ class BarangImport implements ToModel, WithHeadingRow
             ]
         );
 
-        // Handle variations
+        // Handle variations if available
         for ($i = 1; $i <= 5; $i++) { // Assuming up to 5 variations for simplicity
-            if (isset($row["variasi_min_kuantitas_$i"]) && isset($row["variasi_harga_$i"])) {
+            if (!empty($row["variasi_min_kuantitas_$i"]) && !empty($row["variasi_harga_$i"])) {
                 VariasiHargaJual::updateOrCreate(
                     [
                         'id_barang' => $barang->id,
@@ -58,17 +57,23 @@ class BarangImport implements ToModel, WithHeadingRow
             }
         }
 
-        // Update or create SatuanBarang
-        SatuanBarang::updateOrCreate(
-            [
-                'id_barang' => $barang->id,
-                'id_satuan' => $satuanBarang->id,
-            ],
-            [
-                'jumlah' => $row['satuan_barangs_jumlah'],
-                'harga_beli' => $row['satuan_barangs_harga_beli'],
-                'harga_jual' => $row['satuan_barangs_harga_jual'],
-            ]
-        );
+        // Check and handle SatuanBarang if data is available
+        if (!empty($row['satuan_barangs_nama_satuan']) && !empty($row['satuan_barangs_jumlah']) && !empty($row['satuan_barangs_harga_beli']) && !empty($row['satuan_barangs_harga_jual'])) {
+            $satuanBarang = Satuan::where('nama_satuan', $row['satuan_barangs_nama_satuan'])->first();
+
+            if ($satuanBarang) {
+                SatuanBarang::updateOrCreate(
+                    [
+                        'id_barang' => $barang->id,
+                        'id_satuan' => $satuanBarang->id,
+                    ],
+                    [
+                        'jumlah' => $row['satuan_barangs_jumlah'],
+                        'harga_beli' => $row['satuan_barangs_harga_beli'],
+                        'harga_jual' => $row['satuan_barangs_harga_jual'],
+                    ]
+                );
+            }
+        }
     }
 }

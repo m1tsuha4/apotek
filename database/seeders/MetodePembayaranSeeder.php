@@ -15,6 +15,7 @@ class MetodePembayaranSeeder extends Seeder
     {
         DB::table('metode_pembayarans')->insert(
             [
+                ["nama_metode" => "Retur"],
                 ["nama_metode" => "BNI"],
                 ["nama_metode" => "BSI"],
                 ["nama_metode" => "Qris"],

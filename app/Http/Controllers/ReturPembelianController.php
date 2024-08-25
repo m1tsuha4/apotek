@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
-use App\Models\BarangPembelian;
+use App\Models\Pembelian;
 use App\Models\StokBarang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Models\ReturPembelian;
+use App\Models\BarangPembelian;
+use App\Models\PembayaranPembelian;
+use App\Models\LaporanKeuanganKeluar;
 
 class ReturPembelianController extends Controller
 {
@@ -84,10 +87,6 @@ class ReturPembelianController extends Controller
                 ->where('batch', $barangReturPembelian['batch'])
                 ->first();
 
-            $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
-                ->where('batch', $barangReturPembelian['batch'])
-                ->first();
-
             $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
 
             if ($stokBarang) {
@@ -95,7 +94,6 @@ class ReturPembelianController extends Controller
                     // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
                     $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
                     $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
-                    $barangPembelian->jumlah -= $barangReturPembelian['jumlah_retur'];
                 } else {
                     // Jika satuan retur berbeda dengan satuan dasar, konversi jumlah retur
                     $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
@@ -103,10 +101,8 @@ class ReturPembelianController extends Controller
                         ->value('jumlah');
                     $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
                     $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
-                    $barangPembelian->jumlah -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
                 }
                 $stokBarang->save();
-                $barangPembelian->save();
             } else {
                 // Handle the case where the stock doesn't exist
                 return response()->json([
@@ -114,6 +110,52 @@ class ReturPembelianController extends Controller
                     'message' => 'Stok barang tidak ditemukan',
                 ], 400);
             }
+        }
+
+        // Retrieve the total amount of the purchase
+        $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+
+        // Sum the current total payments
+        $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+
+        // Calculate new total after adding the new payment
+        $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
+
+        $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+
+        $current_pengeluaran = $laporanKeuangan->pengeluaran;
+        $current_utang = $laporanKeuangan->utang;
+
+        // Create the new payment
+        $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
+            [
+                'id_pembelian' => $validatedData['id_pembelian'],
+                'id_metode_pembayaran' => 1,
+            ],
+            [
+                'total_dibayar' => $validatedData['total_retur'],
+                'referensi_pembayaran' => $validatedData['referensi'],
+                'tanggal_pembayaran' => $validatedData['tanggal'],
+            ]
+        );
+
+        // Update the status of the purchase
+        if ($new_total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+            $laporanKeuangan->update([
+                'utang' => 0,
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+            ]);
+        } else {
+            $pembelian->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+            $laporanKeuangan->update([
+                'utang' => $current_utang - $validatedData['total_dibayar'],
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+            ]);
         }
 
         return response()->json([
@@ -194,10 +236,6 @@ class ReturPembelianController extends Controller
                     ->where('batch', $barangReturPembelianData['batch'])
                     ->first();
 
-                $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
-                    ->where('batch', $barangReturPembelianData['batch'])
-                    ->first();
-
                 if ($stokBarang) {
                     // Calculate the stock difference
                     $jumlahReturLama = $barangReturPembelian->jumlah_retur;
@@ -208,8 +246,7 @@ class ReturPembelianController extends Controller
                     if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek += $jumlahReturLama;
                         $stokBarang->stok_apotek -= $jumlahReturBaru;
-                        $barangPembelian->jumlah += $jumlahReturLama;
-                        $barangPembelian->jumlah -= $jumlahReturBaru;
+
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                             ->where('id_satuan', $barangReturPembelianData['id_satuan'])
@@ -218,12 +255,10 @@ class ReturPembelianController extends Controller
                         $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
                         $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
                         $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
-                        $barangPembelian->jumlah += $jumlahReturLama * $satuanBesar;
-                        $barangPembelian->jumlah -= $jumlahReturBaru * $satuanBesar;
+
                     }
 
                     $stokBarang->save();
-                    $barangPembelian->save();
                 }
 
                 $barangReturPembelian->update($barangReturPembelianData);
@@ -235,27 +270,20 @@ class ReturPembelianController extends Controller
                     ->where('batch', $barangReturPembelianData['batch'])
                     ->first();
 
-                $barangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])
-                    ->where('batch', $barangReturPembelianData['batch'])
-                    ->first();
-
                 $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
 
                 if ($stokBarang) {
                     if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'];
                         $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'];
-                        $barangPembelian->jumlah -= $barangReturPembelianData['jumlah_retur'];
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                             ->where('id_satuan', $barangReturPembelianData['id_satuan'])
                             ->value('jumlah');
                         $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
                         $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
-                        $barangPembelian->jumlah -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
                     }
                     $stokBarang->save();
-                    $barangPembelian->save();
                 } else {
                     // Handle the case where the stock doesn't exist
                     return response()->json([
@@ -264,6 +292,52 @@ class ReturPembelianController extends Controller
                     ], 400);
                 }
             }
+        }
+
+        // Retrieve the total amount of the purchase
+        $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+
+        // Sum the current total payments
+        $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+
+        // Calculate new total after adding the new payment
+        $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
+
+        $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+
+        $current_pengeluaran = $laporanKeuangan->pengeluaran;
+        $current_utang = $laporanKeuangan->utang;
+
+        // Create the new payment
+        $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
+            [
+                'id_pembelian' => $validatedData['id_pembelian'],
+                'id_metode_pembayaran' => 1,
+            ],
+            [
+                'total_dibayar' => $validatedData['total_retur'],
+                'referensi_pembayaran' => $validatedData['referensi'],
+                'tanggal_pembayaran' => $validatedData['tanggal'],
+            ]
+        );
+
+        // Update the status of the purchase
+        if ($new_total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+            $laporanKeuangan->update([
+                'utang' => 0,
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+            ]);
+        } else {
+            $pembelian->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+            $laporanKeuangan->update([
+                'utang' => $current_utang - $validatedData['total_dibayar'],
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+            ]);
         }
 
         return response()->json([

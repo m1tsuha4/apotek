@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Barang;
 use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Models\LaporanKeuanganMasuk;
@@ -33,24 +34,51 @@ class DashboardController extends Controller
     
     public function stokBarang(Request $request)
     {
-        $stokBarang = StokBarang::paginate($request->num);
+        $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
+            ->paginate($request->num);
+        
+        $data = $stok->items();
 
-        $data = $stokBarang->map(function ($item) {
+        foreach ($data as $item) {
+            $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
+        }
+
+        $data = $stok->map(function ($item) {
             return [
                 'id' => $item->id,
-                'nama_barang' => $item->barang->nama_barang,
-                'kategori' => $item->barang->kategori->nama_kategori,
-                'satuan' => $item->barang->satuan->nama_satuan,
-                'total' => $item->stok_total
+                'nama_barang' => $item->nama_barang,
+                'kategori' => $item->kategori->nama_kategori,
+                'satuan' => $item->satuan->nama_satuan,
+                'total' => $item->total_stok
             ];
         });
-
+    
         return response()->json([
             'success' => true,
             'data' => $data,
-            'last_page' => $stokBarang->lastPage(),
-            'message' => 'Data Stok Barang Berhasil ditemukan!',
+            'last_page' => $stok->lastPage(),
+            'message' => 'Data Berhasil ditemukan!',
         ]);
+
+        // $stokBarang = StokBarang::paginate($request->num);
+
+        // $data = $stokBarang->map(function ($item) {
+        //     return [
+        //         'id' => $item->id,
+        //         'nama_barang' => $item->barang->nama_barang,
+        //         'kategori' => $item->barang->kategori->nama_kategori,
+        //         'satuan' => $item->barang->satuan->nama_satuan,
+        //         'total' => $item->stok_total
+        //     ];
+        // });
+
+        // return response()->json([
+        //     'success' => true,
+        //     'data' => $data,
+        //     'last_page' => $stokBarang->lastPage(),
+        //     'message' => 'Data Stok Barang Berhasil ditemukan!',
+        // ]);
     }
 
     public function searchStokBarang(Request $request)

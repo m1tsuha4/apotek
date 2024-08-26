@@ -134,7 +134,7 @@ class ReturPembelianController extends Controller
             ],
             [
                 'total_dibayar' => $validatedData['total_retur'],
-                'referensi_pembayaran' => $validatedData['referensi'],
+                'referensi_pembayaran' => '-',
                 'tanggal_pembayaran' => $validatedData['tanggal'],
             ]
         );
@@ -146,15 +146,15 @@ class ReturPembelianController extends Controller
             ]);
             $laporanKeuangan->update([
                 'utang' => 0,
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_retur'],
             ]);
         } else {
             $pembelian->update([
                 'status' => 'Dibayar Sebagian',
             ]);
             $laporanKeuangan->update([
-                'utang' => $current_utang - $validatedData['total_dibayar'],
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
+                'utang' => $current_utang - $validatedData['total_retur'],
+                'pengeluaran' => $current_pengeluaran + $validatedData['total_retur'],
             ]);
         }
 

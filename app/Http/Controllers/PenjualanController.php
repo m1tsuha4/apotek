@@ -72,7 +72,7 @@ class PenjualanController extends Controller
                 ->where('stok_apotek', '>', 0)
                 ->orderBy('exp_date', 'asc')
                 ->get();
-            
+
             $totalStockInBasicUnit = $stokBarangs->sum('stok_apotek');
             $totalStockInRequestedUnit = $isBasicUnit ? $totalStockInBasicUnit : $totalStockInBasicUnit / $conversionRate;
 
@@ -189,94 +189,107 @@ class PenjualanController extends Controller
             // Buat penjualan baru
             $penjualan = Penjualan::create($validatedData);
 
-            // Proses setiap barang dalam penjualan
-            foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
-                $jumlah = $barangPenjualanData['jumlah'];
-                $idBarang = $barangPenjualanData['id_barang'];
+            if ($validatedData['id_jenis'] == 3) {
+                // Proses setiap barang dalam penjualan
+                foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
+                    $jumlah = $barangPenjualanData['jumlah'];
+                    $idBarang = $barangPenjualanData['id_barang'];
 
-                // Ambil satuan dasar barang
-                $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
-                $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
-                $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
+                    // Ambil satuan dasar barang
+                    $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
+                    $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
+                    $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
 
-                if ($barangPenjualanData['harga'] != $hargaAsli) {
-                    Barang::where('id', $idBarang)->update([
-                        'harga_jual' => $barangPenjualanData['harga']
+                    if ($barangPenjualanData['harga'] != $hargaAsli) {
+                        Barang::where('id', $idBarang)->update([
+                            'harga_jual' => $barangPenjualanData['harga']
+                        ]);
+                    }
+
+                    // Dapatkan stok barang yang tersedia berdasarkan barang dan satuan
+                    $stokBarangs = StokBarang::where('id_barang', $idBarang)
+                        ->where('stok_apotek', '>', 0)
+                        ->orderBy('exp_date', 'asc')
+                        ->get();
+
+                    // Initialize $stokPengurangan
+                    $stokPengurangan = 0;
+
+                    foreach ($stokBarangs as $stokBarang) {
+                        if ($jumlah <= 0) {
+                            break;
+                        }
+
+                        $stokTersedia = $stokBarang->stok_apotek;
+
+                        if ($barangPenjualanData['id_satuan'] == $satuanDasar) {
+                            // Jika satuan yang digunakan adalah satuan dasar
+                            $stokPengurangan = min($stokTersedia, $jumlah);
+                            $jumlah -= $stokPengurangan;
+                        } else {
+                            // Jika satuan yang digunakan adalah satuan besar
+                            $satuanBesarJumlah = SatuanBarang::where('id_barang', $idBarang)
+                                ->where('id_satuan', $barangPenjualanData['id_satuan'])
+                                ->value('jumlah');
+
+                            $stokPengurangan = min($stokTersedia, $jumlah * $satuanBesarJumlah);
+                            $jumlah -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
+                        }
+
+                        // Buat entri barang penjualan
+                        $penjualan->barangPenjualan()->create([
+                            'id_barang' => $idBarang,
+                            'jumlah' => $stokPengurangan,
+                            'id_satuan' => $barangPenjualanData['id_satuan'],
+                            'id_stok_barang' => $stokBarang->id,
+                            'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
+                            'diskon' => $barangPenjualanData['diskon'] ?? 0,
+                            'harga' => $barangPenjualanData['harga'],
+                            'total' => $barangPenjualanData['total'],
+                        ]);
+
+                        // Kurangi stok barang
+                        $stokBarang->stok_apotek -= $stokPengurangan;
+                        $stokBarang->stok_total -= $stokPengurangan;
+                        $stokBarang->save();
+                    }
+
+                    PergerakanStokPenjualan::create([
+                        'id_penjualan' => $penjualan->id,
+                        'id_barang' => $idBarang,
+                        'harga' => $barangPenjualanData['harga'],
+                        'pergerakan_stok' => $stokPengurangan,
+                        'stok_keseluruhan' => $totalStok - $stokPengurangan
                     ]);
+
+                    if ($jumlah > 0) {
+                        // Rollback transaction if stock is insufficient
+                        DB::rollBack();
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
+                        ], 400);
+                    }
                 }
 
-                // Dapatkan stok barang yang tersedia berdasarkan barang dan satuan
-                $stokBarangs = StokBarang::where('id_barang', $idBarang)
-                    ->where('stok_apotek', '>', 0)
-                    ->orderBy('exp_date', 'asc')
-                    ->get();
-
-                // Initialize $stokPengurangan
-                $stokPengurangan = 0;
-
-                foreach ($stokBarangs as $stokBarang) {
-                    if ($jumlah <= 0) {
-                        break;
-                    }
-
-                    $stokTersedia = $stokBarang->stok_apotek;
-
-                    if ($barangPenjualanData['id_satuan'] == $satuanDasar) {
-                        // Jika satuan yang digunakan adalah satuan dasar
-                        $stokPengurangan = min($stokTersedia, $jumlah);
-                        $jumlah -= $stokPengurangan;
-                    } else {
-                        // Jika satuan yang digunakan adalah satuan besar
-                        $satuanBesarJumlah = SatuanBarang::where('id_barang', $idBarang)
-                            ->where('id_satuan', $barangPenjualanData['id_satuan'])
-                            ->value('jumlah');
-
-                        $stokPengurangan = min($stokTersedia, $jumlah * $satuanBesarJumlah);
-                        $jumlah -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
-                    }
-
-                    // Buat entri barang penjualan
+                LaporanKeuanganMasuk::create([
+                    'id_penjualan' => $penjualan->id,
+                    'piutang' => $penjualan->total,
+                ]);
+            } else if ($validatedData['id_jenis'] == 1) {
+                // Hanya buat entri barang penjualan tanpa pengurangan stok
+                foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
                     $penjualan->barangPenjualan()->create([
-                        'id_barang' => $idBarang,
-                        'jumlah' => $stokPengurangan,
+                        'id_barang' => $barangPenjualanData['id_barang'],
+                        'jumlah' => $barangPenjualanData['jumlah'],
                         'id_satuan' => $barangPenjualanData['id_satuan'],
-                        'id_stok_barang' => $stokBarang->id,
                         'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                         'diskon' => $barangPenjualanData['diskon'] ?? 0,
                         'harga' => $barangPenjualanData['harga'],
                         'total' => $barangPenjualanData['total'],
                     ]);
-
-                    // Kurangi stok barang
-                    $stokBarang->stok_apotek -= $stokPengurangan;
-                    $stokBarang->stok_total -= $stokPengurangan;
-                    $stokBarang->save();
                 }
-
-                PergerakanStokPenjualan::create([
-                    'id_penjualan' => $penjualan->id,
-                    'id_barang' => $idBarang,
-                    'harga' => $barangPenjualanData['harga'],
-                    'pergerakan_stok' => $stokPengurangan,
-                    'stok_keseluruhan' => $totalStok - $stokPengurangan
-                ]);
-
-                if ($jumlah > 0) {
-                    // Rollback transaction if stock is insufficient
-                    DB::rollBack();
-
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
-                    ], 400);
-                }
-            }
-
-            if ($validatedData['id_jenis'] == '3') {
-                LaporanKeuanganMasuk::create([
-                    'id_penjualan' => $penjualan->id,
-                    'piutang' => $penjualan->total,
-                ]);
             }
 
             // Commit transaction
@@ -284,7 +297,7 @@ class PenjualanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Penjualan berhasil ditambahkan dan stok diperbarui',
+                'message' => 'Penjualan berhasil ditambahkan' . ($validatedData['id_jenis'] == 3 ? ' dan stok diperbarui' : ''),
                 'data' => $penjualan
             ]);
         } catch (\Exception $e) {
@@ -297,9 +310,6 @@ class PenjualanController extends Controller
             ], 500);
         }
     }
-
-
-
 
     /**
      * Display the specified resource.
@@ -403,60 +413,115 @@ class PenjualanController extends Controller
             // Update penjualan data
             $penjualan->update($validatedData);
 
-            // Process each barang in penjualan
-            foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
-                $idBarang = $barangPenjualanData['id_barang'];
-                $jumlahBaru = $barangPenjualanData['jumlah'];
+            if ($validatedData['id_jenis'] == 3) {
+                // Process each barang in penjualan when id_jenis is 3
+                foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
+                    $idBarang = $barangPenjualanData['id_barang'];
+                    $jumlahBaru = $barangPenjualanData['jumlah'];
 
-                // Find existing barang penjualan
-                $existingBarangPenjualan = $penjualan->barangPenjualan()->where('id_barang', $idBarang)->first();
+                    // Find existing barang penjualan
+                    $existingBarangPenjualan = $penjualan->barangPenjualan()->where('id_barang', $idBarang)->first();
 
-                $jumlahDifference = $existingBarangPenjualan ? $jumlahBaru - $existingBarangPenjualan->jumlah : $jumlahBaru;
+                    $jumlahDifference = $existingBarangPenjualan ? $jumlahBaru - $existingBarangPenjualan->jumlah : $jumlahBaru;
 
-                // Get satuan dasar
-                $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
-                $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
-                $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
+                    // Get satuan dasar
+                    $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
+                    $hargaAsli = Barang::where('id', $idBarang)->value('harga_jual');
+                    $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
 
-                if ($barangPenjualanData['harga'] != $hargaAsli) {
-                    Barang::where('id', $idBarang)->update([
-                        'harga_jual' => $barangPenjualanData['harga']
-                    ]);
+                    if ($barangPenjualanData['harga'] != $hargaAsli) {
+                        Barang::where('id', $idBarang)->update([
+                            'harga_jual' => $barangPenjualanData['harga']
+                        ]);
+                    }
+
+                    // Get available stock
+                    $stokBarangs = StokBarang::where('id_barang', $idBarang)
+                        ->where('stok_apotek', '>', 0)
+                        ->orderBy('exp_date', 'asc')
+                        ->get();
+
+                    foreach ($stokBarangs as $stokBarang) {
+                        if ($jumlahDifference <= 0) {
+                            break;
+                        }
+
+                        $stokTersedia = $stokBarang->stok_apotek;
+
+                        if ($barangPenjualanData['id_satuan'] == $satuanDasar) {
+                            // If using base unit
+                            $stokPengurangan = min($stokTersedia, $jumlahDifference);
+                            $jumlahDifference -= $stokPengurangan;
+                        } else {
+                            // If using larger unit
+                            $satuanBesarJumlah = SatuanBarang::where('id_barang', $idBarang)
+                                ->where('id_satuan', $barangPenjualanData['id_satuan'])
+                                ->value('jumlah');
+
+                            $stokPengurangan = min($stokTersedia, $jumlahDifference * $satuanBesarJumlah);
+                            $jumlahDifference -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
+                        }
+
+                        if ($existingBarangPenjualan) {
+                            // Update existing barang penjualan
+                            $existingBarangPenjualan->update([
+                                'jumlah' => $barangPenjualanData['jumlah'],
+                                'id_satuan' => $barangPenjualanData['id_satuan'],
+                                'id_stok_barang' => $stokBarang->id,
+                                'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
+                                'diskon' => $barangPenjualanData['diskon'] ?? 0,
+                                'harga' => $barangPenjualanData['harga'],
+                                'total' => $barangPenjualanData['total'],
+                            ]);
+                        } else {
+                            // Create new barang penjualan
+                            $penjualan->barangPenjualan()->create([
+                                'id_barang' => $idBarang,
+                                'jumlah' => $barangPenjualanData['jumlah'],
+                                'id_satuan' => $barangPenjualanData['id_satuan'],
+                                'id_stok_barang' => $stokBarang->id,
+                                'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
+                                'diskon' => $barangPenjualanData['diskon'] ?? 0,
+                                'harga' => $barangPenjualanData['harga'],
+                                'total' => $barangPenjualanData['total'],
+                            ]);
+                        }
+
+                        // Update stock
+                        $stokBarang->stok_apotek -= $stokPengurangan;
+                        $stokBarang->stok_total -= $stokPengurangan;
+                        $stokBarang->save();
+
+                        PergerakanStokPenjualan::updateOrCreate(
+                            ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang],
+                            ['harga' => $barangPenjualanData['harga'], 'pergerakan_stok' => $barangPenjualanData['jumlah'], 'stok_keseluruhan' => $totalStok - $barangPenjualanData['jumlah']]
+                        );
+                    }
+
+                    if ($jumlahDifference > 0) {
+                        // Rollback transaction if stock is insufficient
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
+                        ], 400);
+                    }
                 }
 
-                // Get available stock
-                $stokBarangs = StokBarang::where('id_barang', $idBarang)
-                    ->where('stok_apotek', '>', 0)
-                    ->orderBy('exp_date', 'asc')
-                    ->get();
-
-                foreach ($stokBarangs as $stokBarang) {
-                    if ($jumlahDifference <= 0) {
-                        break;
-                    }
-
-                    $stokTersedia = $stokBarang->stok_apotek;
-
-                    if ($barangPenjualanData['id_satuan'] == $satuanDasar) {
-                        // If using base unit
-                        $stokPengurangan = min($stokTersedia, $jumlahDifference);
-                        $jumlahDifference -= $stokPengurangan;
-                    } else {
-                        // If using larger unit
-                        $satuanBesarJumlah = SatuanBarang::where('id_barang', $idBarang)
-                            ->where('id_satuan', $barangPenjualanData['id_satuan'])
-                            ->value('jumlah');
-
-                        $stokPengurangan = min($stokTersedia, $jumlahDifference * $satuanBesarJumlah);
-                        $jumlahDifference -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
-                    }
+                LaporanKeuanganMasuk::updateOrCreate(
+                    ['id_penjualan' => $penjualan->id],
+                    ['piutang' => $penjualan->total]
+                );
+            } else if ($validatedData['id_jenis'] == 1) {
+                // Update only penjualan and barang_penjualan without affecting stock
+                foreach ($validatedData['barang_penjualans'] as $barangPenjualanData) {
+                    $existingBarangPenjualan = $penjualan->barangPenjualan()->where('id_barang', $barangPenjualanData['id_barang'])->first();
 
                     if ($existingBarangPenjualan) {
                         // Update existing barang penjualan
                         $existingBarangPenjualan->update([
                             'jumlah' => $barangPenjualanData['jumlah'],
                             'id_satuan' => $barangPenjualanData['id_satuan'],
-                            'id_stok_barang' => $stokBarang->id,
                             'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                             'diskon' => $barangPenjualanData['diskon'] ?? 0,
                             'harga' => $barangPenjualanData['harga'],
@@ -465,50 +530,23 @@ class PenjualanController extends Controller
                     } else {
                         // Create new barang penjualan
                         $penjualan->barangPenjualan()->create([
-                            'id_barang' => $idBarang,
+                            'id_barang' => $barangPenjualanData['id_barang'],
                             'jumlah' => $barangPenjualanData['jumlah'],
                             'id_satuan' => $barangPenjualanData['id_satuan'],
-                            'id_stok_barang' => $stokBarang->id,
                             'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                             'diskon' => $barangPenjualanData['diskon'] ?? 0,
                             'harga' => $barangPenjualanData['harga'],
                             'total' => $barangPenjualanData['total'],
                         ]);
                     }
-
-                    // Update stock
-                    $stokBarang->stok_apotek -= $stokPengurangan;
-                    $stokBarang->stok_total -= $stokPengurangan;
-                    $stokBarang->save();
-
-                    PergerakanStokPenjualan::updateOrCreate(
-                        ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang],
-                        ['harga' => $barangPenjualanData['harga'], 'pergerakan_stok' => $barangPenjualanData['jumlah'], 'stok_keseluruhan' => $totalStok - $barangPenjualanData['jumlah']]
-                    );
                 }
-
-                if ($jumlahDifference > 0) {
-                    // Rollback transaction if stock is insufficient
-                    DB::rollBack();
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
-                    ], 400);
-                }
-            }
-
-            if ($validatedData['id_jenis'] == '3') {
-                LaporanKeuanganMasuk::updateOrCreate(
-                    ['id_penjualan' => $penjualan->id],
-                    ['piutang' => $penjualan->total]
-                );
             }
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Penjualan berhasil diperbarui dan stok diperbarui',
+                'message' => 'Penjualan berhasil diperbarui' . ($validatedData['id_jenis'] == 3 ? ' dan stok diperbarui' : ''),
                 'data' => $penjualan
             ]);
         } catch (\Exception $e) {
@@ -520,6 +558,7 @@ class PenjualanController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -565,19 +604,96 @@ class PenjualanController extends Controller
 
     public function setPenjualan(Penjualan $penjualan)
     {
-        $penjualan->update([
-            'id_jenis' => '3',
-        ]);
-        LaporanKeuanganMasuk::create([
-            'id_penjualan' => $penjualan->id,
-            'piutang' => $penjualan->total,
-        ]);
+        DB::beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data penjualan berhasil diperbarui!'
-        ]);
+        try {
+            // Update penjualan to set id_jenis to 3
+            $penjualan->update([
+                'id_jenis' => '3',
+            ]);
+
+            // Process each barang in penjualan
+            foreach ($penjualan->barangPenjualan as $barangPenjualan) {
+                $idBarang = $barangPenjualan->id_barang;
+                $jumlahPenjualan = $barangPenjualan->jumlah;
+
+                // Get satuan dasar and original stock values
+                $satuanDasar = Barang::where('id', $idBarang)->value('id_satuan');
+                $totalStok = StokBarang::where('id_barang', $idBarang)->sum('stok_total');
+
+                // Get available stock
+                $stokBarangs = StokBarang::where('id_barang', $idBarang)
+                    ->where('stok_apotek', '>', 0)
+                    ->orderBy('exp_date', 'asc')
+                    ->get();
+
+                $jumlahDifference = $jumlahPenjualan;
+
+                foreach ($stokBarangs as $stokBarang) {
+                    if ($jumlahDifference <= 0) {
+                        break;
+                    }
+
+                    $stokTersedia = $stokBarang->stok_apotek;
+
+                    if ($barangPenjualan->id_satuan == $satuanDasar) {
+                        // If using base unit
+                        $stokPengurangan = min($stokTersedia, $jumlahDifference);
+                        $jumlahDifference -= $stokPengurangan;
+                    } else {
+                        // If using larger unit
+                        $satuanBesarJumlah = SatuanBarang::where('id_barang', $idBarang)
+                            ->where('id_satuan', $barangPenjualan->id_satuan)
+                            ->value('jumlah');
+
+                        $stokPengurangan = min($stokTersedia, $jumlahDifference * $satuanBesarJumlah);
+                        $jumlahDifference -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
+                    }
+
+                    // Update stock
+                    $stokBarang->stok_apotek -= $stokPengurangan;
+                    $stokBarang->stok_total -= $stokPengurangan;
+                    $stokBarang->save();
+
+                    // Update pergerakan stok
+                    PergerakanStokPenjualan::updateOrCreate(
+                        ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang],
+                        ['harga' => $barangPenjualan->harga, 'pergerakan_stok' => $barangPenjualan->jumlah, 'stok_keseluruhan' => $totalStok - $barangPenjualan->jumlah]
+                    );
+                }
+
+                if ($jumlahDifference > 0) {
+                    // Rollback transaction if stock is insufficient
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Stok tidak mencukupi untuk jumlah yang diminta untuk barang ID: ' . $idBarang,
+                    ], 400);
+                }
+            }
+
+            // Create or update financial report
+            LaporanKeuanganMasuk::updateOrCreate(
+                ['id_penjualan' => $penjualan->id],
+                ['piutang' => $penjualan->total]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data penjualan berhasil diperbarui dan stok diperbarui!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     public function export()
     {

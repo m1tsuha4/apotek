@@ -298,6 +298,12 @@ class PembelianController extends Controller
                     'total_dibayar' => $pembayaranPembelian->total_dibayar,
                     'referensi_pembayaran' => $pembayaranPembelian->referensi_pembayaran
                 ];
+            }),
+            'returPembelian' => $pembelian->returnPembelian->map(function ($returnPembelian) {
+                return [
+                    'id' => $returnPembelian->id,
+                    'total_retur' => $returnPembelian->total_retur
+                ];
             })
         ];
         return response()->json([

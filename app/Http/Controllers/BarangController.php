@@ -97,20 +97,20 @@ class BarangController extends Controller
                 'satuanBarang:id,id_barang,id_satuan,jumlah,harga_jual',
                 'satuanBarang.satuan:id,nama_satuan',
                 'variasiHargaJual:id,id_barang,min_kuantitas,harga',
-                'stokBarang:id,batch,exp_date,id_barang,stok_apotek',
+                'stokBarang' => function($query) {
+                    $query->select('id', 'batch', 'exp_date', 'id_barang', 'stok_apotek')
+                          ->where('stok_apotek', '>', 0);
+                },
             ])
+            ->whereHas('stokBarang', function($query) {
+                $query->where('stok_apotek', '>', 0);
+            })
             ->orderBy('exp_date', 'asc')
             ->get();
 
-        // $barang->each(function ($item) {
-        //     $item->stok_total = $item->stokBarang->sum('stok_apotek');
-        // });
-
-        // Filter out Barang without stock
-        $barang = $barang->filter(function ($item) {
-            $item->stok_total = $item->stokBarang->sum('stok_apotek');
-            return $item->stok_total > 0;
-        });
+            $barang->each(function ($item) {
+                $item->stok_total = $item->stokBarang->sum('stok_apotek');
+            });
 
         return response()->json([
             'success' => true,

@@ -124,6 +124,35 @@ class PenjualanController extends Controller
         }
     }
 
+    public function getTotalStok(Request $request)
+    {
+        $validatedData = $request->validate([
+            'id_barang' => 'required',
+            'id_satuan' => 'required',
+        ]);
+
+        $idBarang = $validatedData['id_barang'];
+        $idSatuan = $validatedData['id_satuan'];
+
+        $barang = Barang::find($idBarang);
+        $isBasicUnit = $idSatuan == $barang->id_satuan;
+        $conversionRate = $isBasicUnit ? 1 : $barang->satuanBarang->jumlah; // Assume conversion_rate is the number of pieces per box
+
+        $stokBarangs = StokBarang::where('id_barang', $idBarang)
+            ->where('stok_apotek', '>', 0)
+            ->orderBy('exp_date', 'asc')
+            ->get();
+
+        $totalStockInBasicUnit = $stokBarangs->sum('stok_apotek');
+        $totalStockInRequestedUnit = $isBasicUnit ? $totalStockInBasicUnit : $totalStockInBasicUnit / $conversionRate;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Total stok barang',
+            'total_stok' => $totalStockInRequestedUnit,
+        ]);
+    }
+
 
     /**
      * Store a newly created resource in storage.

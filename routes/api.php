@@ -182,6 +182,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);
     Route::post('penjualan-stok-detail', [PenjualanController::class, 'getStockDetails']);
+    Route::post('penjualan-total-stok', [PenjualanController::class, 'getTotalStok']);
 
     Route::get('penjualan', [PenjualanController::class, 'index'])->middleware('hak_akses:45');
     Route::get('penjualan/{penjualan}', [PenjualanController::class, 'show'])->middleware('hak_akses:48');

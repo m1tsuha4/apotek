@@ -22,6 +22,6 @@ class CheckAksesId
             return $next($request);
         }
 
-        return response()->json(['message' => 'Forbidden'], 403);
+        return response()->json(['message' => 'Hak Akses Tidak Diizinkan'], 403);
     }
 }

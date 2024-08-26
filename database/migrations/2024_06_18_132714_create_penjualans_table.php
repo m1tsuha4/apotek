@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('referensi')->nullable();
             $table->float('sub_total');
             $table->float('total_diskon_satuan')->nullable();
-            $table->float('diskon')->default(0);
+            $table->float('diskon')->nullable();
             $table->float('total');
             $table->string('catatan')->nullable();
             $table->timestamps();

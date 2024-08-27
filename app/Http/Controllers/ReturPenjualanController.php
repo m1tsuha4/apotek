@@ -127,6 +127,43 @@ class ReturPenjualanController extends Controller
             ], 400);
         }
 
+        // Handle the return process based on current payment status
+        $remaining_retur = $validatedData['total_retur'];
+
+        if ($current_piutang > 0) {
+            if ($remaining_retur <= $current_piutang) {
+                // Decrease piutang by the return amount
+                $laporanKeuangan->update([
+                    'piutang' => $current_piutang - $remaining_retur,
+                ]);
+                $remaining_retur = 0;
+            } else {
+                // Decrease piutang and adjust remaining return amount
+                $laporanKeuangan->update([
+                    'piutang' => 0,
+                ]);
+                $remaining_retur -= $current_piutang;
+            }
+        }
+
+        if ($remaining_retur > 0 && $current_pemasukkan > 0) {
+            // Decrease pemasukkan by the remaining return amount
+            $laporanKeuangan->update([
+                'pemasukkan' => $current_pemasukkan - $remaining_retur,
+            ]);
+        }
+
+        // Update the status of the purchase
+        if ($new_total_dibayar == $penjualan->total) {
+            $penjualan->update([
+                'status' => 'Lunas',
+            ]);
+        } else {
+            $penjualan->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+        }
+
         // Create the new payment
         $pembayaranPenjualan = PembayaranPenjualan::updateOrCreate(
             [
@@ -140,29 +177,10 @@ class ReturPenjualanController extends Controller
             ]
         );
 
-        // Update the status of the purchase
-        if ($new_total_dibayar == $penjualan->total) {
-            $penjualan->update([
-                'status' => 'Lunas',
-            ]);
-            $laporanKeuangan->update([
-                'piutang' => 0,
-                'pemasukkan' => $current_pemasukkan + $validatedData['total_retur'],
-            ]);
-        } else {
-            $penjualan->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-            $laporanKeuangan->update([
-                'piutang' => $current_piutang - $validatedData['total_retur'],
-                'pemasukkan' => $current_pemasukkan + $validatedData['total_retur'],
-            ]);
-        }
-
         return response()->json([
             'success' => true,
             'data' => $returPenjualan,
-            'message' => 'Data Berhasil ditambahkan!',
+            'message' => 'Retur Berhasil ditambahkan!',
         ]);
     }
 
@@ -287,6 +305,43 @@ class ReturPenjualanController extends Controller
             ], 400);
         }
 
+        // Handle the return process based on current payment status
+        $remaining_retur = $validatedData['total_retur'];
+
+        if ($current_piutang > 0) {
+            if ($remaining_retur <= $current_piutang) {
+                // Decrease piutang by the return amount
+                $laporanKeuangan->update([
+                    'piutang' => $current_piutang - $remaining_retur,
+                ]);
+                $remaining_retur = 0;
+            } else {
+                // Decrease piutang and adjust remaining return amount
+                $laporanKeuangan->update([
+                    'piutang' => 0,
+                ]);
+                $remaining_retur -= $current_piutang;
+            }
+        }
+
+        if ($remaining_retur > 0 && $current_pemasukkan > 0) {
+            // Decrease pemasukkan by the remaining return amount
+            $laporanKeuangan->update([
+                'pemasukkan' => $current_pemasukkan - $remaining_retur,
+            ]);
+        }
+
+        // Update the status of the purchase
+        if ($new_total_dibayar == $penjualan->total) {
+            $penjualan->update([
+                'status' => 'Lunas',
+            ]);
+        } else {
+            $penjualan->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+        }
+
         // Create the new payment
         $pembayaranPenjualan = PembayaranPenjualan::updateOrCreate(
             [
@@ -299,25 +354,6 @@ class ReturPenjualanController extends Controller
                 'tanggal_pembayaran' => $validatedData['tanggal'],
             ]
         );
-
-        // Update the status of the purchase
-        if ($new_total_dibayar == $penjualan->total) {
-            $penjualan->update([
-                'status' => 'Lunas',
-            ]);
-            $laporanKeuangan->update([
-                'piutang' => 0,
-                'pemasukkan' => $current_pemasukkan + $validatedData['total_retur'],
-            ]);
-        } else {
-            $penjualan->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-            $laporanKeuangan->update([
-                'piutang' => $current_piutang - $validatedData['total_retur'],
-                'pemasukkan' => $current_pemasukkan + $validatedData['total_retur'],
-            ]);
-        }
 
         return response()->json([
             'success' => true,

@@ -126,6 +126,45 @@ class ReturPembelianController extends Controller
         $current_pengeluaran = $laporanKeuangan->pengeluaran;
         $current_utang = $laporanKeuangan->utang;
 
+        if ($new_total_dibayar > $pembelian->total) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total retur melebihi total pembelian',
+            ], 400);
+        }
+
+        $remaining_retur = $validatedData['total_retur'];
+
+        if ($current_utang > 0) {
+            if ($remaining_retur <= $current_utang) {
+                $laporanKeuangan->update([
+                    'utang' => $current_utang - $remaining_retur,
+                ]);
+                $remaining_retur = 0;
+            } else {
+                $laporanKeuangan->update([
+                    'utang' => 0,
+                ]);
+                $remaining_retur -= $current_utang;
+            }
+        }
+
+        if ($remaining_retur > 0 && $current_pengeluaran > 0) {
+            $laporanKeuangan->update([
+                'pengeluaran' => $current_pengeluaran - $remaining_retur,
+            ]);
+        }
+
+        if ($new_total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+        } else {
+            $pembelian->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+        }
+
         // Create the new payment
         $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
             [
@@ -138,25 +177,6 @@ class ReturPembelianController extends Controller
                 'tanggal_pembayaran' => $validatedData['tanggal'],
             ]
         );
-
-        // Update the status of the purchase
-        if ($new_total_dibayar == $pembelian->total) {
-            $pembelian->update([
-                'status' => 'Lunas',
-            ]);
-            $laporanKeuangan->update([
-                'utang' => 0,
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_retur'],
-            ]);
-        } else {
-            $pembelian->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-            $laporanKeuangan->update([
-                'utang' => $current_utang - $validatedData['total_retur'],
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_retur'],
-            ]);
-        }
 
         return response()->json([
             'success' => true,
@@ -246,7 +266,6 @@ class ReturPembelianController extends Controller
                     if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                         $stokBarang->stok_apotek += $jumlahReturLama;
                         $stokBarang->stok_apotek -= $jumlahReturBaru;
-
                     } else {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                             ->where('id_satuan', $barangReturPembelianData['id_satuan'])
@@ -255,7 +274,6 @@ class ReturPembelianController extends Controller
                         $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
                         $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
                         $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
-
                     }
 
                     $stokBarang->save();
@@ -308,6 +326,45 @@ class ReturPembelianController extends Controller
         $current_pengeluaran = $laporanKeuangan->pengeluaran;
         $current_utang = $laporanKeuangan->utang;
 
+        if ($new_total_dibayar > $pembelian->total) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Total retur melebihi total pembelian',
+            ], 400);
+        }
+
+        $remaining_retur = $validatedData['total_retur'];
+
+        if ($current_utang > 0) {
+            if ($remaining_retur <= $current_utang) {
+                $laporanKeuangan->update([
+                    'utang' => $current_utang - $remaining_retur,
+                ]);
+                $remaining_retur = 0;
+            } else {
+                $laporanKeuangan->update([
+                    'utang' => 0,
+                ]);
+                $remaining_retur -= $current_utang;
+            }
+        }
+
+        if ($remaining_retur > 0 && $current_pengeluaran > 0) {
+            $laporanKeuangan->update([
+                'pengeluaran' => $current_pengeluaran - $remaining_retur,
+            ]);
+        }
+
+        if ($new_total_dibayar == $pembelian->total) {
+            $pembelian->update([
+                'status' => 'Lunas',
+            ]);
+        } else {
+            $pembelian->update([
+                'status' => 'Dibayar Sebagian',
+            ]);
+        }
+
         // Create the new payment
         $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
             [
@@ -316,29 +373,10 @@ class ReturPembelianController extends Controller
             ],
             [
                 'total_dibayar' => $validatedData['total_retur'],
-                'referensi_pembayaran' => $validatedData['referensi'],
+                'referensi_pembayaran' => '-',
                 'tanggal_pembayaran' => $validatedData['tanggal'],
             ]
         );
-
-        // Update the status of the purchase
-        if ($new_total_dibayar == $pembelian->total) {
-            $pembelian->update([
-                'status' => 'Lunas',
-            ]);
-            $laporanKeuangan->update([
-                'utang' => 0,
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
-            ]);
-        } else {
-            $pembelian->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-            $laporanKeuangan->update([
-                'utang' => $current_utang - $validatedData['total_dibayar'],
-                'pengeluaran' => $current_pengeluaran + $validatedData['total_dibayar'],
-            ]);
-        }
 
         return response()->json([
             'success' => true,

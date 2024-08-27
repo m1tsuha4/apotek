@@ -361,6 +361,12 @@ class PenjualanController extends Controller
                     'total_dibayar' => $pembayaranPenjualan->total_dibayar,
                     'referensi_pembayaran' => $pembayaranPenjualan->referensi_pembayaran
                 ];
+            }),
+            'returPenjualan' => $penjualan->returPenjualan->map(function ($returPenjualan) {
+                return [
+                    'id' => $returPenjualan->id,
+                    'total_retur' => $returPenjualan->total_retur
+                ];
             })
         ];
 

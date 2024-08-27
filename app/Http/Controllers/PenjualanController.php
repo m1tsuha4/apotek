@@ -341,8 +341,8 @@ class PenjualanController extends Controller
                     'id' => $barangPenjualan->id,
                     'id_barang' => $barangPenjualan->id_barang,
                     'nama_barang' => $barangPenjualan->barang->nama_barang,
-                    'id_stok_barang' => $barangPenjualan->id_stok_barang,
-                    'batch' => $barangPenjualan->stokBarang->batch,
+                    'id_stok_barang' => $barangPenjualan->id_stok_barang ?? null,
+                    'batch' => $barangPenjualan->stokBarang->batch ?? null,
                     'jumlah' => $barangPenjualan->jumlah,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
@@ -655,6 +655,10 @@ class PenjualanController extends Controller
                         $stokPengurangan = min($stokTersedia, $jumlahDifference * $satuanBesarJumlah);
                         $jumlahDifference -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
                     }
+
+                    $penjualan->barangPenjualan()->update([
+                        'id_stok_barang' => $stokBarang->id
+                    ]);
 
                     // Update stock
                     $stokBarang->stok_apotek -= $stokPengurangan;

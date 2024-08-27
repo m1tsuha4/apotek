@@ -9,6 +9,7 @@ use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Models\ReturPembelian;
 use App\Models\BarangPembelian;
+use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPembelian;
 use App\Models\LaporanKeuanganKeluar;
 
@@ -78,111 +79,126 @@ class ReturPembelianController extends Controller
             'barang_retur_pembelians.*.total' => ['required'],
         ]);
 
-        $returPembelian = ReturPembelian::create($validatedData);
+        DB::beginTransaction();
 
-        foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
-            $returPembelian->barangReturPembelian()->create($barangReturPembelian);
+        try {
 
-            $stokBarang = StokBarang::where('id_barang', $barangReturPembelian['id_barang'])
-                ->where('batch', $barangReturPembelian['batch'])
-                ->first();
+            $returPembelian = ReturPembelian::create($validatedData);
 
-            $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
+            foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
+                $returPembelian->barangReturPembelian()->create($barangReturPembelian);
 
-            if ($stokBarang) {
-                if ($barangReturPembelian['id_satuan'] == $satuanDasar) {
-                    // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
-                    $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
-                    $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
+                $stokBarang = StokBarang::where('id_barang', $barangReturPembelian['id_barang'])
+                    ->where('batch', $barangReturPembelian['batch'])
+                    ->first();
+
+                $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
+
+                if ($stokBarang) {
+                    if ($barangReturPembelian['id_satuan'] == $satuanDasar) {
+                        // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
+                        $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
+                        $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
+                    } else {
+                        // Jika satuan retur berbeda dengan satuan dasar, konversi jumlah retur
+                        $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
+                            ->where('id_satuan', $barangReturPembelian['id_satuan'])
+                            ->value('jumlah');
+                        $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                        $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                    }
+                    $stokBarang->save();
                 } else {
-                    // Jika satuan retur berbeda dengan satuan dasar, konversi jumlah retur
-                    $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
-                        ->where('id_satuan', $barangReturPembelian['id_satuan'])
-                        ->value('jumlah');
-                    $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
-                    $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                    DB::rollBack();
+                    // Handle the case where the stock doesn't exist
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Stok barang tidak ditemukan',
+                    ], 400);
                 }
-                $stokBarang->save();
-            } else {
-                // Handle the case where the stock doesn't exist
+            }
+
+            // Retrieve the total amount of the purchase
+            $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+
+            // Sum the current total payments
+            $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+
+            // Calculate new total after adding the new payment
+            $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
+
+            $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+
+            $current_pengeluaran = $laporanKeuangan->pengeluaran;
+            $current_utang = $laporanKeuangan->utang;
+
+            if ($new_total_dibayar > $pembelian->total) {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
-                    'message' => 'Stok barang tidak ditemukan',
+                    'message' => 'Total retur melebihi total pembelian',
                 ], 400);
             }
-        }
 
-        // Retrieve the total amount of the purchase
-        $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+            $remaining_retur = $validatedData['total_retur'];
 
-        // Sum the current total payments
-        $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+            if ($current_utang > 0) {
+                if ($remaining_retur <= $current_utang) {
+                    $laporanKeuangan->update([
+                        'utang' => $current_utang - $remaining_retur,
+                    ]);
+                    $remaining_retur = 0;
+                } else {
+                    $laporanKeuangan->update([
+                        'utang' => 0,
+                    ]);
+                    $remaining_retur -= $current_utang;
+                }
+            }
 
-        // Calculate new total after adding the new payment
-        $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
+            if ($remaining_retur > 0 && $current_pengeluaran > 0) {
+                $laporanKeuangan->update([
+                    'pengeluaran' => $current_pengeluaran - $remaining_retur,
+                ]);
+            }
 
-        $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+            if ($new_total_dibayar == $pembelian->total) {
+                $pembelian->update([
+                    'status' => 'Lunas',
+                ]);
+            } else {
+                $pembelian->update([
+                    'status' => 'Dibayar Sebagian',
+                ]);
+            }
 
-        $current_pengeluaran = $laporanKeuangan->pengeluaran;
-        $current_utang = $laporanKeuangan->utang;
+            // Create the new payment
+            $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
+                [
+                    'id_pembelian' => $validatedData['id_pembelian'],
+                    'id_metode_pembayaran' => 1,
+                ],
+                [
+                    'total_dibayar' => $validatedData['total_retur'],
+                    'referensi_pembayaran' => '-',
+                    'tanggal_pembayaran' => $validatedData['tanggal'],
+                ]
+            );
 
-        if ($new_total_dibayar > $pembelian->total) {
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data' => $returPembelian,
+                'message' => 'Data retur pembelian berhasil ditambahkan',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Total retur melebihi total pembelian',
-            ], 400);
-        }
-
-        $remaining_retur = $validatedData['total_retur'];
-
-        if ($current_utang > 0) {
-            if ($remaining_retur <= $current_utang) {
-                $laporanKeuangan->update([
-                    'utang' => $current_utang - $remaining_retur,
-                ]);
-                $remaining_retur = 0;
-            } else {
-                $laporanKeuangan->update([
-                    'utang' => 0,
-                ]);
-                $remaining_retur -= $current_utang;
-            }
-        }
-
-        if ($remaining_retur > 0 && $current_pengeluaran > 0) {
-            $laporanKeuangan->update([
-                'pengeluaran' => $current_pengeluaran - $remaining_retur,
+                'message' => 'Terjadi kesalalahan: ' . $e->getMessage(),
             ]);
         }
-
-        if ($new_total_dibayar == $pembelian->total) {
-            $pembelian->update([
-                'status' => 'Lunas',
-            ]);
-        } else {
-            $pembelian->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-        }
-
-        // Create the new payment
-        $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
-            [
-                'id_pembelian' => $validatedData['id_pembelian'],
-                'id_metode_pembayaran' => 1,
-            ],
-            [
-                'total_dibayar' => $validatedData['total_retur'],
-                'referensi_pembayaran' => '-',
-                'tanggal_pembayaran' => $validatedData['tanggal'],
-            ]
-        );
-
-        return response()->json([
-            'success' => true,
-            'data' => $returPembelian,
-            'message' => 'Data retur pembelian berhasil ditambahkan',
-        ]);
     }
 
 
@@ -245,144 +261,158 @@ class ReturPembelianController extends Controller
             'barang_retur_pembelians.*.total' => ['sometimes'],
         ]);
 
-        $returPembelian->update($validatedData);
+        DB::beginTransaction();
 
-        foreach ($validatedData['barang_retur_pembelians'] as $index => $barangReturPembelianData) {
-            $barangReturPembelian = $returPembelian->barangReturPembelian()->get()[$index] ?? null;
+        try{
 
-            if ($barangReturPembelian) {
-                // Update the existing return item
-                $stokBarang = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])
-                    ->where('batch', $barangReturPembelianData['batch'])
-                    ->first();
+            $returPembelian->update($validatedData);
 
-                if ($stokBarang) {
-                    // Calculate the stock difference
-                    $jumlahReturLama = $barangReturPembelian->jumlah_retur;
-                    $jumlahReturBaru = $barangReturPembelianData['jumlah_retur'];
+            foreach ($validatedData['barang_retur_pembelians'] as $index => $barangReturPembelianData) {
+                $barangReturPembelian = $returPembelian->barangReturPembelian()->get()[$index] ?? null;
+
+                if ($barangReturPembelian) {
+                    // Update the existing return item
+                    $stokBarang = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])
+                        ->where('batch', $barangReturPembelianData['batch'])
+                        ->first();
+
+                    if ($stokBarang) {
+                        // Calculate the stock difference
+                        $jumlahReturLama = $barangReturPembelian->jumlah_retur;
+                        $jumlahReturBaru = $barangReturPembelianData['jumlah_retur'];
+
+                        $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
+
+                        if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
+                            $stokBarang->stok_apotek += $jumlahReturLama;
+                            $stokBarang->stok_apotek -= $jumlahReturBaru;
+                        } else {
+                            $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
+                                ->where('id_satuan', $barangReturPembelianData['id_satuan'])
+                                ->value('jumlah');
+                            $stokBarang->stok_apotek += $jumlahReturLama * $satuanBesar;
+                            $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
+                            $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
+                            $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
+                        }
+
+                        $stokBarang->save();
+                    }
+
+                    $barangReturPembelian->update($barangReturPembelianData);
+                } else {
+                    // Create a new return item
+                    $barangReturPembelian = $returPembelian->barangReturPembelian()->create($barangReturPembelianData);
+
+                    $stokBarang = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])
+                        ->where('batch', $barangReturPembelianData['batch'])
+                        ->first();
 
                     $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
 
-                    if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
-                        $stokBarang->stok_apotek += $jumlahReturLama;
-                        $stokBarang->stok_apotek -= $jumlahReturBaru;
+                    if ($stokBarang) {
+                        if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
+                            $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'];
+                            $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'];
+                        } else {
+                            $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
+                                ->where('id_satuan', $barangReturPembelianData['id_satuan'])
+                                ->value('jumlah');
+                            $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
+                            $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
+                        }
+                        $stokBarang->save();
                     } else {
-                        $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
-                            ->where('id_satuan', $barangReturPembelianData['id_satuan'])
-                            ->value('jumlah');
-                        $stokBarang->stok_apotek += $jumlahReturLama * $satuanBesar;
-                        $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
-                        $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
-                        $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
+                        DB::rollBack();
+                        // Handle the case where the stock doesn't exist
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stok barang tidak ditemukan',
+                        ], 400);
                     }
-
-                    $stokBarang->save();
-                }
-
-                $barangReturPembelian->update($barangReturPembelianData);
-            } else {
-                // Create a new return item
-                $barangReturPembelian = $returPembelian->barangReturPembelian()->create($barangReturPembelianData);
-
-                $stokBarang = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])
-                    ->where('batch', $barangReturPembelianData['batch'])
-                    ->first();
-
-                $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
-
-                if ($stokBarang) {
-                    if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
-                        $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'];
-                        $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'];
-                    } else {
-                        $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
-                            ->where('id_satuan', $barangReturPembelianData['id_satuan'])
-                            ->value('jumlah');
-                        $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
-                        $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
-                    }
-                    $stokBarang->save();
-                } else {
-                    // Handle the case where the stock doesn't exist
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Stok barang tidak ditemukan',
-                    ], 400);
                 }
             }
-        }
 
-        // Retrieve the total amount of the purchase
-        $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
+            // Retrieve the total amount of the purchase
+            $pembelian = Pembelian::findOrFail($validatedData['id_pembelian']);
 
-        // Sum the current total payments
-        $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
+            // Sum the current total payments
+            $total_dibayar = PembayaranPembelian::where('id_pembelian', $validatedData['id_pembelian'])->sum('total_dibayar');
 
-        // Calculate new total after adding the new payment
-        $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
+            // Calculate new total after adding the new payment
+            $new_total_dibayar = $total_dibayar + $validatedData['total_retur'];
 
-        $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
+            $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $validatedData['id_pembelian'])->firstOrFail();
 
-        $current_pengeluaran = $laporanKeuangan->pengeluaran;
-        $current_utang = $laporanKeuangan->utang;
+            $current_pengeluaran = $laporanKeuangan->pengeluaran;
+            $current_utang = $laporanKeuangan->utang;
 
-        if ($new_total_dibayar > $pembelian->total) {
+            if ($new_total_dibayar > $pembelian->total) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Total retur melebihi total pembelian',
+                ], 400);
+            }
+
+            $remaining_retur = $validatedData['total_retur'];
+
+            if ($current_utang > 0) {
+                if ($remaining_retur <= $current_utang) {
+                    $laporanKeuangan->update([
+                        'utang' => $current_utang - $remaining_retur,
+                    ]);
+                    $remaining_retur = 0;
+                } else {
+                    $laporanKeuangan->update([
+                        'utang' => 0,
+                    ]);
+                    $remaining_retur -= $current_utang;
+                }
+            }
+
+            if ($remaining_retur > 0 && $current_pengeluaran > 0) {
+                $laporanKeuangan->update([
+                    'pengeluaran' => $current_pengeluaran - $remaining_retur,
+                ]);
+            }
+
+            if ($new_total_dibayar == $pembelian->total) {
+                $pembelian->update([
+                    'status' => 'Lunas',
+                ]);
+            } else {
+                $pembelian->update([
+                    'status' => 'Dibayar Sebagian',
+                ]);
+            }
+
+            // Create the new payment
+            $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
+                [
+                    'id_pembelian' => $validatedData['id_pembelian'],
+                    'id_metode_pembayaran' => 1,
+                ],
+                [
+                    'total_dibayar' => $validatedData['total_retur'],
+                    'referensi_pembayaran' => '-',
+                    'tanggal_pembayaran' => $validatedData['tanggal'],
+                ]
+            );
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'data' => $returPembelian->load('barangReturPembelian'),
+                'message' => 'Data retur pembelian berhasil diupdate',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Total retur melebihi total pembelian',
-            ], 400);
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $remaining_retur = $validatedData['total_retur'];
-
-        if ($current_utang > 0) {
-            if ($remaining_retur <= $current_utang) {
-                $laporanKeuangan->update([
-                    'utang' => $current_utang - $remaining_retur,
-                ]);
-                $remaining_retur = 0;
-            } else {
-                $laporanKeuangan->update([
-                    'utang' => 0,
-                ]);
-                $remaining_retur -= $current_utang;
-            }
-        }
-
-        if ($remaining_retur > 0 && $current_pengeluaran > 0) {
-            $laporanKeuangan->update([
-                'pengeluaran' => $current_pengeluaran - $remaining_retur,
-            ]);
-        }
-
-        if ($new_total_dibayar == $pembelian->total) {
-            $pembelian->update([
-                'status' => 'Lunas',
-            ]);
-        } else {
-            $pembelian->update([
-                'status' => 'Dibayar Sebagian',
-            ]);
-        }
-
-        // Create the new payment
-        $pembayaranPembelian = PembayaranPembelian::updateOrCreate(
-            [
-                'id_pembelian' => $validatedData['id_pembelian'],
-                'id_metode_pembayaran' => 1,
-            ],
-            [
-                'total_dibayar' => $validatedData['total_retur'],
-                'referensi_pembayaran' => '-',
-                'tanggal_pembayaran' => $validatedData['tanggal'],
-            ]
-        );
-
-        return response()->json([
-            'success' => true,
-            'data' => $returPembelian->load('barangReturPembelian'),
-            'message' => 'Data retur pembelian berhasil diupdate',
-        ]);
     }
 
 

@@ -299,10 +299,10 @@ class PembelianController extends Controller
                     'referensi_pembayaran' => $pembayaranPembelian->referensi_pembayaran
                 ];
             }),
-            'returPembelian' => $pembelian->returnPembelian->map(function ($returnPembelian) {
+            'returPembelian' => $pembelian->returPembelian->map(function ($returPembelian) {
                 return [
-                    'id' => $returnPembelian->id,
-                    'total_retur' => $returnPembelian->total_retur
+                    'id' => $returPembelian->id,
+                    'total_retur' => $returPembelian->total_retur
                 ];
             })
         ];

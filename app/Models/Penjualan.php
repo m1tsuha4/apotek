@@ -76,4 +76,9 @@ class Penjualan extends Model
     {
         return $this->hasMany(PergerakanStokPenjualan::class, 'id_penjualan');
     }
+
+    public function returPenjualan()
+    {
+        return $this->hasMany(ReturPenjualan::class, 'id_penjualan');
+    }
 }

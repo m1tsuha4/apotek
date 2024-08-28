@@ -130,12 +130,12 @@ class ReturPenjualanController extends Controller
             $current_piutang = $laporanKeuangan->piutang;
 
             // Check if the new total exceeds the purchase total
-            if ($new_total_dibayar > $penjualan->total) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Jumlah pembayaran melebihi total tagihan!',
-                ], 400);
-            }
+            // if ($new_total_dibayar > $penjualan->total) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Jumlah pembayaran melebihi total tagihan!',
+            //     ], 400);
+            // }
 
             // Handle the return process based on current payment status
             $remaining_retur = $validatedData['total_retur'];
@@ -164,7 +164,7 @@ class ReturPenjualanController extends Controller
             }
 
             // Update the status of the purchase
-            if ($new_total_dibayar == $penjualan->total) {
+            if ($new_total_dibayar >= $penjualan->total) {
                 $penjualan->update([
                     'status' => 'Lunas',
                 ]);

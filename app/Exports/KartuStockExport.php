@@ -19,30 +19,40 @@ class KartuStockExport implements FromView
 
     public function view(): View
     {
+        $satuanDasar = $this->barang->id_satuan;
+        $satuanBesar = $this->barang->satuanBarang->id_satuan;
+        $jumlahBesar = $this->barang->satuanBarang->jumlah;
+
+        // Fetch purchases
         $purchases = $this->barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
             ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
-            ->select('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', \DB::raw('SUM(barang_pembelians.jumlah) as masuk'))
-            ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch')
+            ->select(
+                'barang_pembelians.exp_date',
+                'pembelians.tanggal',
+                'barang_pembelians.batch',
+                \DB::raw('SUM(barang_pembelians.jumlah) as jumlah'),
+                \DB::raw('satuans.id as satuan_id')
+            )
+            ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', 'satuans.id')
             ->get()
             ->keyBy(function ($item) {
                 return $item->tanggal . '-' . $item->batch;
             });
 
-        // $sales = Penjualan::where('id_barang', $barang->id)
-        //     ->select('tanggal', 'batch', \DB::raw('SUM(jumlah) as total_sold'))
-        //     ->groupBy('tanggal', 'batch')
-        //     ->get()
-        //     ->keyBy(function ($item) {
-        //         return $item->tanggal . '-' . $item->batch;
-        //     });
-
+        // Fetch sales
         $sales = $this->barang->barangPenjualan()
             ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
             ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
             ->join('stok_barangs', 'barang_penjualans.id_stok_barang', '=', 'stok_barangs.id')
-            ->select('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', \DB::raw('SUM(barang_penjualans.jumlah) as total_sold'))
-            ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date')
+            ->select(
+                'penjualans.tanggal',
+                'stok_barangs.batch',
+                'stok_barangs.exp_date',
+                \DB::raw('SUM(barang_penjualans.jumlah) as jumlah'),
+                \DB::raw('satuans.id as satuan_id')
+            )
+            ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
             ->get()
             ->keyBy(function ($item) {
                 return $item->tanggal . '-' . $item->batch;
@@ -52,24 +62,34 @@ class KartuStockExport implements FromView
         $stockDetails = [];
 
         foreach ($purchases as $key => $purchase) {
+            $quantity = $purchase->satuan_id == $satuanDasar
+                ? $purchase->jumlah
+                : $purchase->jumlah * $jumlahBesar;
+
             $stockDetails[$key] = [
                 'exp_date' => $purchase->exp_date,
                 'tanggal' => $purchase->tanggal,
                 'batch' => $purchase->batch,
-                'masuk' => $purchase->masuk,
-                'keluar' => $sales->has($key) ? $sales[$key]->total_sold : 0,
+                'masuk' => ($stockDetails[$key]['masuk'] ?? 0) + $quantity,
+                'keluar' => $stockDetails[$key]['keluar'] ?? 0,
             ];
         }
 
         foreach ($sales as $key => $sale) {
+            $quantity = $sale->satuan_id == $satuanDasar
+                ? $sale->jumlah
+                : $sale->jumlah * $jumlahBesar;
+
             if (!isset($stockDetails[$key])) {
                 $stockDetails[$key] = [
+                    'exp_date' => $sale->exp_date,
                     'tanggal' => $sale->tanggal,
                     'batch' => $sale->batch,
-                    'exp_date' => $sale->exp_date,
                     'masuk' => 0,
-                    'keluar' => $sale->total_sold,
+                    'keluar' => $quantity,
                 ];
+            } else {
+                $stockDetails[$key]['keluar'] += $quantity;
             }
         }
 

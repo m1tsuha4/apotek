@@ -94,8 +94,17 @@ class ReturPembelianController extends Controller
 
                 $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
 
+                $jumlahBarangPembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])->where('id_barang', $barangReturPembelian['id_barang'])->where('batch', $barangReturPembelian['batch'])->value('jumlah');
+
                 if ($stokBarang) {
                     if ($barangReturPembelian['id_satuan'] == $satuanDasar) {
+                        if($barangReturPembelian['jumlah_retur'] > $jumlahBarangPembelian){
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Jumlah retur melebihi jumlah yang dibeli',
+                            ], 400);
+                        }
                         // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
                         $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
                         $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
@@ -104,6 +113,14 @@ class ReturPembelianController extends Controller
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
                             ->where('id_satuan', $barangReturPembelian['id_satuan'])
                             ->value('jumlah');
+
+                        if($barangReturPembelian['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPembelian){
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Jumlah retur melebihi yang dibeli',
+                            ], 400);
+                        }
                         $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
                         $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
                     }

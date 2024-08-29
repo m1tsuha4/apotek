@@ -92,8 +92,17 @@ class ReturPenjualanController extends Controller
 
                 $satuanDasar = Barang::where('id', $barangReturPenjualan['id_barang'])->value('id_satuan');
 
+                $jumlahBarangPenjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->sum('jumlah');
+
                 if ($stokBarang) {
                     if ($barangReturPenjualan['id_satuan'] == $satuanDasar) {
+                        if($barangReturPenjualan['jumlah_retur'] > $jumlahBarangPenjualan) {
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Jumlah retur melebihi jumlah penjualan',
+                            ]);
+                        }
                         // If the return is in the base unit
                         $stokBarang->stok_apotek += $barangReturPenjualan['jumlah_retur'];
                         $stokBarang->stok_total += $barangReturPenjualan['jumlah_retur'];
@@ -102,6 +111,15 @@ class ReturPenjualanController extends Controller
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualan['id_barang'])
                             ->where('id_satuan', $barangReturPenjualan['id_satuan'])
                             ->value('jumlah');
+                        
+                        if($barangReturPenjualan['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPenjualan) {
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Jumlah retur melebihi jumlah penjualan',
+                            ]);
+                        }
+
                         $stokBarang->stok_apotek += $satuanBesar * $barangReturPenjualan['jumlah_retur'];
                         $stokBarang->stok_total += $satuanBesar * $barangReturPenjualan['jumlah_retur'];
                     }

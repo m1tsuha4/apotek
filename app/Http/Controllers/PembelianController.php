@@ -498,6 +498,11 @@ class PembelianController extends Controller
                     $pembelian->update([
                         'status' => 'Lunas',
                     ]);
+
+                } elseif ($total_dibayar == 0){
+                    $pembelian->update([
+                        'status' => 'Belum Dibayar',
+                    ]);
                 } elseif ($total_dibayar < $validatedData['total']) {
                     $pembelian->update([
                         'status' => 'Dibayar Sebagian',

@@ -54,18 +54,18 @@ class PembayaranPembelianController extends Controller
         $current_utang = $laporanKeuangan->utang;
 
         // Check if the new total exceeds the purchase total
-        if ($new_total_dibayar > $pembelian->total) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Jumlah pembayaran melebihi total tagihan!',
-            ], 400);
-        }
+        // if ($new_total_dibayar > $pembelian->total) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Jumlah pembayaran melebihi total tagihan!',
+        //     ], 400);
+        // }
 
         // Create the new payment
         $pembayaranPembelian = PembayaranPembelian::create($validatedData);
 
         // Update the status of the purchase
-        if ($new_total_dibayar == $pembelian->total) {
+        if ($new_total_dibayar >= $pembelian->total) {
             $pembelian->update([
                 'status' => 'Lunas',
             ]);

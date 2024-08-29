@@ -132,13 +132,13 @@ class ReturPembelianController extends Controller
             $current_pengeluaran = $laporanKeuangan->pengeluaran;
             $current_utang = $laporanKeuangan->utang;
 
-            if ($new_total_dibayar > $pembelian->total) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Total retur melebihi total pembelian',
-                ], 400);
-            }
+            // if ($new_total_dibayar > $pembelian->total) {
+            //     DB::rollBack();
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Total retur melebihi total pembelian',
+            //     ], 400);
+            // }
 
             $remaining_retur = $validatedData['total_retur'];
 
@@ -162,7 +162,7 @@ class ReturPembelianController extends Controller
                 ]);
             }
 
-            if ($new_total_dibayar == $pembelian->total) {
+            if ($new_total_dibayar >= $pembelian->total) {
                 $pembelian->update([
                     'status' => 'Lunas',
                 ]);

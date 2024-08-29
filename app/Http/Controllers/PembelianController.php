@@ -75,7 +75,7 @@ class PembelianController extends Controller
             'barang_pembelians.*.harga' => 'required',
             'barang_pembelians.*.total' => 'required'
         ]);
-        
+
         DB::beginTransaction();
 
         try {
@@ -94,60 +94,62 @@ class PembelianController extends Controller
                     'harga' => $barangPembelianData['harga'],
                     'total' => $barangPembelianData['total']
                 ]);
+
+                if ($validatedData['id_jenis'] == '2') {
+                    $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
+                    $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
+                    $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
+
+                    if ($barangPembelianData['harga'] != $hargaAsli) {
+                        // Update the harga_beli with the new price
+                        Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
+                    }
+
+                    if ($barangPembelianData['id_satuan'] == $satuanDasar) {
+                        StokBarang::create([
+                            'id_barang' => $barangPembelianData['id_barang'],
+                            'batch' => $barangPembelianData['batch'],
+                            'exp_date' => $barangPembelianData['exp_date'],
+                            'stok_apotek' => $barangPembelianData['jumlah'],
+                            'stok_total' => $barangPembelianData['jumlah']
+                        ]);
+
+                        PergerakanStokPembelian::create([
+                            'id_pembelian' => $pembelian->id,
+                            'id_barang' => $barangPembelianData['id_barang'],
+                            'harga' => $barangPembelianData['harga'],
+                            'pergerakan_stok' => $barangPembelianData['jumlah'],
+                            'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
+                        ]);
+                    } else {
+                        $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
+                        $stok = $barangPembelianData['jumlah'] * $satuanBesar;
+                        StokBarang::create([
+                            'id_barang' => $barangPembelianData['id_barang'],
+                            'batch' => $barangPembelianData['batch'],
+                            'exp_date' => $barangPembelianData['exp_date'],
+                            'stok_apotek' => $stok,
+                            'stok_total' => $stok
+                        ]);
+
+                        PergerakanStokPembelian::create([
+                            'id_pembelian' => $pembelian->id,
+                            'id_barang' => $barangPembelianData['id_barang'],
+                            'harga' => $barangPembelianData['harga'],
+                            'pergerakan_stok' => $stok,
+                            'stok_keseluruhan' => $totalStok + $stok
+                        ]);
+                    }
+                }
             }
 
             if ($validatedData['id_jenis'] == '2') {
-                $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
-                $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
-                $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
-
-                if ($barangPembelianData['harga'] != $hargaAsli) {
-                    // Update the harga_beli with the new price
-                    Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
-                }
-
-                if ($barangPembelianData['id_satuan'] == $satuanDasar) {
-                    StokBarang::create([
-                        'id_barang' => $barangPembelianData['id_barang'],
-                        'batch' => $barangPembelianData['batch'],
-                        'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_apotek' => $barangPembelianData['jumlah'],
-                        'stok_total' => $barangPembelianData['jumlah']
-                    ]);
-
-                    PergerakanStokPembelian::create([
-                        'id_pembelian' => $pembelian->id,
-                        'id_barang' => $barangPembelianData['id_barang'],
-                        'harga' => $barangPembelianData['harga'],
-                        'pergerakan_stok' => $barangPembelianData['jumlah'],
-                        'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
-                    ]);
-                } else {
-                    $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
-                    $stok = $barangPembelianData['jumlah'] * $satuanBesar;
-                    StokBarang::create([
-                        'id_barang' => $barangPembelianData['id_barang'],
-                        'batch' => $barangPembelianData['batch'],
-                        'exp_date' => $barangPembelianData['exp_date'],
-                        'stok_apotek' => $stok,
-                        'stok_total' => $stok
-                    ]);
-
-                    PergerakanStokPembelian::create([
-                        'id_pembelian' => $pembelian->id,
-                        'id_barang' => $barangPembelianData['id_barang'],
-                        'harga' => $barangPembelianData['harga'],
-                        'pergerakan_stok' => $stok,
-                        'stok_keseluruhan' => $totalStok + $stok
-                    ]);
-                }
-
                 LaporanKeuanganKeluar::create([
                     'id_pembelian' => $pembelian->id,
                     'utang' => $validatedData['total']
                 ]);
             }
-            
+
             DB::commit();
 
             return response()->json([
@@ -160,7 +162,7 @@ class PembelianController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan '. $e->getMessage(),
+                'message' => 'Terjadi kesalahan ' . $e->getMessage(),
             ]);
         }
     }
@@ -369,6 +371,9 @@ class PembelianController extends Controller
         DB::beginTransaction();
 
         try {
+            //variabel baru
+            $total_lama = $pembelian->total;
+            $total_baru = $validatedData['total'];
 
             $pembelian->update($validatedData);
 
@@ -381,44 +386,39 @@ class PembelianController extends Controller
                 }
 
                 if ($validatedData['id_jenis'] == '2') {
-                    $satuanDasar = Barang::where($barangPembelianData['id_barang'])->value('id_satuan');
+                    $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
+                    $idSatuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('id_satuan');
                     $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
-                    $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
-
-                    $pergerakanStok = PergerakanStokPembelian::where('id_pembelian', $pembelian->id)->first();
+                    $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->where('batch', '!=', $barangPembelianData['batch'])->sum('stok_total');
 
                     if ($barangPembelianData['harga'] != $hargaAsli) {
-                        // Update the harga_beli with the new price
                         Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
                     }
 
-                    if ($barangPembelianData['id_satuan'] == $satuanDasar) {
-                        $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
-                            ->where('batch', $barangPembelianData['batch'])
-                            ->first();
+                    $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->where('batch', $barangPembelianData['batch'])->first();
+                    $pergerakanStok = PergerakanStokPembelian::where('id_pembelian', $pembelian->id)->where('id_barang', $barangPembelianData['id_barang'])->first();
 
+                    if ($barangPembelianData['id_satuan'] == $satuanDasar) {
+                        $stok = $barangPembelianData['jumlah'];
 
                         if ($stokBarang) {
                             $stokBarang->update([
                                 'exp_date' => $barangPembelianData['exp_date'],
-                                'stok_apotek' => $barangPembelianData['jumlah'],
-                                'stok_total' => $barangPembelianData['jumlah']
+                                'stok_apotek' => $stok,
+                                'stok_total' => $stok
                             ]);
-
-                            if ($pergerakanStok) {
-                                $pergerakanStok->update([
-                                    'harga' => $barangPembelianData['harga'],
-                                    'pergerakan_stok' => $barangPembelianData['jumlah'],
-                                    'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
-                                ]);
-                            }
+                            $pergerakanStok->update([
+                                'harga' => $barangPembelianData['harga'],
+                                'pergerakan_stok' => $barangPembelianData['jumlah'],
+                                'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
+                            ]);
                         } else {
                             StokBarang::create([
                                 'id_barang' => $barangPembelianData['id_barang'],
                                 'batch' => $barangPembelianData['batch'],
                                 'exp_date' => $barangPembelianData['exp_date'],
-                                'stok_apotek' => $barangPembelianData['jumlah'],
-                                'stok_total' => $barangPembelianData['jumlah']
+                                'stok_apotek' => $stok,
+                                'stok_total' => $stok
                             ]);
                             PergerakanStokPembelian::create([
                                 'id_pembelian' => $pembelian->id,
@@ -428,13 +428,9 @@ class PembelianController extends Controller
                                 'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
                             ]);
                         }
-                    } else {
+                    } elseif ($barangPembelianData['id_satuan'] == $idSatuanBesar) {
                         $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
                         $stok = $barangPembelianData['jumlah'] * $satuanBesar;
-
-                        $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
-                            ->where('batch', $barangPembelianData['batch'])
-                            ->first();
 
                         if ($stokBarang) {
                             $stokBarang->update([
@@ -466,16 +462,56 @@ class PembelianController extends Controller
                             ]);
                         }
                     }
-
-                    LaporanKeuanganKeluar::updateOrCreate(
-                        [
-                            'id_pembelian' => $pembelian->id
-                        ],
-                        [
-                            'utang' => $validatedData['total']
-                        ]
-                    );
                 }
+            }
+
+            if ($validatedData['id_jenis'] == '2') {
+                $total_dibayar = PembayaranPembelian::where('id_pembelian', $pembelian->id)->sum('total_dibayar');
+
+                $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $pembelian->id)->firstOrFail();
+
+                $current_pengeluaran = $laporanKeuangan->pengeluaran;
+                $current_utang = $laporanKeuangan->utang;
+
+                $sisa = $total_lama - $total_baru;
+                $sisa_abs = abs($sisa);
+
+                if ($sisa < 0) {
+                    $laporanKeuangan->update([
+                        'utang' => $current_utang + $sisa_abs,
+                    ]);
+                } elseif ($sisa > 0) {
+                    if ($sisa <= $current_utang) {
+                        $laporanKeuangan->update([
+                            'utang' => $current_utang - $sisa_abs,
+                        ]);
+                    }
+
+                    if ($sisa > 0 && $current_pengeluaran > 0) {
+                        $laporanKeuangan->update([
+                            'pengeluaran' => $current_pengeluaran - $sisa_abs,
+                        ]);
+                    }
+                }
+
+                if ($total_dibayar == $validatedData['total']) {
+                    $pembelian->update([
+                        'status' => 'Lunas',
+                    ]);
+                } elseif ($total_dibayar < $validatedData['total']) {
+                    $pembelian->update([
+                        'status' => 'Dibayar Sebagian',
+                    ]);
+                }
+
+                // LaporanKeuanganKeluar::updateOrCreate(
+                //     [
+                //         'id_pembelian' => $pembelian->id
+                //     ],
+                //     [
+                //         'utang' => $validatedData['total']
+                //     ]
+                // );
             }
 
             DB::commit();
@@ -485,12 +521,11 @@ class PembelianController extends Controller
                 'data' => $pembelian,
                 'message' => 'Pembelian Berhasil!',
             ], 200);
-
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan'. $th->getMessage(),
+                'message' => 'Terjadi kesalahan ' . $th->getMessage(),
             ]);
         }
     }
@@ -554,8 +589,7 @@ class PembelianController extends Controller
                 $barang = Barang::find($item->id_barang);
                 $satuanDasar = $barang->id_satuan;
                 $hargaAsli = $barang->harga_beli;
-                $totalStok = StokBarang::where('id_barang', $item->
-                id_barang)->sum('stok_total');
+                $totalStok = StokBarang::where('id_barang', $item->id_barang)->sum('stok_total');
 
                 // Update harga_beli jika berbeda
                 if ($item->harga != $hargaAsli) {
@@ -563,8 +597,8 @@ class PembelianController extends Controller
                 }
 
                 // Cek apakah satuan barang sama dengan satuan dasar
-                $stok = $item->id_satuan == $satuanDasar 
-                    ? $item->jumlah 
+                $stok = $item->id_satuan == $satuanDasar
+                    ? $item->jumlah
                     : $item->jumlah * SatuanBarang::where('id_barang', $item->id_barang)->value('jumlah');
 
                 // Update stok barang
@@ -591,7 +625,7 @@ class PembelianController extends Controller
                 'id_pembelian' => $pembelian->id,
                 'utang' => $pembelian->total,
             ]);
-            
+
             DB::commit();
             return response()->json([
                 'success' => true,
@@ -600,12 +634,11 @@ class PembelianController extends Controller
             ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $th->getMessage(),
             ], 500);
         }
     }
-
 }

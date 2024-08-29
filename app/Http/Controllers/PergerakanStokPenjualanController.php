@@ -19,7 +19,6 @@ class PergerakanStokPenjualanController extends Controller
                 $query->select('id,id_penjualan,id_stok_barang')
                     ->where('id_barang', $request->id_barang);
             },
-            'penjualan.barangPenjualan:id,id_penjualan,id_stok_barang',
             'penjualan.barangPenjualan.stokBarang:id,batch',
             'barang:id,id_satuan,nama_barang',
             'barang.satuan:id,nama_satuan'])

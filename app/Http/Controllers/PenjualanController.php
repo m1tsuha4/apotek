@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPenjualan;
 use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
-// use Barryvdh\Snappy\Facades\SnappyPdf;
+use function Spatie\LaravelPdf\Support\pdf;
 use App\Models\PergerakanStokPenjualan;
 
 class PenjualanController extends Controller
@@ -761,7 +761,10 @@ class PenjualanController extends Controller
                 ];
             })
         ];
-        return view('exports.invoice', compact('data'));
+        // return view('exports.invoice', compact('data'));
+        return pdf()
+            ->view('exports.invoice', ['data' => $data])
+            ->download(downloadName: 'invoice-'.$data['id_penjualan'].'pdf');
     }
 
     // public function invoice(Penjualan $penjualan)

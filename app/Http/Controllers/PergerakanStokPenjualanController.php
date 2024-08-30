@@ -16,7 +16,7 @@ class PergerakanStokPenjualanController extends Controller
             ->with(['penjualan:id,id_pelanggan,tanggal',
             'penjualan.pelanggan:id,nama_pelanggan,no_telepon',
             'penjualan.barangPenjualan' => function ($query) use ($request) {
-                $query->select('id,id_penjualan,id_stok_barang')
+                $query->select('id','id_penjualan','id_stok_barang')
                     ->where('id_barang', $request->id_barang);
             },
             'penjualan.barangPenjualan.stokBarang:id,batch',

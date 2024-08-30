@@ -29,7 +29,7 @@ class StokBarang extends Model
         return $this->hasMany(StokOpname::class, 'id_stok_barang');
     }
 
-    public function stokBarang(){
+    public function penjualan(){
         return $this->hasMany(Penjualan::class, 'id_stok_barang');
     }
 

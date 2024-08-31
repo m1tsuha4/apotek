@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
-use Barryvdh\DomPDF\PDF;
 use App\Models\Penjualan;
 use App\Models\StokBarang;
 use App\Models\SatuanBarang;
@@ -16,6 +15,7 @@ use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
 use function Spatie\LaravelPdf\Support\pdf;
 use App\Models\PergerakanStokPenjualan;
+use PDF;
 
 class PenjualanController extends Controller
 {
@@ -762,15 +762,21 @@ class PenjualanController extends Controller
             })
         ];
         // return view('exports.invoice', compact('data'));
-        return pdf()
-            ->view('exports.invoice', ['data' => $data])
-            ->download(downloadName: 'invoice-'.$data['id_penjualan'].'pdf');
+        // return pdf()
+        //     ->view('exports.invoice', ['data' => $data])
+        //     ->download(downloadName: 'Invoice_'.$data['id_penjualan'].'pdf');
+
+        $pdf = PDF::loadView('exports.invoice', ['data' => $data])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Invoice_' . $data['id_penjualan'] . 'pdf');
     }
 
     // public function invoice(Penjualan $penjualan)
     // {
+    //     // return view('exports.invoice', compact('data'));
     //     return Excel::download(new InvoiceExport($penjualan), 'invoice.pdf', \Maatwebsite\Excel\Excel::DOMPDF);
     // }
+
     //   public function invoice(Penjualan $penjualan)
     //   {
     //       $data = (new InvoiceExport($penjualan))->view()->getData();

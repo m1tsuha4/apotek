@@ -4,17 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link ke font Inter dari Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    {{-- <link rel="stylesheet" href="{{ asset('css/style.css') }}"> --}}
     <style>
-        /* Terapkan font Inter ke seluruh halaman */
+        /* Global Styles */
         body {
-            font-family: 'Inter', sans-serif;
+            width: 1200px;
+            padding: 20px; /* p-5 */
+            font-family: 'Arial', sans-serif;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .justify-start {
+            justify-content: flex-start;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .p-4 {
+            padding: 16px;
+        }
+
+        .pe-0 {
+            padding-right: 0;
+        }
+
+        .w-fit {
+            width: fit-content;
+        }
+
+        .px-5 {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .table-auto {
+            table-layout: auto;
+        }
+
+        .border {
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .border-dark-3 {
+            border-color: #333; /* Example: change based on your design */
+        }
+
+        .border-collapse {
+            border-collapse: collapse;
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .leading-normal {
+            line-height: 1.5;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .px-6 {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .font-light {
+            font-weight: 300;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .w-1/3 {
+            width: 33.333333%;
+        }
+
+        .ps-5 {
+            padding-left: 20px;
+        }
+
+        .pb-5 {
+            padding-bottom: 20px;
+        }
+
+        .pt-2 {
+            padding-top: 8px;
         }
     </style>
 </head>
-<body style="width: 1200px;" class="p-5">
+<body class="body-class">
     <div class="flex justify-start items-center p-4 pe-0">
         <div class="w-fit px-5">
             <p class="text-xl font-bold">Invoice</p>

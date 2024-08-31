@@ -24,7 +24,7 @@ class InvoiceExport implements FromView, WithCustomCsvSettings
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
 
         $data = [
-            'id' => $penjualan->id,
+            'id_penjualan' => $penjualan->id,
             'status' => $penjualan->status,
             'id_pelanggan' => $penjualan->id_pelanggan,
             'nama_pelanggan' => $penjualan->pelanggan->nama_pelanggan,
@@ -47,6 +47,7 @@ class InvoiceExport implements FromView, WithCustomCsvSettings
                     'nama_barang' => $barangPenjualan->barang->nama_barang,
                     'id_stok_barang' => $barangPenjualan->id_stok_barang,
                     'batch' => $barangPenjualan->stokBarang->batch,
+                    'exp_date' => $barangPenjualan->stokBarang->exp_date,
                     'jumlah' => $barangPenjualan->jumlah,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,

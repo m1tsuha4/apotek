@@ -19,7 +19,6 @@ class PergerakanStokPembelianController extends Controller
                     $query->select('id', 'id_pembelian', 'batch')
                         ->where('id_barang', $request->id_barang);
                 },
-                'pembelian.returPembelian:id,id_pembelian',
                 'pembelian.vendor:id,nama_perusahaan',
                 'pembelian.sales:id,nama_sales',
                 'barang:id,id_satuan,nama_barang',

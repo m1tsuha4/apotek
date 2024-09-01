@@ -96,7 +96,7 @@ class ReturPenjualanController extends Controller
 
                 if ($stokBarang) {
                     if ($barangReturPenjualan['id_satuan'] == $satuanDasar) {
-                        if($barangReturPenjualan['jumlah_retur'] > $jumlahBarangPenjualan) {
+                        if ($barangReturPenjualan['jumlah_retur'] > $jumlahBarangPenjualan) {
                             DB::rollBack();
                             return response()->json([
                                 'success' => false,
@@ -111,8 +111,8 @@ class ReturPenjualanController extends Controller
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualan['id_barang'])
                             ->where('id_satuan', $barangReturPenjualan['id_satuan'])
                             ->value('jumlah');
-                        
-                        if($barangReturPenjualan['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPenjualan) {
+
+                        if ($barangReturPenjualan['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPenjualan) {
                             DB::rollBack();
                             return response()->json([
                                 'success' => false,
@@ -423,10 +423,88 @@ class ReturPenjualanController extends Controller
      */
     public function destroy(ReturPenjualan $returPenjualan)
     {
-        $returPenjualan->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'Data retur penjualan dihapus!',
-        ]);
+        DB::beginTransaction();
+
+        try {
+            // Kembalikan stok barang yang diretur
+            foreach ($returPenjualan->barangReturPenjualan as $barangRetur) {
+                $stokBarang = StokBarang::where('id_barang', $barangRetur->id_barang)
+                    ->where('batch', $barangRetur->batch)
+                    ->first();
+
+                $satuanDasar = Barang::where('id', $barangRetur->id_barang)->value('id_satuan');
+
+                if ($stokBarang) {
+                    if ($barangRetur->id_satuan == $satuanDasar) {
+                        // Kembalikan stok sesuai satuan dasar
+                        $stokBarang->stok_apotek -= $barangRetur->jumlah_retur;
+                        $stokBarang->stok_total -= $barangRetur->jumlah_retur;
+                    } else {
+                        // Kembalikan stok sesuai satuan besar
+                        $satuanBesar = SatuanBarang::where('id_barang', $barangRetur->id_barang)
+                            ->where('id_satuan', $barangRetur->id_satuan)
+                            ->value('jumlah');
+                        $stokBarang->stok_apotek -= $barangRetur->jumlah_retur * $satuanBesar;
+                        $stokBarang->stok_total -= $barangRetur->jumlah_retur * $satuanBesar;
+                    }
+
+                    $stokBarang->save();
+                } else {
+                    throw new \Exception('Stok barang tidak ditemukan!');
+                }
+            }
+
+            // Perbarui laporan keuangan dan pembayaran
+            $laporanKeuangan = LaporanKeuanganMasuk::where('id_penjualan', $returPenjualan->id_penjualan)->firstOrFail();
+            $current_pemasukkan = $laporanKeuangan->pemasukkan;
+            $current_piutang = $laporanKeuangan->piutang;
+
+            $remaining_retur = $returPenjualan->total_retur;
+
+            if ($current_piutang > 0) {
+                if ($remaining_retur <= $current_piutang) {
+                    $laporanKeuangan->update([
+                        'piutang' => $current_piutang - $remaining_retur,
+                    ]);
+                    $remaining_retur = 0;
+                } else {
+                    $laporanKeuangan->update([
+                        'piutang' => 0,
+                    ]);
+                    $remaining_retur -= $current_piutang;
+                }
+            }
+
+            if ($remaining_retur > 0 && $current_pemasukkan > 0) {
+                $laporanKeuangan->update([
+                    'pemasukkan' => $current_pemasukkan - $remaining_retur,
+                ]);
+            }
+
+            // Hapus pembayaran terkait retur
+            $pembayaran = PembayaranPenjualan::where('id_penjualan', $returPenjualan->id_penjualan)
+                ->where('id_metode_pembayaran', 1)
+                ->first();
+            if ($pembayaran) {
+                $pembayaran->delete();
+            }
+
+            // Hapus retur penjualan
+            $returPenjualan->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Retur penjualan berhasil dibatalkan dan stok serta laporan keuangan diperbarui!',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

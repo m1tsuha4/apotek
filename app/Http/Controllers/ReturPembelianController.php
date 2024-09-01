@@ -98,7 +98,7 @@ class ReturPembelianController extends Controller
 
                 if ($stokBarang) {
                     if ($barangReturPembelian['id_satuan'] == $satuanDasar) {
-                        if($barangReturPembelian['jumlah_retur'] > $jumlahBarangPembelian){
+                        if ($barangReturPembelian['jumlah_retur'] > $jumlahBarangPembelian) {
                             DB::rollBack();
                             return response()->json([
                                 'success' => false,
@@ -114,7 +114,7 @@ class ReturPembelianController extends Controller
                             ->where('id_satuan', $barangReturPembelian['id_satuan'])
                             ->value('jumlah');
 
-                        if($barangReturPembelian['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPembelian){
+                        if ($barangReturPembelian['jumlah_retur'] * $satuanBesar > $satuanBesar * $jumlahBarangPembelian) {
                             DB::rollBack();
                             return response()->json([
                                 'success' => false,
@@ -280,7 +280,7 @@ class ReturPembelianController extends Controller
 
         DB::beginTransaction();
 
-        try{
+        try {
 
             $returPembelian->update($validatedData);
 
@@ -438,12 +438,89 @@ class ReturPembelianController extends Controller
      */
     public function destroy(ReturPembelian $returPembelian)
     {
-        $returPembelian->delete();
-        $pembayaran = PembayaranPembelian::where('id_pembelian', $returPembelian->id_pembelian)->where('id_metode_pembayaran', 1)->first();
-        $pembayaran->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Berhasil dihapus!',
-        ]);
+        DB::beginTransaction();
+
+        try {
+            // Mengembalikan stok barang yang diretur
+            foreach ($returPembelian->barangReturPembelian as $barangRetur) {
+                $stokBarang = StokBarang::where('id_barang', $barangRetur->id_barang)
+                    ->where('batch', $barangRetur->batch)
+                    ->first();
+
+                if ($stokBarang) {
+                    $satuanDasar = Barang::where('id', $barangRetur->id_barang)->value('id_satuan');
+
+                    if ($barangRetur->id_satuan == $satuanDasar) {
+                        $stokBarang->stok_apotek += $barangRetur->jumlah_retur;
+                        $stokBarang->stok_total += $barangRetur->jumlah_retur;
+                    } else {
+                        $satuanBesar = SatuanBarang::where('id_barang', $barangRetur->id_barang)
+                            ->where('id_satuan', $barangRetur->id_satuan)
+                            ->value('jumlah');
+
+                        $stokBarang->stok_apotek += $barangRetur->jumlah_retur * $satuanBesar;
+                        $stokBarang->stok_total += $barangRetur->jumlah_retur * $satuanBesar;
+                    }
+
+                    $stokBarang->save();
+                }
+            }
+
+            // Update laporan keuangan
+            $laporanKeuangan = LaporanKeuanganKeluar::where('id_pembelian', $returPembelian->id_pembelian)->firstOrFail();
+
+            $current_pengeluaran = $laporanKeuangan->pengeluaran;
+            $current_utang = $laporanKeuangan->utang;
+
+            $remaining_retur = $returPembelian->total_retur;
+
+            if ($current_utang > 0) {
+                if ($remaining_retur <= $current_utang) {
+                    $laporanKeuangan->update([
+                        'utang' => $current_utang - $remaining_retur,
+                    ]);
+                    $remaining_retur = 0;
+                } else {
+                    $laporanKeuangan->update([
+                        'utang' => 0,
+                    ]);
+                    $remaining_retur -= $current_utang;
+                }
+            }
+
+            if ($remaining_retur > 0 && $current_pengeluaran > 0) {
+                $laporanKeuangan->update([
+                    'pengeluaran' => $current_pengeluaran - $remaining_retur,
+                ]);
+            }
+
+            // Kurangi total dibayar pada pembayaran
+            $pembayaran = PembayaranPembelian::where('id_pembelian', $returPembelian->id_pembelian)
+                ->where('id_metode_pembayaran', 1)
+                ->first();
+
+            if ($pembayaran) {
+                $pembayaran->total_dibayar -= $returPembelian->total_retur;
+                $pembayaran->save();
+            }
+
+            // Hapus data retur pembelian
+            $returPembelian->barangReturPembelian()->delete();
+            $returPembelian->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Retur pembelian berhasil dibatalkan, stok dikembalikan, dan laporan keuangan diperbarui.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

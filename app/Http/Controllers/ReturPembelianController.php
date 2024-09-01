@@ -439,6 +439,8 @@ class ReturPembelianController extends Controller
     public function destroy(ReturPembelian $returPembelian)
     {
         $returPembelian->delete();
+        $pembayaran = PembayaranPembelian::where('id_pembelian', $returPembelian->id_pembelian)->where('id_metode_pembayaran', 1)->first();
+        $pembayaran->delete();
         return response()->json([
             'success' => true,
             'message' => 'Data Berhasil dihapus!',

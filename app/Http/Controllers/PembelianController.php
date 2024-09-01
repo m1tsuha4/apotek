@@ -350,6 +350,7 @@ class PembelianController extends Controller
             'tanggal' => 'sometimes',
             'status' => 'sometimes',
             'tanggal_jatuh_tempo' => 'sometimes',
+            'net_termin' => 'sometimes',
             'referensi' => 'sometimes',
             'sub_total' => 'sometimes',
             'diskon' => 'sometimes',

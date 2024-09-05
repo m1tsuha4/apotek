@@ -25,7 +25,9 @@ class PenjualanController extends Controller
     public function index(Request $request)
     {
         $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
-            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')->paginate($request->num);
+            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->num);
 
         return response()->json([
             'success' => true,

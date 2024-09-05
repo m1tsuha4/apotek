@@ -21,7 +21,9 @@ class ReturPembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])->paginate($request->num);
+        $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])
+        ->orderBy('created_at', 'desc')
+        ->paginate($request->num);
 
         $data = collect($returPembelians->items())->map(function ($returPembelian) {
             $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');

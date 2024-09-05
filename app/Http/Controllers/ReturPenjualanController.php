@@ -20,7 +20,9 @@ class ReturPenjualanController extends Controller
      */
     public function index(Request $request)
     {
-        $returPenjualans = ReturPenjualan::with(['penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan'])->paginate($request->num);
+        $returPenjualans = ReturPenjualan::with(['penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan'])
+        ->orderBy('created_at', 'desc')
+        ->paginate($request->num);
 
         $data = collect($returPenjualans->items())->map(function ($returPenjualan) {
             $jumlah = $returPenjualan->penjualan->barangPenjualan->sum('jumlah');

@@ -24,10 +24,14 @@ class LaporanKeuanganController extends Controller
 
         // Mengambil data pembelian dan penjualan
         $pembelian = Pembelian::select('id', 'id_vendor', 'id_sales', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
-            ->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')->get();
+            ->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')
+            ->orderBy('created_at', 'desc')
+            ->get();
     
         $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
-            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')->get();
+            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')
+            ->orderBy('created_at', 'desc')
+            ->get();
     
         // Menggabungkan pembelian dan penjualan ke dalam satu collection
         $combined = new Collection();

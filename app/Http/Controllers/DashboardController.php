@@ -8,11 +8,13 @@ use App\Models\StokBarang;
 use Illuminate\Http\Request;
 use App\Models\LaporanKeuanganMasuk;
 use App\Models\LaporanKeuanganKeluar;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DashboardController extends Controller
 {
 
-    public function keuangan(){
+    public function keuangan()
+    {
         $totalPemasukkan = LaporanKeuanganMasuk::sum('pemasukkan');
         $totalPiutang = LaporanKeuanganMasuk::sum('piutang');
         $totalPengeluaran = LaporanKeuanganKeluar::sum('pengeluaran');
@@ -31,13 +33,13 @@ class DashboardController extends Controller
             'message' => 'Data Keuangan Berhasil ditemukan!',
         ]);
     }
-    
+
     public function stokBarang(Request $request)
     {
         $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
             ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->paginate($request->num);
-        
+
         $data = $stok->items();
 
         foreach ($data as $item) {
@@ -53,7 +55,7 @@ class DashboardController extends Controller
                 'total' => $item->total_stok
             ];
         });
-    
+
         return response()->json([
             'success' => true,
             'data' => $data,
@@ -85,13 +87,13 @@ class DashboardController extends Controller
     {
         $search = $request->input('search');
         $result = StokBarang::select('id', 'id_barang', 'stok_total')
-                ->with([
-                    'satuan:id,nama_satuan', 
-                    'kategori:id,nama_kategori', 
-                ])
-                ->where('nama_barang','like','%'.$search.'%')
-                ->groupBy('nama_barang')
-                ->get();
+            ->with([
+                'satuan:id,nama_satuan',
+                'kategori:id,nama_kategori',
+            ])
+            ->where('nama_barang', 'like', '%' . $search . '%')
+            ->groupBy('nama_barang')
+            ->get();
         return response()->json([
             'success' => true,
             'data' => $result,
@@ -99,12 +101,13 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function notifStok()
+    public function notifStok(Request $request)
     {
-        $stokBarang = StokBarang::all();
+        $stokBarang = StokBarang::all();  // Mengambil semua stok barang tanpa paginasi awal
 
         $messages = [];
 
+        // Filtering barang yang stoknya menipis
         foreach ($stokBarang as $item) {
             $total = $item->stok_total;
             if ($total <= $item->barang->min_stok_total) {
@@ -116,27 +119,39 @@ class DashboardController extends Controller
             }
         }
 
+        // Paginate hasil messages
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = $request->num ?? 10; // Jumlah item per halaman, default 10
+        $paginatedMessages = collect($messages)->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $paginated = new LengthAwarePaginator($paginatedMessages, count($messages), $perPage, $currentPage, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]);
+
         if (!empty($messages)) {
             return response()->json([
                 'success' => true,
                 'message' => 'Stok Menipis',
-                'data' => $messages,
+                'data' => $paginated->items(),
+                'last_page' => $paginated->lastPage(),
             ]);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Stok Aman',
-            'data' => []
+            'data' => [],
         ]);
     }
 
-    public function notifExp()
+
+    public function notifExp(Request $request)
     {
-        $stokBarang = StokBarang::all();
+        $stokBarang = StokBarang::all();  // Mengambil semua stok barang tanpa paginasi awal
 
         $messages = [];
 
+        // Filtering barang yang mendekati masa expired
         foreach ($stokBarang as $item) {
             $expDate = Carbon::parse($item->exp_date);
             $notifDate = now()->addDays($item->barang->notif_exp);
@@ -150,18 +165,28 @@ class DashboardController extends Controller
             }
         }
 
+        // Paginate hasil messages
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = $request->num ?? 10; // Jumlah item per halaman, default 10
+        $paginatedMessages = collect($messages)->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $paginated = new LengthAwarePaginator($paginatedMessages, count($messages), $perPage, $currentPage, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]);
+
         if (!empty($messages)) {
             return response()->json([
                 'success' => true,
                 'message' => 'Obat Mendekati Masa Expired',
-                'data' => $messages,
+                'data' => $paginated->items(),
+                'last_page' => $paginated->lastPage(),
             ]);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Obat Aman',
-            'data' => []
+            'data' => [],
         ]);
     }
 }

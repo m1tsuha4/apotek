@@ -94,7 +94,7 @@
     <div class="border border-black border-t-0">
         <div class="ps-5 pb-5 pt-2">
             <p class="font-bold">Catatan</p>
-            <p>{{ $data['catatan'] }}</p>
+            <p>Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya</p>
         </div>
     </div>
 </body>

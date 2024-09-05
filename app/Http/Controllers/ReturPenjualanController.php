@@ -86,7 +86,14 @@ class ReturPenjualanController extends Controller
             $returPenjualan = ReturPenjualan::create($validatedData);
 
             foreach ($validatedData['barang_retur_penjualans'] as $barangReturPenjualan) {
-                $returPenjualan->barangReturPenjualan()->create($barangReturPenjualan);
+                $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->first();
+
+                $returPenjualan->barangReturPenjualan()->create([
+                    'id_retur_penjualan' => $returPenjualan->id,
+                    'id_barang_penjualan' => $barang_penjualan->id,
+                    'jumlah_retur' => $barangReturPenjualan['jumlah_retur'],
+                    'total' => $barangReturPenjualan['total'],
+                ]);
 
                 $stokBarang = StokBarang::where('id_barang', $barangReturPenjualan['id_barang'])->where('batch', $barangReturPenjualan['batch'])->first();
 
@@ -304,7 +311,13 @@ class ReturPenjualanController extends Controller
                     $barangReturPenjualan->update($barangReturPenjualanData);
                 } else {
 
-                    $barangReturPenjualan = $returPenjualan->barangReturPenjualan()->create($barangReturPenjualanData);
+                    $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualanData['id_barang'])->first();
+                    $barangReturPenjualan = $returPenjualan->barangReturPenjualan()->create([
+                        'id_retur_penjualan' => $returPenjualan->id,
+                        'id_barang_penjualan' => $barang_penjualan->id,
+                        'jumlah_retur' => $barangReturPenjualanData['jumlah_retur'],
+                        'id_satuan' => $barangReturPenjualanData['id_satuan'],
+                    ]);
 
                     $stokBarang = StokBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('batch', $barangReturPenjualanData['batch'])->first();
 
@@ -428,10 +441,9 @@ class ReturPenjualanController extends Controller
         try {
             // Kembalikan stok barang yang diretur
             foreach ($returPenjualan->barangReturPenjualan as $barangRetur) {
-                $stokBarang = StokBarang::where('id_barang', $barangRetur->id_barang)
-                    ->where('batch', $barangRetur->batch)
+                $stokBarang = StokBarang::where('id_barang', $barangRetur->barangPenjualan->id_barang)
+                    ->where('batch', $barangRetur->barangPenjualan->stokBarang->batch)
                     ->first();
-
                 $satuanDasar = Barang::where('id', $barangRetur->id_barang)->value('id_satuan');
 
                 if ($stokBarang) {

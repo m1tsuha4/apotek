@@ -121,7 +121,7 @@ class DashboardController extends Controller
 
         // Paginate hasil messages
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = $request->num ?? 10; // Jumlah item per halaman, default 10
+        $perPage = $request->num ?? 5; // Jumlah item per halaman, default 10
         $paginatedMessages = collect($messages)->slice(($currentPage - 1) * $perPage, $perPage)->values();
         $paginated = new LengthAwarePaginator($paginatedMessages, count($messages), $perPage, $currentPage, [
             'path' => $request->url(),
@@ -167,7 +167,7 @@ class DashboardController extends Controller
 
         // Paginate hasil messages
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = $request->num ?? 10; // Jumlah item per halaman, default 10
+        $perPage = $request->num ?? 5; // Jumlah item per halaman, default 10
         $paginatedMessages = collect($messages)->slice(($currentPage - 1) * $perPage, $perPage)->values();
         $paginated = new LengthAwarePaginator($paginatedMessages, count($messages), $perPage, $currentPage, [
             'path' => $request->url(),

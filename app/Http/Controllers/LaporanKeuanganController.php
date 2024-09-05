@@ -10,6 +10,8 @@ use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\LaporanKeuanganKeluar;
 use App\Exports\LaporanKeuanganExport;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class LaporanKeuanganController extends Controller
 {
@@ -20,24 +22,33 @@ class LaporanKeuanganController extends Controller
     {
         $numPerPage = $request->num;
 
-        $pembelian = Pembelian::select('id','id_vendor','id_sales','tanggal','referensi','status','tanggal_jatuh_tempo','total')->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')
-        ->paginate($numPerPage);
-
-        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'referensi','status', 'tanggal_jatuh_tempo', 'total')
-            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')->paginate($numPerPage);
-
-        $totalItems = $pembelian->total() + $penjualan->total();
+        // Mengambil data pembelian dan penjualan
+        $pembelian = Pembelian::select('id', 'id_vendor', 'id_sales', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
+            ->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')->get();
+    
+        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
+            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')->get();
+    
+        // Menggabungkan pembelian dan penjualan ke dalam satu collection
+        $combined = new Collection();
+        $combined = $combined->merge($pembelian)->merge($penjualan);
+    
+        // Menghitung total items dan last page
+        $totalItems = $combined->count();
         $lastPage = ceil($totalItems / $numPerPage);
-        
-
-        $data = [
-            'pembelian' => $pembelian->items(),
-            'penjualan' => $penjualan->items(),
-        ];
-
+    
+        // Melakukan paginasi manual pada collection yang sudah digabungkan
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $paginatedItems = $combined->slice(($currentPage - 1) * $numPerPage, $numPerPage)->values();
+        $paginated = new LengthAwarePaginator($paginatedItems, $totalItems, $numPerPage, $currentPage, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]);
+    
+        // Data response
         return response()->json([
             'success' => true,
-            'data' => $data,
+            'data' => $paginated->items(),
             'last_page' => $lastPage,
             'message' => 'Data Berhasil ditemukan!'
         ]);

@@ -12,6 +12,7 @@ use App\Models\BarangPembelian;
 use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPembelian;
 use App\Models\LaporanKeuanganKeluar;
+use App\Models\PergerakanStokPembelian;
 
 class ReturPembelianController extends Controller
 {
@@ -86,11 +87,23 @@ class ReturPembelianController extends Controller
             $returPembelian = ReturPembelian::create($validatedData);
 
             foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
-                $returPembelian->barangReturPembelian()->create($barangReturPembelian);
+
+                $barang_pembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])->where('id_barang', $barangReturPembelian['id_barang'])->where('batch', $barangReturPembelian['batch'])->first();
+
+                $returPembelian->barangReturPembelian()->create([
+                    'id_barang' => $barangReturPembelian['id_barang'],
+                    'id_barang_pembelian' => $barang_pembelian->id,
+                    'jumlah_retur' => $barangReturPembelian['jumlah_retur'],
+                    'id_satuan' => $barangReturPembelian['id_satuan'],
+                    'total' => $barangReturPembelian['total'],
+                ]);
 
                 $stokBarang = StokBarang::where('id_barang', $barangReturPembelian['id_barang'])
                     ->where('batch', $barangReturPembelian['batch'])
                     ->first();
+
+                $totalStok = StokBarang::where('id_barang', $barangReturPembelian['id_barang'])
+                    ->where('batch', $barangReturPembelian['batch'])->sum('stok_total');
 
                 $satuanDasar = Barang::where('id', $barangReturPembelian['id_barang'])->value('id_satuan');
 
@@ -108,6 +121,13 @@ class ReturPembelianController extends Controller
                         // Jika satuan retur sama dengan satuan dasar, kurangi langsung dengan jumlah retur
                         $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'];
                         $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'];
+                        PergerakanStokPembelian::create([
+                            'id_retur_pembelian' => $returPembelian->id,
+                            'id_barang' => $barangReturPembelian['id_barang'],
+                            'harga' => $barang_pembelian->harga,
+                            'pergerakan_stok' => $barangReturPembelian['jumlah_retur'],
+                            'stok_keseluruhan' => $totalStok - $barangReturPembelian['jumlah_retur'],
+                        ]);
                     } else {
                         // Jika satuan retur berbeda dengan satuan dasar, konversi jumlah retur
                         $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelian['id_barang'])
@@ -121,8 +141,16 @@ class ReturPembelianController extends Controller
                                 'message' => 'Jumlah retur melebihi yang dibeli',
                             ], 400);
                         }
-                        $stokBarang->stok_apotek -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
-                        $stokBarang->stok_total -= $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                        $stok = $barangReturPembelian['jumlah_retur'] * $satuanBesar;
+                        $stokBarang->stok_apotek -= $stok;
+                        $stokBarang->stok_total -= $stok;
+                        PergerakanStokPembelian::create([
+                            'id_retur_pembelian' => $returPembelian->id,
+                            'id_barang' => $barangReturPembelian['id_barang'],
+                            'harga' => $barang_pembelian->harga,
+                            'pergerakan_stok' => $stok,
+                            'stok_keseluruhan' => $totalStok - $stok,
+                        ]);
                     }
                     $stokBarang->save();
                 } else {
@@ -293,6 +321,10 @@ class ReturPembelianController extends Controller
                         ->where('batch', $barangReturPembelianData['batch'])
                         ->first();
 
+                    $totalStok = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])->where('batch', '!=', $barangReturPembelianData['batch'])->sum('stok_total');
+                    $pergerakanStok = PergerakanStokPembelian::where('id_retur_pembelian', $returPembelian->id)->where('id_barang', $barangReturPembelianData['id_barang'])->first();
+                    // dd($pergerakanStok);
+
                     if ($stokBarang) {
                         // Calculate the stock difference
                         $jumlahReturLama = $barangReturPembelian->jumlah_retur;
@@ -303,6 +335,10 @@ class ReturPembelianController extends Controller
                         if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                             $stokBarang->stok_apotek += $jumlahReturLama;
                             $stokBarang->stok_apotek -= $jumlahReturBaru;
+                            $pergerakanStok->update([
+                                'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'],
+                                'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'],
+                            ]);
                         } else {
                             $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                                 ->where('id_satuan', $barangReturPembelianData['id_satuan'])
@@ -311,19 +347,35 @@ class ReturPembelianController extends Controller
                             $stokBarang->stok_apotek -= $jumlahReturBaru * $satuanBesar;
                             $stokBarang->stok_total += $jumlahReturLama * $satuanBesar;
                             $stokBarang->stok_total -= $jumlahReturBaru * $satuanBesar;
+                            $pergerakanStok->update([
+                                'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                                'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                            ]);
                         }
 
                         $stokBarang->save();
+                        $pergerakanStok->save();
                     }
 
                     $barangReturPembelian->update($barangReturPembelianData);
                 } else {
+                    $barang_pembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])->where('id_barang', $barangReturPembelianData['id_barang'])->where('batch', $barangReturPembelianData['batch'])->first();
+
                     // Create a new return item
-                    $barangReturPembelian = $returPembelian->barangReturPembelian()->create($barangReturPembelianData);
+                    $barangReturPembelian = $returPembelian->barangReturPembelian()->create([
+                        'id_barang' => $barangReturPembelianData['id_barang'],
+                        'id_barang_pembelian' => $barang_pembelian->id,
+                        'jumlah_retur' => $barangReturPembelianData['jumlah_retur'],
+                        'id_satuan' => $barangReturPembelianData['id_satuan'],
+                        'total' => $barangReturPembelianData['total'],
+                    ]);
 
                     $stokBarang = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                         ->where('batch', $barangReturPembelianData['batch'])
                         ->first();
+
+                    $totalStok = StokBarang::where('id_barang', $barangReturPembelianData['id_barang'])->where('batch', '!=', $barangReturPembelianData['batch'])->sum('stok_total');
+                    $pergerakanStok = PergerakanStokPembelian::where('id_retur_pembelian', $returPembelian->id)->where('id_barang', $barangReturPembelianData['id_barang'])->first();
 
                     $satuanDasar = Barang::where('id', $barangReturPembelianData['id_barang'])->value('id_satuan');
 
@@ -331,12 +383,40 @@ class ReturPembelianController extends Controller
                         if ($barangReturPembelianData['id_satuan'] == $satuanDasar) {
                             $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'];
                             $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'];
+                            if (!$pergerakanStok) {
+                                $pergerakanStok = PergerakanStokPembelian::create([
+                                    'id_retur_pembelian' => $returPembelian->id,
+                                    'id_barang' => $barangReturPembelianData['id_barang'],
+                                    'harga' => $barang_pembelian->harga,
+                                    'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'],
+                                    'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'],
+                                ]);
+                            } else {
+                                $pergerakanStok->update([
+                                    'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'],
+                                    'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'],
+                                ]);
+                            }
                         } else {
                             $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
                                 ->where('id_satuan', $barangReturPembelianData['id_satuan'])
                                 ->value('jumlah');
                             $stokBarang->stok_apotek -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
                             $stokBarang->stok_total -= $barangReturPembelianData['jumlah_retur'] * $satuanBesar;
+                            if (!$pergerakanStok) {
+                                $pergerakanStok = PergerakanStokPembelian::create([
+                                    'id_retur_pembelian' => $returPembelian->id,
+                                    'id_barang' => $barangReturPembelianData['id_barang'],
+                                    'harga' => $barang_pembelian->harga,
+                                    'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                                    'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                                ]);
+                            } else {
+                                $pergerakanStok->update([
+                                    'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                                    'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
+                                ]);
+                            }
                         }
                         $stokBarang->save();
                     } else {
@@ -444,7 +524,7 @@ class ReturPembelianController extends Controller
             // Mengembalikan stok barang yang diretur
             foreach ($returPembelian->barangReturPembelian as $barangRetur) {
                 $stokBarang = StokBarang::where('id_barang', $barangRetur->id_barang)
-                    ->where('batch', $barangRetur->batch)
+                    ->where('batch', $barangRetur->barangPembelian->batch)
                     ->first();
 
                 if ($stokBarang) {

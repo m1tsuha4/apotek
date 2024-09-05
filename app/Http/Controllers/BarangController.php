@@ -321,6 +321,7 @@ class BarangController extends Controller
         $purchases = $barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
             ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
+            ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
             ->select(
                 'barang_pembelians.exp_date',
                 'pembelians.tanggal',
@@ -345,7 +346,40 @@ class BarangController extends Controller
             ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
             ->paginate($request->num);
 
-        // Combine purchases and sales data
+        // New: Retur Pembelian
+        $purchaseReturns = $barang->barangPembelian()
+            ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
+            ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
+            ->join('retur_pembelians', 'pembelians.id', '=', 'retur_pembelians.id_pembelian')
+            ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
+            ->select(
+                'retur_pembelians.tanggal',
+                'barang_pembelians.batch',
+                'barang_pembelians.exp_date',
+                \DB::raw('SUM(barang_retur_pembelians.jumlah_retur) as jumlah'),
+                \DB::raw('satuans.id as satuan_id')
+            )
+            ->groupBy('retur_pembelians.tanggal', 'barang_pembelians.batch', 'barang_pembelians.exp_date', 'satuans.id')
+            ->paginate($request->num);
+
+        // New: Retur Penjualan
+        $salesReturns = $barang->barangPenjualan()
+            ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
+            ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
+            ->join('stok_barangs', 'barang_penjualans.id_stok_barang', '=', 'stok_barangs.id')
+            ->join('retur_penjualans', 'penjualans.id', '=', 'retur_penjualans.id_penjualan')
+            ->join('barang_retur_penjualans', 'barang_penjualans.id', '=', 'barang_retur_penjualans.id_barang_penjualan')
+            ->select(
+                'retur_penjualans.tanggal',
+                'stok_barangs.batch',
+                'stok_barangs.exp_date',
+                \DB::raw('SUM(barang_retur_penjualans.jumlah_retur) as jumlah'),
+                \DB::raw('satuans.id as satuan_id')
+            )
+            ->groupBy('retur_penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
+            ->paginate($request->num);
+
+        // Combine purchases, sales, purchase returns, and sales returns data
         $stockDetails = [];
 
         foreach ($purchases as $purchase) {
@@ -380,6 +414,42 @@ class BarangController extends Controller
             }
         }
 
+        foreach ($purchaseReturns as $return) {
+            $quantity = $return->satuan_id == $satuanDasar
+                ? $return->jumlah
+                : $return->jumlah * $jumlahBesar;
+
+            if (!isset($stockDetails[$return->batch . $return->exp_date])) {
+                $stockDetails[$return->batch . $return->exp_date] = [
+                    'tanggal' => $return->tanggal,
+                    'batch' => $return->batch,
+                    'exp_date' => $return->exp_date,
+                    'masuk' => 0,
+                    'keluar' => $quantity,
+                ];
+            } else {
+                $stockDetails[$return->batch . $return->exp_date]['keluar'] += $quantity;
+            }
+        }
+
+        foreach ($salesReturns as $return) {
+            $quantity = $return->satuan_id == $satuanDasar
+                ? $return->jumlah
+                : $return->jumlah * $jumlahBesar;
+
+            if (!isset($stockDetails[$return->batch . $return->exp_date])) {
+                $stockDetails[$return->batch . $return->exp_date] = [
+                    'tanggal' => $return->tanggal,
+                    'batch' => $return->batch,
+                    'exp_date' => $return->exp_date,
+                    'masuk' => $quantity,
+                    'keluar' => 0,
+                ];
+            } else {
+                $stockDetails[$return->batch . $return->exp_date]['masuk'] += $quantity;
+            }
+        }
+
         // Calculate remaining stock
         foreach ($stockDetails as &$details) {
             $details['sisa'] = $details['masuk'] - $details['keluar'];
@@ -397,6 +467,7 @@ class BarangController extends Controller
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
+
 
 
     // public function detailKartuStok(Barang $barang)

@@ -40,5 +40,10 @@ class BarangPenjualan extends Model
     {
         return $this->belongsTo(StokBarang::class, 'id_stok_barang');    
     }
+
+    public function BarangReturPenjualan()
+    {
+        return $this->hasOne(BarangReturPenjualan::class, 'id_penjualan');
+    }
 }
 

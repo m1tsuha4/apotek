@@ -12,6 +12,7 @@ class BarangReturPenjualan extends Model
     protected $fillable = [
         'id',
         'id_retur_penjualan',
+        'id_barang_penjualan',
         'jumlah_retur',
         'total',
     ];
@@ -19,5 +20,10 @@ class BarangReturPenjualan extends Model
     public function returPenjualan()
     {
         return $this->belongsTo(ReturPenjualan::class, 'id_retur_penjualan');
+    }
+
+    public function barangPenjualan()
+    {
+        return $this->belongsTo(BarangPenjualan::class, 'id_barang_penjualan');
     }
 }

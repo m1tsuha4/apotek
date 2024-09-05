@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('barang_retur_penjualans', function (Blueprint $table) {
             $table->id();
             $table->string('id_retur_penjualan', 10);
+            $table->foreignId('id_barang_penjualan')->constrained('barang_penjualans')->onDelete('cascade');
             $table->integer('jumlah_retur');
             $table->integer('total');
             $table->timestamps();

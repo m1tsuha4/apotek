@@ -779,18 +779,18 @@ class PenjualanController extends Controller
                 ];
             })
         ];
-        // return view('exports.invoice', compact('data'));
+        return view('exports.invoice', compact('data'));
         // return pdf()
         //     ->view('exports.invoice', ['data' => $data])
         //     ->download(downloadName: 'Invoice_'.$data['id_penjualan'].'pdf');
 
-        $pdf = PDF::loadView('exports.invoice', ['data' => $data])
-            ->setPaper('a4', 'landscape')
-            ->setOption('enable-local-file-access', true)
-            ->setOption('zoom', '1.3') // Meningkatkan ukuran tampilan
-            ->setOption('no-stop-slow-scripts', true); // Hindari kesalahan pada script yang lambat
+        // $pdf = PDF::loadView('exports.invoice', ['data' => $data])
+        //     ->setPaper('a4', 'landscape')
+        //     ->setOption('enable-local-file-access', true)
+        //     ->setOption('zoom', '1.3') // Meningkatkan ukuran tampilan
+        //     ->setOption('no-stop-slow-scripts', true); // Hindari kesalahan pada script yang lambat
 
-        return $pdf->stream('Invoice_' . $data['id_penjualan'] . 'pdf');
+        // return $pdf->stream('Invoice_' . $data['id_penjualan'] . 'pdf');
     }
 
     // public function invoice(Penjualan $penjualan)

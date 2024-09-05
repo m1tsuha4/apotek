@@ -18,7 +18,7 @@ class StokOpnameController extends Controller
     {
         $stokOpname = StokOpname::select('id','id_stok_barang','tanggal', 'sumber_stok', 'stok_tercatat', 'stok_aktual')
             ->with([
-                'stokBarang:id,id_barang,exp_date',
+                'stokBarang:id,id_barang,exp_date,batch',
                 'stokBarang.barang:id,nama_barang',
                 'stokBarang.barang.kategori:id,nama_kategori'
             ])

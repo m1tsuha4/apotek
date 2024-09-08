@@ -31,6 +31,11 @@ class ReturPembelian extends Model
         return $this->belongsTo(Pembelian::class, 'id_pembelian');
     }
 
+    public function PergerakanStokPembelian()
+    {
+        return $this->hasMany(PergerakanStokPembelian::class, 'id_pembelian');
+    }
+
     public static function boot()
     {
         parent::boot();

@@ -23,6 +23,11 @@ class PergerakanStokPembelian extends Model
         return $this->belongsTo(Pembelian::class, 'id_pembelian');
     }
 
+    public function returPembelian()
+    {
+        return $this->belongsTo(ReturPembelian::class, 'id_retur_pembelian');
+    }
+
     public function barang()
     {
         return $this->belongsTo(Barang::class, 'id_barang');

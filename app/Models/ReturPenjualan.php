@@ -54,4 +54,9 @@ class ReturPenjualan extends Model
     {
         return $this->belongsTo(Penjualan::class, 'id_penjualan');
     }
+
+    public function PergerakanStokPenjualan()
+    {
+        return $this->hasMany(PergerakanStokPenjualan::class, 'id_penjualan');
+    }
 }

@@ -767,7 +767,7 @@ class PenjualanController extends Controller
                     'jenis_diskon' => $barangPenjualan->jenis_diskon,
                     'diskon' => $barangPenjualan->diskon,
                     'harga' => $barangPenjualan->harga,
-                    'total' => $barangPenjualan->total
+                    'total_barang' => $barangPenjualan->total
                 ];
             }),
             'pembayaranPenjualan' => $penjualan->pembayaranPenjualan->map(function ($pembayaranPenjualan) {

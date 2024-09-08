@@ -317,11 +317,11 @@ class BarangController extends Controller
         $satuanDasar = $barang->id_satuan;
         $satuanBesar = $barang->satuanBarang->id_satuan;
         $jumlahBesar = $barang->satuanBarang->jumlah;
-
+    
+        // Purchases
         $purchases = $barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
             ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
-            ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
             ->select(
                 'barang_pembelians.exp_date',
                 'pembelians.tanggal',
@@ -331,7 +331,8 @@ class BarangController extends Controller
             )
             ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', 'satuans.id')
             ->paginate($request->num);
-
+    
+        // Sales
         $sales = $barang->barangPenjualan()
             ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
             ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
@@ -345,12 +346,12 @@ class BarangController extends Controller
             )
             ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
             ->paginate($request->num);
-
-        // New: Retur Pembelian
+    
+        // Purchase Returns
         $purchaseReturns = $barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
             ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
-            ->join('retur_pembelians', 'pembelians.id', '=', 'retur_pembelians.id_pembelian')
+            ->join('retur_pembelians', 'barang_pembelians.id_pembelian', '=', 'retur_pembelians.id_pembelian')
             ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
             ->select(
                 'retur_pembelians.tanggal',
@@ -361,8 +362,8 @@ class BarangController extends Controller
             )
             ->groupBy('retur_pembelians.tanggal', 'barang_pembelians.batch', 'barang_pembelians.exp_date', 'satuans.id')
             ->paginate($request->num);
-
-        // New: Retur Penjualan
+    
+        // Sales Returns
         $salesReturns = $barang->barangPenjualan()
             ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
             ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
@@ -378,88 +379,94 @@ class BarangController extends Controller
             )
             ->groupBy('retur_penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
             ->paginate($request->num);
-
+    
         // Combine purchases, sales, purchase returns, and sales returns data
         $stockDetails = [];
-
+    
+        // Process Purchases
         foreach ($purchases as $purchase) {
             $quantity = $purchase->satuan_id == $satuanDasar
                 ? $purchase->jumlah
                 : $purchase->jumlah * $jumlahBesar;
-
-            $stockDetails[$purchase->batch . $purchase->exp_date] = [
+    
+            $stockDetails[] = [
                 'tanggal' => $purchase->tanggal,
                 'batch' => $purchase->batch,
                 'exp_date' => $purchase->exp_date,
-                'masuk' => ($stockDetails[$purchase->batch . $purchase->exp_date]['masuk'] ?? 0) + $quantity,
-                'keluar' => $stockDetails[$purchase->batch . $purchase->exp_date]['keluar'] ?? 0,
+                'masuk' => $quantity,
+                'keluar' => 0,
+                'jenis_transaksi' => 'pembelian',
             ];
         }
-
+    
+        // Process Sales
         foreach ($sales as $sale) {
             $quantity = $sale->satuan_id == $satuanDasar
                 ? $sale->jumlah
                 : $sale->jumlah * $jumlahBesar;
-
-            if (!isset($stockDetails[$sale->batch . $sale->exp_date])) {
-                $stockDetails[$sale->batch . $sale->exp_date] = [
-                    'tanggal' => $sale->tanggal,
-                    'batch' => $sale->batch,
-                    'exp_date' => $sale->exp_date,
-                    'masuk' => 0,
-                    'keluar' => $quantity,
-                ];
-            } else {
-                $stockDetails[$sale->batch . $sale->exp_date]['keluar'] += $quantity;
-            }
+    
+            $stockDetails[] = [
+                'tanggal' => $sale->tanggal,
+                'batch' => $sale->batch,
+                'exp_date' => $sale->exp_date,
+                'masuk' => 0,
+                'keluar' => $quantity,
+                'jenis_transaksi' => 'penjualan',
+            ];
         }
-
+    
+        // Process Purchase Returns (keluar untuk retur)
         foreach ($purchaseReturns as $return) {
             $quantity = $return->satuan_id == $satuanDasar
                 ? $return->jumlah
                 : $return->jumlah * $jumlahBesar;
-
-            if (!isset($stockDetails[$return->batch . $return->exp_date])) {
-                $stockDetails[$return->batch . $return->exp_date] = [
-                    'tanggal' => $return->tanggal,
-                    'batch' => $return->batch,
-                    'exp_date' => $return->exp_date,
-                    'masuk' => 0,
-                    'keluar' => $quantity,
-                ];
-            } else {
-                $stockDetails[$return->batch . $return->exp_date]['keluar'] += $quantity;
-            }
+    
+            $stockDetails[] = [
+                'tanggal' => $return->tanggal,
+                'batch' => $return->batch,
+                'exp_date' => $return->exp_date,
+                'masuk' => 0, // Retur pembelian tidak menambah barang
+                'keluar' => $quantity, // Retur pembelian mengurangi stok (keluar)
+                'jenis_transaksi' => 'retur_pembelian',
+            ];
         }
-
+    
+        // Process Sales Returns (masuk untuk retur penjualan)
         foreach ($salesReturns as $return) {
             $quantity = $return->satuan_id == $satuanDasar
                 ? $return->jumlah
                 : $return->jumlah * $jumlahBesar;
-
-            if (!isset($stockDetails[$return->batch . $return->exp_date])) {
-                $stockDetails[$return->batch . $return->exp_date] = [
-                    'tanggal' => $return->tanggal,
-                    'batch' => $return->batch,
-                    'exp_date' => $return->exp_date,
-                    'masuk' => $quantity,
-                    'keluar' => 0,
-                ];
-            } else {
-                $stockDetails[$return->batch . $return->exp_date]['masuk'] += $quantity;
-            }
+    
+            $stockDetails[] = [
+                'tanggal' => $return->tanggal,
+                'batch' => $return->batch,
+                'exp_date' => $return->exp_date,
+                'masuk' => $quantity, // Retur penjualan menambah barang
+                'keluar' => 0,
+                'jenis_transaksi' => 'retur_penjualan',
+            ];
         }
-
+    
+        // Sort by date
+        usort($stockDetails, function ($a, $b) {
+            return strtotime($a['tanggal']) - strtotime($b['tanggal']);
+        });
+    
         // Calculate remaining stock
+        $totalMasuk = 0;
+        $totalKeluar = 0;
+    
         foreach ($stockDetails as &$details) {
-            $details['sisa'] = $details['masuk'] - $details['keluar'];
+            $totalMasuk += $details['masuk'];
+            $totalKeluar += $details['keluar'];
+            $details['sisa'] = $totalMasuk - $totalKeluar;
         }
-
+    
         $commonData = $purchases->first() ? [
             'nama_barang' => $barang->nama_barang,
             'nama_satuan' => $barang->satuan->nama_satuan,
         ] : [];
-
+    
         return response()->json([
             'status' => true,
             'data' => array_merge($commonData, ['list' => array_values($stockDetails)]),
@@ -467,6 +474,7 @@ class BarangController extends Controller
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
+    
 
 
 

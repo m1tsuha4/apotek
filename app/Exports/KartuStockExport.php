@@ -3,10 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Barang;
-use App\Models\Pembelian;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\FromCollection;
 
 class KartuStockExport implements FromView
 {
@@ -35,10 +33,7 @@ class KartuStockExport implements FromView
                 \DB::raw('satuans.id as satuan_id')
             )
             ->groupBy('barang_pembelians.exp_date', 'pembelians.tanggal', 'barang_pembelians.batch', 'satuans.id')
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->tanggal . '-' . $item->batch;
-            });
+            ->get();
 
         // Fetch sales
         $sales = $this->barang->barangPenjualan()
@@ -53,49 +48,118 @@ class KartuStockExport implements FromView
                 \DB::raw('satuans.id as satuan_id')
             )
             ->groupBy('penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->tanggal . '-' . $item->batch;
-            });
+            ->get();
 
-        // Combine purchases and sales data
+        // Fetch purchase returns
+        $purchaseReturns = $this->barang->barangPembelian()
+            ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
+            ->join('retur_pembelians', 'pembelians.id', '=', 'retur_pembelians.id_pembelian')
+            ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
+            ->select(
+                'retur_pembelians.tanggal',
+                'barang_pembelians.batch',
+                'barang_pembelians.exp_date',
+                \DB::raw('SUM(barang_retur_pembelians.jumlah_retur) as jumlah'),
+                \DB::raw('barang_pembelians.id_satuan as satuan_id')
+            )
+            ->groupBy('retur_pembelians.tanggal', 'barang_pembelians.batch', 'barang_pembelians.exp_date', 'barang_pembelians.id_satuan')
+            ->get();
+
+        // Fetch sales returns
+        $salesReturns = $this->barang->barangPenjualan()
+            ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
+            ->join('retur_penjualans', 'penjualans.id', '=', 'retur_penjualans.id_penjualan')
+            ->join('barang_retur_penjualans', 'barang_penjualans.id', '=', 'barang_retur_penjualans.id_barang_penjualan')
+            ->select(
+                'retur_penjualans.tanggal',
+                'barang_penjualans.batch',
+                'barang_penjualans.exp_date',
+                \DB::raw('SUM(barang_retur_penjualans.jumlah_retur) as jumlah'),
+                \DB::raw('barang_penjualans.id_satuan as satuan_id')
+            )
+            ->groupBy('retur_penjualans.tanggal', 'barang_penjualans.batch', 'barang_penjualans.exp_date', 'barang_penjualans.id_satuan')
+            ->get();
+
+        // Combine all transactions
         $stockDetails = [];
 
-        foreach ($purchases as $key => $purchase) {
+        // Process purchases
+        foreach ($purchases as $purchase) {
             $quantity = $purchase->satuan_id == $satuanDasar
                 ? $purchase->jumlah
                 : $purchase->jumlah * $jumlahBesar;
 
-            $stockDetails[$key] = [
+            $stockDetails[] = [
                 'exp_date' => $purchase->exp_date,
                 'tanggal' => $purchase->tanggal,
                 'batch' => $purchase->batch,
-                'masuk' => ($stockDetails[$key]['masuk'] ?? 0) + $quantity,
-                'keluar' => $stockDetails[$key]['keluar'] ?? 0,
+                'masuk' => $quantity,
+                'keluar' => 0,
+                'jenis_transaksi' => 'pembelian',
             ];
         }
 
-        foreach ($sales as $key => $sale) {
+        // Process sales
+        foreach ($sales as $sale) {
             $quantity = $sale->satuan_id == $satuanDasar
                 ? $sale->jumlah
                 : $sale->jumlah * $jumlahBesar;
 
-            if (!isset($stockDetails[$key])) {
-                $stockDetails[$key] = [
-                    'exp_date' => $sale->exp_date,
-                    'tanggal' => $sale->tanggal,
-                    'batch' => $sale->batch,
-                    'masuk' => 0,
-                    'keluar' => $quantity,
-                ];
-            } else {
-                $stockDetails[$key]['keluar'] += $quantity;
-            }
+            $stockDetails[] = [
+                'exp_date' => $sale->exp_date,
+                'tanggal' => $sale->tanggal,
+                'batch' => $sale->batch,
+                'masuk' => 0,
+                'keluar' => $quantity,
+                'jenis_transaksi' => 'penjualan',
+            ];
         }
 
+        // Process purchase returns
+        foreach ($purchaseReturns as $return) {
+            $quantity = $return->satuan_id == $satuanDasar
+                ? $return->jumlah
+                : $return->jumlah * $jumlahBesar;
+
+            $stockDetails[] = [
+                'exp_date' => $return->exp_date,
+                'tanggal' => $return->tanggal,
+                'batch' => $return->batch,
+                'masuk' => 0, // Retur pembelian tidak menambah barang
+                'keluar' => $quantity, // Retur pembelian mengurangi stok (keluar)
+                'jenis_transaksi' => 'retur_pembelian',
+            ];
+        }
+
+        // Process sales returns
+        foreach ($salesReturns as $return) {
+            $quantity = $return->satuan_id == $satuanDasar
+                ? $return->jumlah
+                : $return->jumlah * $jumlahBesar;
+
+            $stockDetails[] = [
+                'exp_date' => $return->exp_date,
+                'tanggal' => $return->tanggal,
+                'batch' => $return->batch,
+                'masuk' => $quantity, // Retur penjualan menambah barang
+                'keluar' => 0,
+                'jenis_transaksi' => 'retur_penjualan',
+            ];
+        }
+
+        // Sort by date (newest first)
+        usort($stockDetails, function ($a, $b) {
+            return strtotime($a['tanggal']) - strtotime($b['tanggal']);
+        });
+
         // Calculate remaining stock
+        $totalMasuk = 0;
+        $totalKeluar = 0;
+
         foreach ($stockDetails as &$details) {
-            $details['sisa'] = $details['masuk'] - $details['keluar'];
+            $totalMasuk += $details['masuk'];
+            $totalKeluar += $details['keluar'];
+            $details['sisa'] = $totalMasuk - $totalKeluar;
         }
 
         return view('exports.kartu-stock', [

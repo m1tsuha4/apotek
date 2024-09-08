@@ -67,7 +67,7 @@
                     <td class="px-6 text-left border border-black">{{ $item['jumlah'] }}</td>
                     <td class="px-6 text-left border border-black">{{ $item['nama_satuan'] }}</td>
                     <td class="px-6 text-left border border-black">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black">Rp {{ number_format($item['total'], 0, ',', '.') }}</td>
+                    <td class="px-6 text-left border border-black">Rp {{ number_format($item['total_barang'], 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -86,7 +86,7 @@
                 <tr>
                     <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
                     <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['diskon'] + $data['total_diskon_satuan'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black text-right font-bold w-1/3">Rp {{ number_format($data['sisa_tagihan'], 0, ',', '.') }}</td>
+                    <td class="px-6 text-left border border-black text-right font-bold w-1/3">Rp {{ number_format($data['total'], 0, ',', '.') }}</td>
                 </tr>
             </tbody>
         </table>

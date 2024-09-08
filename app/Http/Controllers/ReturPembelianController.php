@@ -22,8 +22,8 @@ class ReturPembelianController extends Controller
     public function index(Request $request)
     {
         $returPembelians = ReturPembelian::with(['pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])
-        ->orderBy('created_at', 'desc')
-        ->paginate($request->num);
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->num);
 
         $data = collect($returPembelians->items())->map(function ($returPembelian) {
             $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');
@@ -398,6 +398,7 @@ class ReturPembelianController extends Controller
                                     'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'],
                                     'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'],
                                 ]);
+                                $pergerakanStok->save();
                             }
                         } else {
                             $satuanBesar = SatuanBarang::where('id_barang', $barangReturPembelianData['id_barang'])
@@ -418,6 +419,7 @@ class ReturPembelianController extends Controller
                                     'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
                                     'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
                                 ]);
+                                $pergerakanStok->save();
                             }
                         }
                         $stokBarang->save();
@@ -584,6 +586,16 @@ class ReturPembelianController extends Controller
             if ($pembayaran) {
                 $pembayaran->total_dibayar -= $returPembelian->total_retur;
                 $pembayaran->save();
+            }
+
+            $total_dibayar_sekarang = $pembayaran->total_dibayar + $returPembelian->total_retur;
+            $total_tagihan = $laporanKeuangan->pengeluaran + $laporanKeuangan->utang;
+
+            if ($total_dibayar_sekarang < $total_tagihan) {
+                // Status harus kembali ke 'dibayar sebagian'
+                $laporanKeuangan->update([
+                    'status_pembayaran' => 'dibayar sebagian',
+                ]);
             }
 
             // Hapus data retur pembelian

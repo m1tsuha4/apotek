@@ -12,13 +12,14 @@ class PergerakanStokPembelianController extends Controller
      */
     public function index(Request $request)
     {
-        $data = PergerakanStokPembelian::select('id', 'id_barang', 'id_pembelian', 'harga', 'pergerakan_stok', 'stok_keseluruhan')
+        $data = PergerakanStokPembelian::select('id', 'id_barang', 'id_pembelian', 'id_retur_pembelian', 'harga', 'pergerakan_stok', 'stok_keseluruhan')
             ->with([
                 'pembelian:id,id_vendor,id_sales,tanggal',
                 'pembelian.barangPembelian' => function ($query) use ($request) {
                     $query->select('id', 'id_pembelian', 'batch')
                         ->where('id_barang', $request->id_barang);
                 },
+                'returPembelian:id,id_pembelian,tanggal',
                 'pembelian.vendor:id,nama_perusahaan',
                 'pembelian.sales:id,nama_sales',
                 'barang:id,id_satuan,nama_barang',
@@ -27,13 +28,48 @@ class PergerakanStokPembelianController extends Controller
             ->orderBy('created_at', 'desc')
             ->where('id_barang', $request->id_barang)
             ->paginate(10);
+
+        // Modify data to standardize 'pembelian' and 'returPembelian'
+        $standardizedData = $data->map(function ($item) {
+            if ($item->id_retur_pembelian) {
+                // Standardize retur to look like pembelian
+                return [
+                    'id' => $item->id,
+                    'id_barang' => $item->id_barang,
+                    'id_pembelian' => $item->id_pembelian,
+                    'id_retur_pembelian' => $item->id_retur_pembelian,
+                    'harga' => $item->harga,
+                    'pergerakan_stok' => $item->pergerakan_stok,
+                    'stok_keseluruhan' => $item->stok_keseluruhan,
+                    'pembelian' => [
+                        'id' => $item->returPembelian->id_pembelian,
+                        'id_vendor' => $item->returPembelian->pembelian->id_vendor ?? null,
+                        'id_sales' => $item->returPembelian->pembelian->id_sales ?? null,
+                        'tanggal' => $item->returPembelian->tanggal,
+                        'barang_pembelian' => $item->returPembelian->barangReturPembelian->map(function ($barangRetur) {
+                            return [
+                                'id' => $barangRetur->barangPembelian->id,
+                                'id_pembelian' => $barangRetur->barangPembelian->id_pembelian,
+                                'batch' => $barangRetur->barangPembelian->batch
+                            ];
+                        })->toArray() ?? [],
+                        'vendor' => $item->returPembelian->pembelian->vendor ?? null,
+                        'sales' => $item->returPembelian->pembelian->sales ?? null,
+                    ],
+                    'barang' => $item->barang,
+                ];
+            }
+            return $item;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $data->items(),
+            'data' => $standardizedData,
             'last_page' => $data->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

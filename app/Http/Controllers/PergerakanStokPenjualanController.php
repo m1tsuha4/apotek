@@ -12,23 +12,57 @@ class PergerakanStokPenjualanController extends Controller
      */
     public function index(Request $request)
     {
-        $data = PergerakanStokPenjualan::select('id','id_penjualan','id_barang','harga','pergerakan_stok','stok_keseluruhan')
-            ->with(['penjualan:id,id_pelanggan,tanggal',
-            'penjualan.pelanggan:id,nama_pelanggan,no_telepon',
-            'penjualan.barangPenjualan' => function ($query) use ($request) {
-                $query->select('id','id_penjualan','id_stok_barang')
-                    ->where('id_barang', $request->id_barang);
-            },
-            'penjualan.barangPenjualan.stokBarang:id,batch',
-            'barang:id,id_satuan,nama_barang',
-            'barang.satuan:id,nama_satuan'])
+        $data = PergerakanStokPenjualan::select('id', 'id_penjualan', 'id_barang', 'id_retur_penjualan', 'harga', 'pergerakan_stok', 'stok_keseluruhan')
+            ->with([
+                'penjualan:id,id_pelanggan,tanggal',
+                'penjualan.pelanggan:id,nama_pelanggan,no_telepon',
+                'penjualan.barangPenjualan' => function ($query) use ($request) {
+                    $query->select('id', 'id_penjualan', 'id_stok_barang')
+                        ->where('id_barang', $request->id_barang);
+                },
+                'penjualan.barangPenjualan.stokBarang:id,batch',
+                'barang:id,id_satuan,nama_barang',
+                'barang.satuan:id,nama_satuan'
+            ])
             ->orderBy('created_at', 'desc')
             ->where('id_barang', $request->id_barang)
             ->paginate(10);
 
+        $standardizedData = $data->map(function ($item) {
+            if ($item->id_retur_penjualan && $item->returPenjualan) {
+                return [
+                    'id' => $item->id,
+                    'id_penjualan' => $item->id_penjualan,
+                    'id_barang' => $item->id_barang,
+                    'id_retur_penjualan' => $item->id_retur_penjualan,
+                    'harga' => $item->harga,
+                    'pergerakan_stok' => $item->pergerakan_stok,
+                    'stok_keseluruhan' => $item->stok_keseluruhan,
+                    'penjualan' => [
+                        'id' => $item->returPenjualan->id_penjualan ?? null,
+                        'id_pelanggan' => $item->returPenjualan->penjualan->id_pelanggan ?? null,
+                        'tanggal' => $item->returPenjualan->tanggal ?? null,
+                        'barang_penjualan' => $item->returPenjualan->barangReturPenjualan->map(function ($barangRetur) {
+                            return [
+                                'id' => $barangRetur->barangPenjualan->id ?? null,
+                                'id_penjualan' => $barangRetur->barangPenjualan->id_penjualan ?? null,
+                                'id_stok_barang' => $barangRetur->barangPenjualan->id_stok_barang ?? null,
+                                'batch' => $barangRetur->barangPenjualan->stokBarang->batch ?? null,
+                            ];
+                        })->toArray(),
+                        'pelanggan' => $item->returPenjualan->penjualan->pelanggan ?? null,
+                    ],
+                    'barang' => $item->barang,
+                ];
+            }
+
+            return $item;
+        });
+
+
         return response()->json([
             'success' => true,
-            'data' => $data->items(),
+            'data' => $standardizedData,
             'last_page' => $data->lastPage(),
             'message' => 'Data Berhasil ditemukan!',
         ]);

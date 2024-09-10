@@ -561,14 +561,14 @@ class ReturPembelianController extends Controller
             if ($current_utang > 0) {
                 if ($remaining_retur <= $current_utang) {
                     $laporanKeuangan->update([
-                        'utang' => $current_utang - $remaining_retur,
+                        'utang' => $current_utang + $remaining_retur,
                     ]);
                     $remaining_retur = 0;
                 } else {
                     $laporanKeuangan->update([
                         'utang' => 0,
                     ]);
-                    $remaining_retur -= $current_utang;
+                    $remaining_retur += $current_utang;
                 }
             }
 

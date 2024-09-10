@@ -32,9 +32,8 @@ class PergerakanStokPenjualanController extends Controller
             if ($item->id_retur_penjualan && $item->returPenjualan) {
                 return [
                     'id' => $item->id,
-                    'id_penjualan' => $item->id_penjualan,
+                    'id_penjualan' => $item->id_retur_penjualan,
                     'id_barang' => $item->id_barang,
-                    'id_retur_penjualan' => $item->id_retur_penjualan,
                     'harga' => $item->harga,
                     'pergerakan_stok' => $item->pergerakan_stok,
                     'stok_keseluruhan' => $item->stok_keseluruhan,

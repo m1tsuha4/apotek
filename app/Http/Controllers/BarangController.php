@@ -315,8 +315,11 @@ class BarangController extends Controller
     public function detailKartuStok(Barang $barang, Request $request)
     {
         $satuanDasar = $barang->id_satuan;
-        $satuanBesar = $barang->satuanBarang->id_satuan;
-        $jumlahBesar = $barang->satuanBarang->jumlah;
+        if(isset($barang->satuanBarang))
+        {
+            $satuanBesar = $barang->satuanBarang->id_satuan;
+            $jumlahBesar = $barang->satuanBarang->jumlah;
+        }
     
         // Purchases
         $purchases = $barang->barangPembelian()

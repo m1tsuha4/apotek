@@ -36,8 +36,7 @@ class PergerakanStokPembelianController extends Controller
                 return [
                     'id' => $item->id,
                     'id_barang' => $item->id_barang,
-                    'id_pembelian' => $item->id_pembelian,
-                    'id_retur_pembelian' => $item->id_retur_pembelian,
+                    'id_pembelian' => $item->id_retur_pembelian,
                     'harga' => $item->harga,
                     'pergerakan_stok' => $item->pergerakan_stok,
                     'stok_keseluruhan' => $item->stok_keseluruhan,

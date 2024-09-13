@@ -18,8 +18,10 @@ class KartuStockExport implements FromView
     public function view(): View
     {
         $satuanDasar = $this->barang->id_satuan;
-        $satuanBesar = $this->barang->satuanBarang->id_satuan;
-        $jumlahBesar = $this->barang->satuanBarang->jumlah;
+        if (isset($this->barang->satuanBarang)) {
+            $satuanBesar = $this->barang->satuanBarang->id_satuan;
+            $jumlahBesar = $this->barang->satuanBarang->jumlah;
+        }
 
         // Fetch purchases
         $purchases = $this->barang->barangPembelian()
@@ -53,31 +55,34 @@ class KartuStockExport implements FromView
         // Fetch purchase returns
         $purchaseReturns = $this->barang->barangPembelian()
             ->join('pembelians', 'barang_pembelians.id_pembelian', '=', 'pembelians.id')
-            ->join('retur_pembelians', 'pembelians.id', '=', 'retur_pembelians.id_pembelian')
+            ->join('satuans', 'barang_pembelians.id_satuan', '=', 'satuans.id')
+            ->join('retur_pembelians', 'barang_pembelians.id_pembelian', '=', 'retur_pembelians.id_pembelian')
             ->join('barang_retur_pembelians', 'barang_pembelians.id', '=', 'barang_retur_pembelians.id_barang_pembelian')
             ->select(
                 'retur_pembelians.tanggal',
                 'barang_pembelians.batch',
                 'barang_pembelians.exp_date',
                 \DB::raw('SUM(barang_retur_pembelians.jumlah_retur) as jumlah'),
-                \DB::raw('barang_pembelians.id_satuan as satuan_id')
+                \DB::raw('satuans.id as satuan_id')
             )
-            ->groupBy('retur_pembelians.tanggal', 'barang_pembelians.batch', 'barang_pembelians.exp_date', 'barang_pembelians.id_satuan')
+            ->groupBy('retur_pembelians.tanggal', 'barang_pembelians.batch', 'barang_pembelians.exp_date', 'satuans.id')
             ->get();
 
         // Fetch sales returns
         $salesReturns = $this->barang->barangPenjualan()
             ->join('penjualans', 'barang_penjualans.id_penjualan', '=', 'penjualans.id')
+            ->join('satuans', 'barang_penjualans.id_satuan', '=', 'satuans.id')
+            ->join('stok_barangs', 'barang_penjualans.id_stok_barang', '=', 'stok_barangs.id')
             ->join('retur_penjualans', 'penjualans.id', '=', 'retur_penjualans.id_penjualan')
             ->join('barang_retur_penjualans', 'barang_penjualans.id', '=', 'barang_retur_penjualans.id_barang_penjualan')
             ->select(
                 'retur_penjualans.tanggal',
-                'barang_penjualans.batch',
-                'barang_penjualans.exp_date',
+                'stok_barangs.batch',
+                'stok_barangs.exp_date',
                 \DB::raw('SUM(barang_retur_penjualans.jumlah_retur) as jumlah'),
-                \DB::raw('barang_penjualans.id_satuan as satuan_id')
+                \DB::raw('satuans.id as satuan_id')
             )
-            ->groupBy('retur_penjualans.tanggal', 'barang_penjualans.batch', 'barang_penjualans.exp_date', 'barang_penjualans.id_satuan')
+            ->groupBy('retur_penjualans.tanggal', 'stok_barangs.batch', 'stok_barangs.exp_date', 'satuans.id')
             ->get();
 
         // Combine all transactions

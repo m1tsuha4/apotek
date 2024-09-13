@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PenyesuainStokExport;
 use App\Models\StokBarang;
 use App\Models\StokOpname;
 use Illuminate\Http\Request;
@@ -31,17 +32,6 @@ class StokOpnameController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -71,33 +61,6 @@ class StokOpnameController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(StokOpname $stokOpname)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(StokOpname $stokOpname)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, StokOpname $stokOpname)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(StokOpname $stokOpname)
     {
         $stokOpname->delete();
@@ -124,5 +87,10 @@ class StokOpnameController extends Controller
             'status' => true,
             'message' => 'Data Barang Berhasil Diimport!',
         ], 200);
+    }
+
+    public function downloadTemplateStokOpname()
+    {
+        return Excel::download(new PenyesuainStokExport, 'TemplateStokOpname.xlsx');
     }
 }

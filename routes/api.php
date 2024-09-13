@@ -32,7 +32,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('invoice/{penjualan}', [PenjualanController::class, 'invoice']);
 
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -157,6 +156,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('stok-opname-export', [StokOpnameController::class, 'export'])->middleware('hak_akses:31');
     Route::post('stock-opname-import', [StokOpnameController::class, 'import'])->middleware('hak_akses:32');
+    Route::get('download-template-stok-opname', [StokOpnameController::class, 'downloadTemplateStokOpname']);
+
 
     //Jenis
     Route::get('jenis', [JenisController::class, 'index']);
@@ -189,14 +190,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('penjualan', [PenjualanController::class, 'store'])->middleware('hak_akses:44');
     Route::put('penjualan/{penjualan}', [PenjualanController::class, 'update'])->middleware('hak_akses:46');
     Route::delete('penjualan/{penjualan}', [PenjualanController::class, 'destroy'])->middleware('hak_akses:47');
-    
+
     Route::put('set-penjualan/{penjualan}', [PenjualanController::class, 'setPenjualan']);
     Route::get('retur-barang-penjualan/{penjualan}', [PenjualanController::class, 'returPenjualan']);
     Route::get('penjualan-export', [PenjualanController::class, 'export'])->middleware('hak_akses:49');
-   
+
 
     //Pembayaran Penjualan
     Route::post('pembayaran-penjualan', [PembayaranPenjualanController::class, 'store']);
+    Route::get('invoice/{penjualan}', [PenjualanController::class, 'invoice']);
 
     //Retur Penjualan
     Route::get('retur-penjualan-id', [ReturPenjualanController::class, 'generateId']);

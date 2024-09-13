@@ -19,6 +19,8 @@ class StokOpnameExport implements FromQuery, WithMapping, WithHeadings
 
     public function map($stokOpname): array
     {
+        $stokTercatat = !empty($stokOpname->stok_tercatat) ? (string) $stokOpname->stok_tercatat : '0';
+        $stokAktual = !empty($stokOpname->stok_aktual) ? (string) $stokOpname->stok_aktual : '0';
         return [
             $this->rowNumber++,
             $stokOpname->tanggal,
@@ -27,8 +29,8 @@ class StokOpnameExport implements FromQuery, WithMapping, WithHeadings
             $stokOpname->StokBarang->barang->kategori->nama_kategori,
             $stokOpname->StokBarang->exp_date,
             $stokOpname->sumber_stok,
-            $stokOpname->stok_tercatat,
-            $stokOpname->stok_aktual,
+            $stokTercatat,
+            $stokAktual,
         ];
     }
 

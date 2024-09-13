@@ -32,8 +32,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
-
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
@@ -80,6 +78,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('barang-import', [BarangController::class, 'import'])->middleware('hak_akses:21');
     Route::get('detail-kartu-stok/{barang}', [BarangController::class, 'detailKartuStok']);
+    Route::get('kartu-stok/{barang}', [BarangController::class, 'kartuStok']);
 
     Route::get('search-barang', [BarangController::class, 'searchBarang']);
     Route::post('atur-notif', [BarangController::class, 'aturNotif']);

@@ -89,6 +89,13 @@ class ReturPenjualanController extends Controller
             $returPenjualan = ReturPenjualan::create($validatedData);
 
             foreach ($validatedData['barang_retur_penjualans'] as $barangReturPenjualan) {
+
+                if($barangReturPenjualan['jumlah_retur'] == 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jumlah retur tidak boleh 0',
+                    ]);
+                }
                 $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->first();
 
                 $returPenjualan->barangReturPenjualan()->create([

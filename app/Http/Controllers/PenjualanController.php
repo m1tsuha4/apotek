@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use PDF;
 use App\Models\Barang;
 use App\Models\Penjualan;
 use App\Models\StokBarang;
 use App\Models\SatuanBarang;
 use Illuminate\Http\Request;
 use App\Exports\InvoiceExport;
+use App\Models\ReturPenjualan;
 use App\Exports\PenjualanExport;
 use Illuminate\Support\Facades\DB;
 use App\Models\PembayaranPenjualan;
 use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
-use function Spatie\LaravelPdf\Support\pdf;
 use App\Models\PergerakanStokPenjualan;
-use PDF;
+use function Spatie\LaravelPdf\Support\pdf;
 
 class PenjualanController extends Controller
 {
@@ -606,6 +607,11 @@ class PenjualanController extends Controller
         $data = [
             'id' => $penjualan->id,
             'barangPenjualan' => $penjualan->barangPenjualan->map(function ($barangPenjualan) {
+                $jumlah_retur = ReturPenjualan::where('id_penjualan', $barangPenjualan->id_penjualan)
+                    ->join('barang_retur_penjualans', 'retur_penjualans.id', '=', 'barang_retur_penjualans.id_retur_penjualan')
+                    ->where('barang_retur_penjualans.id_barang_penjualan', $barangPenjualan->id)
+                    ->sum('barang_retur_penjualans.jumlah_retur');
+                $jumlah_bisa_retur = $barangPenjualan->jumlah - $jumlah_retur;
                 return [
                     'id' => $barangPenjualan->id,
                     'id_barang' => $barangPenjualan->id_barang,
@@ -613,6 +619,7 @@ class PenjualanController extends Controller
                     'id_stok_barang' => $barangPenjualan->id_stok_barang,
                     'batch' => $barangPenjualan->StokBarang->batch,
                     'jumlah' => $barangPenjualan->jumlah,
+                    'jumlah_bisa_retur' => $jumlah_bisa_retur,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
                     'jenis_diskon' => $barangPenjualan->jenis_diskon,

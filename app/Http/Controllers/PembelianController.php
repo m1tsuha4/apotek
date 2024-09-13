@@ -14,6 +14,7 @@ use App\Models\PembayaranPembelian;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\LaporanKeuanganKeluar;
 use App\Models\PergerakanStokPembelian;
+use App\Models\ReturPembelian;
 
 class PembelianController extends Controller
 {
@@ -499,8 +500,7 @@ class PembelianController extends Controller
                     $pembelian->update([
                         'status' => 'Lunas',
                     ]);
-
-                } elseif ($total_dibayar == 0){
+                } elseif ($total_dibayar == 0) {
                     $pembelian->update([
                         'status' => 'Belum Dibayar',
                     ]);
@@ -560,12 +560,18 @@ class PembelianController extends Controller
         $data = [
             'id' => $pembelian->id,
             'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {
+                $jumlah_retur = ReturPembelian::where('id_pembelian', $barangPembelian->id_pembelian)
+                    ->join('barang_retur_pembelians', 'retur_pembelians.id', '=', 'barang_retur_pembelians.id_retur_pembelian')
+                    ->where('barang_retur_pembelians.id_barang_pembelian', $barangPembelian->id)
+                    ->sum('barang_retur_pembelians.jumlah_retur');
+                $jumlah_bisa_retur = $barangPembelian->jumlah - $jumlah_retur;
                 return [
                     'id' => $barangPembelian->id,
                     'id_barang' => $barangPembelian->id_barang,
                     'nama_barang' => $barangPembelian->barang->nama_barang,
                     'batch' => $barangPembelian->batch,
                     'jumlah' => $barangPembelian->jumlah,
+                    'jumlah_bisa_retur' => $jumlah_bisa_retur,
                     'id_satuan' => $barangPembelian->id_satuan,
                     'nama_satuan' => $barangPembelian->satuan->nama_satuan,
                     'jenis_diskon' => $barangPembelian->jenis_diskon,

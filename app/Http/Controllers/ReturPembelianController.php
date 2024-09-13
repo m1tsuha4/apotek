@@ -90,6 +90,13 @@ class ReturPembelianController extends Controller
 
             foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
 
+                if($barangReturPembelian['jumlah_retur'] == 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jumlah retur tidak boleh 0',
+                    ]);
+                }
+
                 $barang_pembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])->where('id_barang', $barangReturPembelian['id_barang'])->where('batch', $barangReturPembelian['batch'])->first();
 
                 $returPembelian->barangReturPembelian()->create([

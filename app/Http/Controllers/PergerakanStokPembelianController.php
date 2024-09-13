@@ -48,7 +48,7 @@ class PergerakanStokPembelianController extends Controller
                         'barang_pembelian' => $item->returPembelian->barangReturPembelian->map(function ($barangRetur) {
                             return [
                                 'id' => $barangRetur->barangPembelian->id,
-                                'id_pembelian' => $barangRetur->barangPembelian->id_pembelian,
+                                'id_pembelian' => $barangRetur->id_retur_pembelian,
                                 'batch' => $barangRetur->barangPembelian->batch
                             ];
                         })->toArray() ?? [],

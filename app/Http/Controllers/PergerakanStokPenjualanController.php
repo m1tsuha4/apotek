@@ -44,7 +44,7 @@ class PergerakanStokPenjualanController extends Controller
                         'barang_penjualan' => $item->returPenjualan->barangReturPenjualan->map(function ($barangRetur) {
                             return [
                                 'id' => $barangRetur->barangPenjualan->id ?? null,
-                                'id_penjualan' => $barangRetur->barangPenjualan->id_penjualan ?? null,
+                                'id_penjualan' => $barangRetur->id_retur_penjualan ?? null,
                                 'id_stok_barang' => $barangRetur->barangPenjualan->id_stok_barang ?? null,
                                 'batch' => $barangRetur->barangPenjualan->stokBarang->batch ?? null,
                             ];

@@ -38,7 +38,7 @@ class PergerakanStokPenjualanController extends Controller
                     'pergerakan_stok' => $item->pergerakan_stok,
                     'stok_keseluruhan' => $item->stok_keseluruhan,
                     'penjualan' => [
-                        'id' => $item->returPenjualan->id_penjualan ?? null,
+                        'id' => $item->id_retur_penjualan ?? null,
                         'id_pelanggan' => $item->returPenjualan->penjualan->id_pelanggan ?? null,
                         'tanggal' => $item->returPenjualan->tanggal ?? null,
                         'barang_penjualan' => $item->returPenjualan->barangReturPenjualan->map(function ($barangRetur) {

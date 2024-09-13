@@ -527,18 +527,18 @@ class ReturPembelianController extends Controller
         try {
             // Mengembalikan stok barang yang diretur
             foreach ($returPembelian->barangReturPembelian as $barangRetur) {
-                $stokBarang = StokBarang::where('id_barang', $barangRetur->id_barang)
+                $stokBarang = StokBarang::where('id_barang', $barangRetur->barangPembelian->id_barang)
                     ->where('batch', $barangRetur->barangPembelian->batch)
                     ->first();
 
                 if ($stokBarang) {
-                    $satuanDasar = Barang::where('id', $barangRetur->id_barang)->value('id_satuan');
-
-                    if ($barangRetur->id_satuan == $satuanDasar) {
+                    $satuanDasar = Barang::where('id', $barangRetur->barangPembelian->id_barang)->value('id_satuan');
+                  
+                    if ($barangRetur->barangPembelian->id_satuan == $satuanDasar) {
                         $stokBarang->stok_apotek += $barangRetur->jumlah_retur;
                         $stokBarang->stok_total += $barangRetur->jumlah_retur;
                     } else {
-                        $satuanBesar = SatuanBarang::where('id_barang', $barangRetur->id_barang)
+                        $satuanBesar = SatuanBarang::where('id_barang', $barangRetur->barangPembelian->id_barang)
                             ->where('id_satuan', $barangRetur->id_satuan)
                             ->value('jumlah');
 
@@ -601,6 +601,7 @@ class ReturPembelianController extends Controller
             // Hapus data retur pembelian
             $returPembelian->barangReturPembelian()->delete();
             $returPembelian->delete();
+            $pembayaran->delete();
 
             DB::commit();
 

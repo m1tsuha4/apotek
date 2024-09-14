@@ -600,27 +600,41 @@ class ReturPembelianController extends Controller
             // Kurangi total dibayar pada pembayaran
             $pembayaran = PembayaranPembelian::where('id_pembelian', $returPembelian->id_pembelian)
                 ->where('id_metode_pembayaran', 1)
-                ->first();
+                ->delete();
 
-            if ($pembayaran) {
-                $pembayaran->total_dibayar -= $returPembelian->total_retur;
-                $pembayaran->save();
-            }
+            // if ($pembayaran) {
+            //     $pembayaran->total_dibayar -= $returPembelian->total_retur;
+            //     $pembayaran->save();
+            // }
+            $pembelian = Pembelian::findOrFail($returPembelian->id_pembelian);
+            $total_tagihan = PembayaranPembelian::where('id_pembelian', $returPembelian->id_pembelian)->sum('total_dibayar');
 
-            $total_dibayar_sekarang = $pembayaran->total_dibayar + $returPembelian->total_retur;
-            $total_tagihan = $laporanKeuangan->pengeluaran + $laporanKeuangan->utang;
+            // $total_dibayar_sekarang = $pembayaran->total_dibayar + $returPembelian->total_retur;
+            // $total_tagihan = $laporanKeuangan->pengeluaran + $laporanKeuangan->utang;
 
-            if ($total_dibayar_sekarang < $total_tagihan) {
-                // Status harus kembali ke 'dibayar sebagian'
-                $laporanKeuangan->update([
-                    'status_pembayaran' => 'dibayar sebagian',
+            // if ($total_dibayar_sekarang < $total_tagihan) {
+            //     // Status harus kembali ke 'dibayar sebagian'
+            //     $laporanKeuangan->update([
+            //         'status_pembayaran' => 'dibayar sebagian',
+            //     ]);
+            // }
+            if ($total_tagihan == $pembelian->total) {
+                $pembelian->update([
+                    'status' => 'Lunas',
+                ]);
+            } elseif ($total_tagihan == 0) {
+                $pembelian->update([
+                    'status' => 'Belum Dibayar',
+                ]);
+            } elseif ($total_tagihan < $pembelian->total) {
+                $pembelian->update([
+                    'status' => 'Dibayar Sebagian',
                 ]);
             }
 
             // Hapus data retur pembelian
             $returPembelian->barangReturPembelian()->delete();
             $returPembelian->delete();
-            $pembayaran->delete();
 
             DB::commit();
 

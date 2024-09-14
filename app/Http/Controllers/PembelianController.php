@@ -308,6 +308,10 @@ class PembelianController extends Controller
     {
 
         $pembayaranPembelian = PembayaranPembelian::where('id_pembelian', $pembelian->id)->sum('total_dibayar');
+        $sisa_tagihan = $pembelian->total - $pembayaranPembelian;
+        if($sisa_tagihan < 0) {
+            $sisa_tagihan = 0;
+        }
 
         $data = [
             'id' => $pembelian->id,
@@ -325,7 +329,7 @@ class PembelianController extends Controller
             'total' => $pembelian->total,
             'net_termin' => $pembelian->net_termin,
             'referensi' => $pembelian->referensi,
-            'sisa_tagihan' => $pembelian->total - $pembayaranPembelian,
+            'sisa_tagihan' => $sisa_tagihan,
             'barangPembelian' => $pembelian->barangPembelian->map(function ($barangPembelian) {
                 return [
                     'id' => $barangPembelian->id,

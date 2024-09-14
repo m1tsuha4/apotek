@@ -322,7 +322,10 @@ class PenjualanController extends Controller
     public function show(Penjualan $penjualan)
     {
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
-
+        $sisa_tagihan = $penjualan->total - $pembayaranPenjualan;
+        if($sisa_tagihan < 0) {
+            $sisa_tagihan = 0;
+        }
         $data = [
             'id' => $penjualan->id,
             'status' => $penjualan->status,
@@ -340,7 +343,7 @@ class PenjualanController extends Controller
             'diskon' => $penjualan->diskon,
             'total' => $penjualan->total,
             'catatan' => $penjualan->catatan,
-            'sisa_tagihan' => $penjualan->total - $pembayaranPenjualan,
+            'sisa_tagihan' => $sisa_tagihan,
             'barangPenjualan' => $penjualan->barangPenjualan->map(function ($barangPenjualan) {
                 return [
                     'id' => $barangPenjualan->id,

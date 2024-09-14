@@ -596,12 +596,29 @@ class ReturPenjualanController extends Controller
             // Hapus pembayaran terkait retur
             $pembayaran = PembayaranPenjualan::where('id_penjualan', $returPenjualan->id_penjualan)
                 ->where('id_metode_pembayaran', 1)
-                ->first();
-            if ($pembayaran) {
-                $pembayaran->delete();
+                ->delete();
+            // if ($pembayaran) {
+            //     $pembayaran->delete();
+            // }
+            $penjualan = Penjualan::findOrFail($returPenjualan->id_penjualan);
+            $total_tagihan = PembayaranPenjualan::where('id_penjualan', $returPenjualan->id_penjualan)->sum('total_dibayar');
+
+            if ($total_tagihan == $penjualan->total) {
+                $penjualan->update([
+                    'status' => 'Lunas',
+                ]);
+            } elseif ($total_tagihan < $penjualan->total) {
+                $penjualan->update([
+                    'status' => 'Dibayar Sebagian',
+                ]);
+            } elseif ($total_tagihan == 0) {
+                $penjualan->update([
+                    'status' => 'Belum Dibayar',
+                ]);
             }
 
             // Hapus retur penjualan
+            $returPenjualan->barangReturPenjualan()->delete();
             $returPenjualan->delete();
 
             DB::commit();

@@ -23,24 +23,55 @@ class LaporanKeuanganController extends Controller
         $numPerPage = $request->num;
 
         // Mengambil data pembelian dan penjualan
-        $pembelian = Pembelian::select('id', 'id_vendor', 'id_sales', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
-            ->with('vendor:id,nama_perusahaan', 'sales:id,nama_sales')
-            ->orderBy('created_at', 'desc')
+        $pembelian = Pembelian::select(
+            'pembelians.id',
+            'pembelians.id_vendor',
+            'pembelians.id_sales',
+            'pembelians.tanggal',
+            'pembelians.referensi',
+            'pembelians.status',
+            'pembelians.tanggal_jatuh_tempo',
+            'pembelians.total'
+        )
+            ->with([
+                'vendor:id,nama_perusahaan',
+                'sales:id,nama_sales',
+                'returPembelian' => function ($query) {
+                    $query->select('id', 'id_pembelian', 'tanggal', 'total_retur');
+                }
+            ])
+            ->orderBy('pembelians.created_at', 'desc')
             ->get();
-    
-        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'referensi', 'status', 'tanggal_jatuh_tempo', 'total')
-            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')
-            ->orderBy('created_at', 'desc')
+
+        // Mengambil data penjualan beserta semua retur yang terkait
+        $penjualan = Penjualan::select(
+            'penjualans.id',
+            'penjualans.id_jenis',
+            'penjualans.id_pelanggan',
+            'penjualans.tanggal',
+            'penjualans.referensi',
+            'penjualans.status',
+            'penjualans.tanggal_jatuh_tempo',
+            'penjualans.total'
+        )
+            ->with([
+                'pelanggan:id,nama_pelanggan,no_telepon',
+                'jenis:id,nama_jenis',
+                'returPenjualan' => function ($query) {
+                    $query->select('id', 'id_penjualan', 'tanggal', 'total_retur');
+                }
+            ])
+            ->orderBy('penjualans.created_at', 'desc')
             ->get();
-    
+
         // Menggabungkan pembelian dan penjualan ke dalam satu collection
         $combined = new Collection();
         $combined = $combined->merge($pembelian)->merge($penjualan);
-    
+
         // Menghitung total items dan last page
         $totalItems = $combined->count();
         $lastPage = ceil($totalItems / $numPerPage);
-    
+
         // Melakukan paginasi manual pada collection yang sudah digabungkan
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $paginatedItems = $combined->slice(($currentPage - 1) * $numPerPage, $numPerPage)->values();
@@ -48,7 +79,7 @@ class LaporanKeuanganController extends Controller
             'path' => $request->url(),
             'query' => $request->query(),
         ]);
-    
+
         // Data response
         return response()->json([
             'success' => true,

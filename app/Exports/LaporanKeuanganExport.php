@@ -7,11 +7,12 @@ use App\Models\Penjualan;
 use App\Models\LaporanKeuanganMasuk;
 use App\Models\LaporanKeuanganKeluar;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LaporanKeuanganExport implements WithMultipleSheets
+class LaporanKeuanganExport implements WithMultipleSheets, ShouldAutoSize
 {
     public function sheets(): array
     {

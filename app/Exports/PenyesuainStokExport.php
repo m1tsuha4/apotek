@@ -8,9 +8,19 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class PenyesuainStokExport implements FromQuery, WithMapping, WithHeadings
+class PenyesuainStokExport implements FromQuery, WithMapping, WithHeadings, WithStyles, ShouldAutoSize
 {
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            // Style the first row as bold text.
+            1    => ['font' => ['bold' => true]],
+        ];
+    }
     public function query()
     {
         return StokBarang::select('id', 'batch', 'exp_date', 'id_barang', 'stok_gudang', 'stok_apotek')
@@ -26,16 +36,16 @@ class PenyesuainStokExport implements FromQuery, WithMapping, WithHeadings
 
         return [
             [
-                'batch'        => $stokBarang->batch,
                 'nama_barang'  => $stokBarang->barang->nama_barang,
+                'batch'        => $stokBarang->batch,
                 'sumber_stok'  => 'Gudang',
                 'tanggal'      => $today,
                 'stok_tercatat' => $stokGudang,
                 'stok_aktual'  => $stokGudang,
             ],
             [
-                'batch'        => $stokBarang->batch,
                 'nama_barang'  => $stokBarang->barang->nama_barang,
+                'batch'        => $stokBarang->batch,
                 'sumber_stok'  => 'Apotek',
                 'tanggal'      => $today,
                 'stok_tercatat' => $stokApotek,
@@ -47,8 +57,8 @@ class PenyesuainStokExport implements FromQuery, WithMapping, WithHeadings
     public function headings(): array
     {
         return [
-            'batch',
             'nama_barang',
+            'batch',
             'sumber_stok',
             'tanggal',
             'stok_tercatat',

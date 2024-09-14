@@ -11,6 +11,7 @@ use App\Imports\BarangImport;
 use App\Models\BarangPembelian;
 use App\Models\VariasiHargaJual;
 use App\Exports\KartuStockExport;
+use App\Exports\TemplateBarangExport;
 use App\Models\Penjualan;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -570,5 +571,10 @@ class BarangController extends Controller
             'success' => true,
             'message' => 'Atur Peringatan Notifikasi berhasil diperbarui!'
         ]);
+    }
+
+    public function downloadTemplateBarang()
+    {
+        return Excel::download(new TemplateBarangExport, 'TemplateBarang.xlsx');
     }
 }

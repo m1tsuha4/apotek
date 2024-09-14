@@ -5,10 +5,11 @@ namespace App\Exports;
 use App\Models\Pembelian;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class PembelianExport implements FromQuery, WithMapping, WithHeadings
+class PembelianExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize
 {
     public function query()
     {

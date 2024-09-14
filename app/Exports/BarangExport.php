@@ -4,10 +4,11 @@ namespace App\Exports;
 
 use App\Models\Barang;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class BarangExport implements FromQuery, WithMapping, WithHeadings
+class BarangExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize
 {
     /**
      * @return \Illuminate\Database\Eloquent\Builder

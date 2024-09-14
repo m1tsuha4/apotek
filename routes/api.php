@@ -27,10 +27,12 @@ use App\Http\Controllers\PembayaranPembelianController;
 use App\Http\Controllers\PembayaranPenjualanController;
 use App\Http\Controllers\PergerakanStokPembelianController;
 use App\Http\Controllers\PergerakanStokPenjualanController;
+use App\Models\Karyawan;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
 
 //Auth
 Route::post('/login', [AuthController::class, 'login'])->name('login');
@@ -83,6 +85,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('search-barang', [BarangController::class, 'searchBarang']);
     Route::post('atur-notif', [BarangController::class, 'aturNotif']);
     Route::get('barang-export', [BarangController::class, 'export'])->middleware('hak_akses:20');
+
+    Route::get('download-template-barang', [BarangController::class, 'downloadTemplateBarang']);
 
 
     //Variasi Harga Jual
@@ -179,6 +183,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('karyawan/{karyawan}', [KaryawanController::class, 'update'])->middleware('hak_akses:67');
     Route::delete('karyawan/{karyawan}', [KaryawanController::class, 'destroy'])->middleware('hak_akses:68');
     Route::post('karyawan-import', [KaryawanController::class, 'import'])->middleware('hak_akses:70');
+    Route::get('download-template-karyawan', [KaryawanController::class, 'downloadTemplateKaryawan']);
 
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);

@@ -19,7 +19,7 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
     public function model(array $row)
     {
         $karyawan = Karyawan::where('nama_karyawan', $row['nama_karyawan'])->first();
-        
+
         if (is_numeric($row['tanggal_bergabung'])) {
             $tanggal = Date::excelToDateTimeObject($row['tanggal_bergabung'])->format('Y-m-d');
         } else {
@@ -59,7 +59,6 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
             'jenis_kelamin' => 'required|string',
             'posisi' => 'required|string',
             'tanggal_bergabung' => 'required',
-            'jumlah_gaji' => 'required|numeric',
         ];
     }
 }

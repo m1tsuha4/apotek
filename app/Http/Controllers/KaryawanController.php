@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TemplateKaryawanExport;
 use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use App\Imports\KaryawanImport;
@@ -122,5 +123,10 @@ class KaryawanController extends Controller
             'success' => true,
             'message' => 'Data Karyawan imported successfully!',
         ]);
+    }
+
+    public function downloadTemplateKaryawan()
+    {
+        return Excel::download(new TemplateKaryawanExport, 'TemplateKaryawan.xlsx');
     }
 }

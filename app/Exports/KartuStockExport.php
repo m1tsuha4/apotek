@@ -5,8 +5,9 @@ namespace App\Exports;
 use App\Models\Barang;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class KartuStockExport implements FromView
+class KartuStockExport implements FromView, ShouldAutoSize
 {
     protected $barang;
 

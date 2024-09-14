@@ -8,8 +8,9 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class StokBarangExport implements FromQuery, WithMapping, WithHeadings
+class StokBarangExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize
 {
     public function query()
     {

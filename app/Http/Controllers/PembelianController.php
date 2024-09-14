@@ -309,7 +309,7 @@ class PembelianController extends Controller
 
         $pembayaranPembelian = PembayaranPembelian::where('id_pembelian', $pembelian->id)->sum('total_dibayar');
         $sisa_tagihan = $pembelian->total - $pembayaranPembelian;
-        if($sisa_tagihan < 0) {
+        if ($sisa_tagihan < 0) {
             $sisa_tagihan = 0;
         }
 
@@ -421,8 +421,24 @@ class PembelianController extends Controller
             foreach ($validatedData['barang_pembelians'] as $index => $barangPembelianData) {
                 $barangPembelian = $pembelian->barangPembelian()->get()[$index] ?? null;
                 if ($barangPembelian) {
+                    $oldBatch = $barangPembelian->batch;
+                    $oldExpDate = $barangPembelian->exp_date;
+
                     $barangPembelian->update($barangPembelianData);
-                    $barangPembelian->stokBarang->update(['batch' => $barangPembelianData['batch'], 'exp_date' => $barangPembelianData['exp_date']]);
+                   
+                    $stokBarang = $barangPembelian->barang->stokBarang()
+                    ->where('batch', $oldBatch)
+                    ->where('exp_date', $oldExpDate)
+                    ->first();
+        
+                    if ($stokBarang) {
+                        // Jika stok barang ditemukan, lakukan update
+                        $stokBarang->update([
+                            'batch' => $barangPembelianData['batch'],
+                            'exp_date' => $barangPembelianData['exp_date'],
+                        ]);
+                    }
+        
                 } else {
                     $barangPembelian = $pembelian->barangPembelian()->create($barangPembelianData);
                 }

@@ -422,6 +422,7 @@ class PembelianController extends Controller
                 $barangPembelian = $pembelian->barangPembelian()->get()[$index] ?? null;
                 if ($barangPembelian) {
                     $barangPembelian->update($barangPembelianData);
+                    $barangPembelian->stokBarang->update(['batch' => $barangPembelianData['batch'], 'exp_date' => $barangPembelianData['exp_date']]);
                 } else {
                     $barangPembelian = $pembelian->barangPembelian()->create($barangPembelianData);
                 }

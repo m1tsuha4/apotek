@@ -261,29 +261,41 @@ class ReturPembelianController extends Controller
      */
     public function show(ReturPembelian $returPembelian)
     {
-        $returPembelian->load([
-            'pembelian',
-            'barangReturPembelian',
-            'pembelian.barangPembelian',
-            'pembelian.barangPembelian.satuan',
-            'pembelian.barangPembelian.barang',
-        ]);
 
-        // Hapus properti created_at dan updated_at dari model utama dan relasi
-        $returPembelian->makeHidden(['created_at', 'updated_at']);
-        $returPembelian->pembelian->makeHidden(['created_at', 'updated_at']);
-        foreach ($returPembelian->barangReturPembelian as $barangRetur) {
-            $barangRetur->makeHidden(['created_at', 'updated_at']);
-        }
-        foreach ($returPembelian->pembelian->barangPembelian as $barangPembelian) {
-            $barangPembelian->makeHidden(['created_at', 'updated_at']);
-            $barangPembelian->satuan->makeHidden(['created_at', 'updated_at']);
-            $barangPembelian->barang->makeHidden(['created_at', 'updated_at']);
-        }
+        $data = [
+            'id' => $returPembelian->id,
+            'id_pembelian' => $returPembelian->id_pembelian,
+            'tanggal' => $returPembelian->tanggal,
+            'referensi' => $returPembelian->referensi,
+            'total_retur' => $returPembelian->total_retur,
+            'barang_pembelian' => $returPembelian->pembelian->barangPembelian->map(function ($barangPembelian) {
+                $jumlah_retur = ReturPembelian::where('id_pembelian', $barangPembelian->id_pembelian)
+                ->join('barang_retur_pembelians', 'retur_pembelians.id', '=', 'barang_retur_pembelians.id_retur_pembelian')
+                ->where('barang_retur_pembelians.id_barang_pembelian', $barangPembelian->id)
+                ->sum('barang_retur_pembelians.jumlah_retur');
+            $jumlah_bisa_retur = $barangPembelian->jumlah - $jumlah_retur;
+            return [
+                'id' => $barangPembelian->id,
+                'id_barang' => $barangPembelian->id_barang,
+                'nama_barang' => $barangPembelian->barang->nama_barang,
+                'batch' => $barangPembelian->batch,
+                'jumlah' => $barangPembelian->jumlah,
+                'jumlah_bisa_retur' => $jumlah_bisa_retur,
+                'id_satuan' => $barangPembelian->id_satuan,
+                'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                'jenis_diskon' => $barangPembelian->jenis_diskon,
+                'diskon' => $barangPembelian->diskon,
+                'harga' => $barangPembelian->harga,
+                'total' => $barangPembelian->total
+            ];
+            }),
+            'barang_retur_pembelian' => $returPembelian->barangReturPembelian 
+        ];
+
 
         return response()->json([
             'success' => true,
-            'data' => $returPembelian,
+            'data' => $data,
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }

@@ -85,7 +85,7 @@
             <tbody class="text-sm font-light">
                 <tr>
                     <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['diskon_keseluruhan'] + $data['total_diskon_satuan'], 0, ',', '.') }}</td>
+                    <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
                     <td class="px-6 text-left border border-black text-right font-bold w-1/3">Rp {{ number_format($data['total'], 0, ',', '.') }}</td>
                 </tr>
             </tbody>

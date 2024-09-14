@@ -157,6 +157,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Stok Opname
     Route::get('stok-opname', [StokOpnameController::class, 'index'])->middleware('hak_akses:30');
     Route::post('stok-opname', [StokOpnameController::class, 'store']);
+    Route::delete('stok-opname/{stok_opname}', [StokOpnameController::class, 'destroy']);
 
     Route::get('stok-opname-export', [StokOpnameController::class, 'export'])->middleware('hak_akses:31');
     Route::post('stock-opname-import', [StokOpnameController::class, 'import'])->middleware('hak_akses:32');

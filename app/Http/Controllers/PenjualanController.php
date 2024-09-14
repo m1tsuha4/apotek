@@ -742,6 +742,7 @@ class PenjualanController extends Controller
     public function invoice(Penjualan $penjualan)
     {
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
+        $total_diskon_satuan = $penjualan->barangPenjualan()->sum('diskon');
 
         $data = [
             'id_penjualan' => $penjualan->id,
@@ -755,7 +756,7 @@ class PenjualanController extends Controller
             'tanggal_jatuh_tempo' => $penjualan->tanggal_jatuh_tempo,
             'referensi' => $penjualan->referensi,
             'sub_total' => $penjualan->sub_total,
-            'diskon_keseluruhan' => $penjualan->diskon + $penjualan->total_diskon_satuan,
+            'diskon_keseluruhan' => $penjualan->diskon + $total_diskon_satuan,
             'total' => $penjualan->total,
             'catatan' => $penjualan->catatan,
             'sisa_tagihan' => $penjualan->total - $pembayaranPenjualan,

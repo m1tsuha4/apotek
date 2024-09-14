@@ -1,101 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link ke font Inter dari Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Terapkan font Inter ke seluruh halaman */
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        .invoice-title {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+            border-width: 2px; 
+        }
+
+        .table thead th, 
+        .table tbody td {
+            border-width: 2px; 
+            vertical-align: middle;
+            text-align: left;
+            padding: 2px; 
+        }
     </style>
 </head>
+
 <body style="width: 1200px;" class="p-5">
-    <div class="flex justify-start items-center p-4 pe-0">
-        <div class="w-fit px-5">
-            <p class="text-xl font-bold">Invoice</p>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-1 d-flex align-items-center">
+                <h1 class="invoice-title">Invoice</h1>
+            </div>
+            <div class="col-11">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nama Pelanggan</th>
+                            <th>Tanggal</th>
+                            <th>Kode Dokumen</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ $data['nama_pelanggan'] }}</td>
+                            <td>{{ $data['tanggal'] }}</td>
+                            <td>{{ $data['id_penjualan'] }}</td>
+                            <td>{{ $data['status'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="w-full">
-            <table class="w-full table-auto border border-black border-collapse">
-                <thead>
-                    <tr class="uppercase text-sm leading-normal">
-                        <th class="px-6 text-left border border-black">Nama Pelanggan</th>
-                        <th class="px-6 text-left border border-black">Tanggal</th>
-                        <th class="px-6 text-left border border-black">Kode Dokumen</th>
-                        <th class="px-6 text-left border border-black">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm font-light">
-                    <tr>
-                        <td class="px-6 text-left border border-black">{{ $data['nama_pelanggan'] }}</td>
-                        <td class="px-6 text-left border border-black">{{ $data['tanggal'] }}</td>
-                        <td class="px-6 text-left border border-black">{{ $data['id_penjualan'] }}</td>
-                        <td class="px-6 text-left border border-black">{{ $data['status'] }}</td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center px-2">No</th>
+                            <th class="text-center px-2">Produk</th>
+                            <th class="text-center px-2">Batch</th>
+                            <th class="text-center px-2">ED</th>
+                            <th class="text-center px-2">Kuantitas</th>
+                            <th class="text-center px-2">Satuan</th>
+                            <th class="text-end px-2">Harga</th>
+                            <th class="text-end px-2">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                        $no = 1;
+                    @endphp
+                    @foreach ($data['barangPenjualan'] as $item)
+                        <tr>
+                            <td class="text-center px-2">{{ $no++ }}</td>
+                            <td class="text-center px-2">{{ $item['nama_barang'] }}</td>
+                            <td class="text-center px-2">{{ $item['batch'] }}</td>
+                            <td class="text-center px-2">{{ $item['exp_date'] }}</td>
+                            <td class="text-end px-2">{{ $item['jumlah'] }}</td>
+                            <td class="px-2">{{ $item['nama_satuan'] }}</td>
+                            <td class="text-end px-2">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2">Rp {{ number_format($item['total_barang'], 0, ',', '.') }}</td>
+                        </tr>
+                    </tbody>
+                    @endforeach
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="mt-4">
-        <table class="w-full table-auto border border-black border-collapse">
-            <thead>
-                <tr class="uppercase text-sm leading-normal">
-                    <th class="px-6 text-left border border-black">No</th>
-                    <th class="px-6 text-left border border-black">Produk</th>
-                    <th class="px-6 text-left border border-black">Batch</th>
-                    <th class="px-6 text-left border border-black">Ed</th>
-                    <th class="px-6 text-left border border-black">Kuantitas</th>
-                    <th class="px-6 text-left border border-black">Satuan</th>
-                    <th class="px-6 text-left border border-black">Harga</th>
-                    <th class="px-6 text-left border border-black">Jumlah</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm font-light">
-                @php
-                    $no = 1;
-                @endphp
-                @foreach ($data['barangPenjualan'] as $item)
-                <tr>
-                    <td class="px-6 text-left border border-black">{{ $no++ }}</td>
-                    <td class="px-6 text-left border border-black">{{ $item['nama_barang'] }}</td>
-                    <td class="px-6 text-left border border-black">{{ $item['batch'] }}</td>
-                    <td class="px-6 text-left border border-black">{{ $item['exp_date'] }}</td>
-                    <td class="px-6 text-left border border-black">{{ $item['jumlah'] }}</td>
-                    <td class="px-6 text-left border border-black">{{ $item['nama_satuan'] }}</td>
-                    <td class="px-6 text-left border border-black">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black">Rp {{ number_format($item['total_barang'], 0, ',', '.') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4">
-        <table class="w-full table-auto border border-black border-collapse">
-            <thead class="uppercase text-sm leading-normal">
-                <tr>
-                    <th class="px-6 text-left border border-black text-right w-1/3">Subtotal</th>
-                    <th class="px-6 text-left border border-black text-right w-1/3">Pemotongan</th>
-                    <th class="px-6 text-left border border-black text-right w-1/3">Total</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm font-light">
-                <tr>
-                    <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black text-right w-1/3">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
-                    <td class="px-6 text-left border border-black text-right font-bold w-1/3">Rp {{ number_format($data['total'], 0, ',', '.') }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="border border-black border-t-0">
-        <div class="ps-5 pb-5 pt-2">
-            <p class="font-bold">Catatan</p>
-            <p>Barang yang sudah dibeli <span class="font-bold">tidak dapat ditukar atau dikembalikan</span>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya</p>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-end px-2">Subtotal</th>
+                            <th class="text-end px-2">Pemotongan</th>
+                            <th class="text-end px-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-end px-2">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2"><strong>Rp {{ number_format($data['total'], 0, ',', '.') }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                <div>
+                                    <p><strong>Catatan:</strong></p>
+                                    <p>Barang yang sudah dibeli <strong>tidak dapat ditukar atau dikembalikan</strong>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya.</p>   
+                                </div>  
+                            </td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+
+        <!-- Notes Section -->
+        <!-- <div class="row mt-4">
+            <div class="col-12">
+                <div class="border p-3">
+                    <p><strong>Catatan:</strong></p>
+                    <p>Barang yang sudah dibeli <strong>tidak dapat ditukar atau dikembalikan</strong>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya.</p>
+                </div>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

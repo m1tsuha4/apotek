@@ -90,12 +90,13 @@ class ReturPenjualanController extends Controller
 
             foreach ($validatedData['barang_retur_penjualans'] as $barangReturPenjualan) {
 
-                if ($barangReturPenjualan['jumlah_retur'] == 0) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Berhasil!',
-                    ]);
-                }
+                // if ($barangReturPenjualan['jumlah_retur'] == 0) {
+                //     return response()->json([
+                //         'success' => true,
+                //         'message' => 'Berhasil!',
+                //     ]);
+                // }
+                
                 $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->first();
 
                 $returPenjualan->barangReturPenjualan()->create([

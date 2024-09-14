@@ -90,12 +90,12 @@ class ReturPembelianController extends Controller
 
             foreach ($validatedData['barang_retur_pembelians'] as $barangReturPembelian) {
 
-                if($barangReturPembelian['jumlah_retur'] == 0) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Berhasil!',
-                    ]);
-                }
+                // if($barangReturPembelian['jumlah_retur'] == 0) {
+                //     return response()->json([
+                //         'success' => true,
+                //         'message' => 'Berhasil!',
+                //     ]);
+                // }
 
                 $barang_pembelian = BarangPembelian::where('id_pembelian', $validatedData['id_pembelian'])->where('id_barang', $barangReturPembelian['id_barang'])->where('batch', $barangReturPembelian['batch'])->first();
 
@@ -270,26 +270,26 @@ class ReturPembelianController extends Controller
             'total_retur' => $returPembelian->total_retur,
             'barang_pembelian' => $returPembelian->pembelian->barangPembelian->map(function ($barangPembelian) {
                 $jumlah_retur = ReturPembelian::where('id_pembelian', $barangPembelian->id_pembelian)
-                ->join('barang_retur_pembelians', 'retur_pembelians.id', '=', 'barang_retur_pembelians.id_retur_pembelian')
-                ->where('barang_retur_pembelians.id_barang_pembelian', $barangPembelian->id)
-                ->sum('barang_retur_pembelians.jumlah_retur');
-            $jumlah_bisa_retur = $barangPembelian->jumlah - $jumlah_retur;
-            return [
-                'id' => $barangPembelian->id,
-                'id_barang' => $barangPembelian->id_barang,
-                'nama_barang' => $barangPembelian->barang->nama_barang,
-                'batch' => $barangPembelian->batch,
-                'jumlah' => $barangPembelian->jumlah,
-                'jumlah_bisa_retur' => $jumlah_bisa_retur,
-                'id_satuan' => $barangPembelian->id_satuan,
-                'nama_satuan' => $barangPembelian->satuan->nama_satuan,
-                'jenis_diskon' => $barangPembelian->jenis_diskon,
-                'diskon' => $barangPembelian->diskon,
-                'harga' => $barangPembelian->harga,
-                'total' => $barangPembelian->total
-            ];
+                    ->join('barang_retur_pembelians', 'retur_pembelians.id', '=', 'barang_retur_pembelians.id_retur_pembelian')
+                    ->where('barang_retur_pembelians.id_barang_pembelian', $barangPembelian->id)
+                    ->sum('barang_retur_pembelians.jumlah_retur');
+                $jumlah_bisa_retur = $barangPembelian->jumlah - $jumlah_retur;
+                return [
+                    'id' => $barangPembelian->id,
+                    'id_barang' => $barangPembelian->id_barang,
+                    'nama_barang' => $barangPembelian->barang->nama_barang,
+                    'batch' => $barangPembelian->batch,
+                    'jumlah' => $barangPembelian->jumlah,
+                    'jumlah_bisa_retur' => $jumlah_bisa_retur,
+                    'id_satuan' => $barangPembelian->id_satuan,
+                    'nama_satuan' => $barangPembelian->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPembelian->jenis_diskon,
+                    'diskon' => $barangPembelian->diskon,
+                    'harga' => $barangPembelian->harga,
+                    'total' => $barangPembelian->total
+                ];
             }),
-            'barang_retur_pembelian' => $returPembelian->barangReturPembelian 
+            'barang_retur_pembelian' => $returPembelian->barangReturPembelian
         ];
 
 
@@ -552,7 +552,7 @@ class ReturPembelianController extends Controller
 
                 if ($stokBarang) {
                     $satuanDasar = Barang::where('id', $barangRetur->barangPembelian->id_barang)->value('id_satuan');
-                  
+
                     if ($barangRetur->barangPembelian->id_satuan == $satuanDasar) {
                         $stokBarang->stok_apotek += $barangRetur->jumlah_retur;
                         $stokBarang->stok_total += $barangRetur->jumlah_retur;

@@ -40,7 +40,7 @@ class LaporanKeuanganController extends Controller
                     $query->select('id', 'id_pembelian', 'tanggal', 'total_retur');
                 }
             ])
-            ->orderBy('pembelians.created_at', 'desc')
+            ->orderBy('pembelians.tanggal', 'desc') // Urutkan berdasarkan tanggal pembelian
             ->get();
 
         // Mengambil data penjualan beserta semua retur yang terkait
@@ -61,20 +61,23 @@ class LaporanKeuanganController extends Controller
                     $query->select('id', 'id_penjualan', 'tanggal', 'total_retur');
                 }
             ])
-            ->orderBy('penjualans.created_at', 'desc')
+            ->orderBy('penjualans.tanggal', 'desc') // Urutkan berdasarkan tanggal penjualan
             ->get();
 
         // Menggabungkan pembelian dan penjualan ke dalam satu collection
         $combined = new Collection();
         $combined = $combined->merge($pembelian)->merge($penjualan);
 
+        // Urutkan combined collection berdasarkan tanggal
+        $sortedCombined = $combined->sortByDesc('tanggal'); // Urutkan berdasarkan tanggal secara descending (terbaru)
+
         // Menghitung total items dan last page
-        $totalItems = $combined->count();
+        $totalItems = $sortedCombined->count();
         $lastPage = ceil($totalItems / $numPerPage);
 
-        // Melakukan paginasi manual pada collection yang sudah digabungkan
+        // Melakukan paginasi manual pada collection yang sudah diurutkan
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $paginatedItems = $combined->slice(($currentPage - 1) * $numPerPage, $numPerPage)->values();
+        $paginatedItems = $sortedCombined->slice(($currentPage - 1) * $numPerPage, $numPerPage)->values();
         $paginated = new LengthAwarePaginator($paginatedItems, $totalItems, $numPerPage, $currentPage, [
             'path' => $request->url(),
             'query' => $request->query(),
@@ -88,6 +91,7 @@ class LaporanKeuanganController extends Controller
             'message' => 'Data Berhasil ditemukan!'
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

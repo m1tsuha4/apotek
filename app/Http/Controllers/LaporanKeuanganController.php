@@ -31,7 +31,8 @@ class LaporanKeuanganController extends Controller
             'pembelians.referensi',
             'pembelians.status',
             'pembelians.tanggal_jatuh_tempo',
-            'pembelians.total'
+            'pembelians.total',
+            'pembelians.created_at'
         )
             ->with([
                 'vendor:id,nama_perusahaan',
@@ -40,7 +41,7 @@ class LaporanKeuanganController extends Controller
                     $query->select('id', 'id_pembelian', 'tanggal', 'total_retur');
                 }
             ])
-            ->orderBy('pembelians.tanggal', 'desc') // Urutkan berdasarkan tanggal pembelian
+            ->orderBy('pembelians.created_at', 'desc') // Urutkan berdasarkan tanggal pembelian
             ->get();
 
         // Mengambil data penjualan beserta semua retur yang terkait
@@ -52,7 +53,8 @@ class LaporanKeuanganController extends Controller
             'penjualans.referensi',
             'penjualans.status',
             'penjualans.tanggal_jatuh_tempo',
-            'penjualans.total'
+            'penjualans.total',
+            'penjualans.created_at'
         )
             ->with([
                 'pelanggan:id,nama_pelanggan,no_telepon',
@@ -61,7 +63,7 @@ class LaporanKeuanganController extends Controller
                     $query->select('id', 'id_penjualan', 'tanggal', 'total_retur');
                 }
             ])
-            ->orderBy('penjualans.tanggal', 'desc') // Urutkan berdasarkan tanggal penjualan
+            ->orderBy('penjualans.created_at', 'desc') // Urutkan berdasarkan tanggal penjualan
             ->get();
 
         // Menggabungkan pembelian dan penjualan ke dalam satu collection
@@ -69,7 +71,7 @@ class LaporanKeuanganController extends Controller
         $combined = $combined->merge($pembelian)->merge($penjualan);
 
         // Urutkan combined collection berdasarkan tanggal
-        $sortedCombined = $combined->sortByDesc('tanggal'); // Urutkan berdasarkan tanggal secara descending (terbaru)
+        $sortedCombined = $combined->sortByDesc('created_at'); // Urutkan berdasarkan tanggal secara descending (terbaru)
 
         // Menghitung total items dan last page
         $totalItems = $sortedCombined->count();

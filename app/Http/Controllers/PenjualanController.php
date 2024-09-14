@@ -756,7 +756,7 @@ class PenjualanController extends Controller
             'referensi' => $penjualan->referensi,
             'sub_total' => $penjualan->sub_total,
             'total_diskon_satuan' => $penjualan->total_diskon_satuan,
-            'diskon' => $penjualan->diskon,
+            'diskon_keseluruhan' => $penjualan->diskon,
             'total' => $penjualan->total,
             'catatan' => $penjualan->catatan,
             'sisa_tagihan' => $penjualan->total - $pembayaranPenjualan,

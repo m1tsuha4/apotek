@@ -311,7 +311,7 @@ class PenjualanController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan data tidak lengkap!',
             ], 500);
         }
     }

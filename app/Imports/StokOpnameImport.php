@@ -8,6 +8,7 @@ use App\Models\StokOpname;
 use Maatwebsite\Excel\Concerns\ToModel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Carbon\Carbon; // Tambahkan Carbon untuk mengelola tanggal
 
 class StokOpnameImport implements ToModel, WithHeadingRow
 {
@@ -28,9 +29,11 @@ class StokOpnameImport implements ToModel, WithHeadingRow
 
         // Cek apakah tanggal dalam format excel (numeric)
         if (is_numeric($row['tanggal'])) {
+            // Konversi tanggal Excel menjadi format Y-m-d
             $tanggal = Date::excelToDateTimeObject($row['tanggal'])->format('Y-m-d');
         } else {
-            $tanggal = $row['tanggal'];
+            // Jika tanggal dalam format d/m/y, gunakan Carbon untuk parsing
+            $tanggal = Carbon::createFromFormat('d/m/Y', $row['tanggal'])->format('Y-m-d');
         }
 
         // Periksa apakah stok_tercatat dan stok_aktual berbeda

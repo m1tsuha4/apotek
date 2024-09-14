@@ -92,8 +92,8 @@ class ReturPembelianController extends Controller
 
                 if($barangReturPembelian['jumlah_retur'] == 0) {
                     return response()->json([
-                        'success' => false,
-                        'message' => 'Jumlah retur tidak boleh 0',
+                        'success' => true,
+                        'message' => 'Berhasil!',
                     ]);
                 }
 
@@ -250,7 +250,7 @@ class ReturPembelianController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalalahan data tidak lengkap',
             ]);
         }
     }

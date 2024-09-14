@@ -80,41 +80,58 @@ class PembelianController extends Controller
         DB::beginTransaction();
 
         try {
-
             $pembelian = Pembelian::create($validatedData);
 
             foreach ($validatedData['barang_pembelians'] as $barangPembelianData) {
+                // Create BarangPembelian
                 $pembelian->barangPembelian()->create([
                     'id_barang' => $barangPembelianData['id_barang'],
                     'batch' => $barangPembelianData['batch'],
                     'exp_date' => $barangPembelianData['exp_date'],
                     'jumlah' => $barangPembelianData['jumlah'],
                     'id_satuan' => $barangPembelianData['id_satuan'],
-                    'jenis_diskon' => $barangPembelianData['jenis_diskon'],
-                    'diskon' => $barangPembelianData['diskon'],
+                    'jenis_diskon' => $barangPembelianData['jenis_diskon'] ?? null,
+                    'diskon' => $barangPembelianData['diskon'] ?? null,
                     'harga' => $barangPembelianData['harga'],
                     'total' => $barangPembelianData['total']
                 ]);
 
+                // Jika jenis adalah 2, berarti pembelian yang mempengaruhi stok
                 if ($validatedData['id_jenis'] == '2') {
+                    // Mendapatkan satuan dasar dan harga asli
                     $satuanDasar = Barang::where('id', $barangPembelianData['id_barang'])->value('id_satuan');
                     $hargaAsli = Barang::where('id', $barangPembelianData['id_barang'])->value('harga_beli');
                     $totalStok = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->sum('stok_total');
 
+                    // Update harga beli jika berbeda
                     if ($barangPembelianData['harga'] != $hargaAsli) {
-                        // Update the harga_beli with the new price
                         Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
                     }
 
+                    // Cek apakah satuan yang digunakan adalah satuan dasar
                     if ($barangPembelianData['id_satuan'] == $satuanDasar) {
-                        StokBarang::create([
-                            'id_barang' => $barangPembelianData['id_barang'],
-                            'batch' => $barangPembelianData['batch'],
-                            'exp_date' => $barangPembelianData['exp_date'],
-                            'stok_apotek' => $barangPembelianData['jumlah'],
-                            'stok_total' => $barangPembelianData['jumlah']
-                        ]);
+                        // Cek apakah stok sudah ada untuk barang dengan batch dan exp_date tertentu
+                        $stokExist = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
+                            ->where('batch', $barangPembelianData['batch'])
+                            ->where('exp_date', $barangPembelianData['exp_date'])
+                            ->first();
 
+                        if ($stokExist) {
+                            // Update stok yang ada
+                            $stokExist->increment('stok_apotek', $barangPembelianData['jumlah']);
+                            $stokExist->increment('stok_total', $barangPembelianData['jumlah']);
+                        } else {
+                            // Buat stok baru jika belum ada
+                            StokBarang::create([
+                                'id_barang' => $barangPembelianData['id_barang'],
+                                'batch' => $barangPembelianData['batch'],
+                                'exp_date' => $barangPembelianData['exp_date'],
+                                'stok_apotek' => $barangPembelianData['jumlah'],
+                                'stok_total' => $barangPembelianData['jumlah']
+                            ]);
+                        }
+
+                        // Buat pergerakan stok
                         PergerakanStokPembelian::create([
                             'id_pembelian' => $pembelian->id,
                             'id_barang' => $barangPembelianData['id_barang'],
@@ -123,16 +140,32 @@ class PembelianController extends Controller
                             'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
                         ]);
                     } else {
+                        // Jika satuan bukan satuan dasar
                         $satuanBesar = SatuanBarang::where('id_barang', $barangPembelianData['id_barang'])->value('jumlah');
                         $stok = $barangPembelianData['jumlah'] * $satuanBesar;
-                        StokBarang::create([
-                            'id_barang' => $barangPembelianData['id_barang'],
-                            'batch' => $barangPembelianData['batch'],
-                            'exp_date' => $barangPembelianData['exp_date'],
-                            'stok_apotek' => $stok,
-                            'stok_total' => $stok
-                        ]);
 
+                        // Cek apakah stok sudah ada
+                        $stokExist = StokBarang::where('id_barang', $barangPembelianData['id_barang'])
+                            ->where('batch', $barangPembelianData['batch'])
+                            ->where('exp_date', $barangPembelianData['exp_date'])
+                            ->first();
+
+                        if ($stokExist) {
+                            // Update stok yang ada
+                            $stokExist->increment('stok_apotek', $stok);
+                            $stokExist->increment('stok_total', $stok);
+                        } else {
+                            // Buat stok baru jika belum ada
+                            StokBarang::create([
+                                'id_barang' => $barangPembelianData['id_barang'],
+                                'batch' => $barangPembelianData['batch'],
+                                'exp_date' => $barangPembelianData['exp_date'],
+                                'stok_apotek' => $stok,
+                                'stok_total' => $stok
+                            ]);
+                        }
+
+                        // Buat pergerakan stok
                         PergerakanStokPembelian::create([
                             'id_pembelian' => $pembelian->id,
                             'id_barang' => $barangPembelianData['id_barang'],
@@ -144,6 +177,7 @@ class PembelianController extends Controller
                 }
             }
 
+            // Jika pembelian memiliki jenis id_jenis = 2, tambahkan laporan keuangan
             if ($validatedData['id_jenis'] == '2') {
                 LaporanKeuanganKeluar::create([
                     'id_pembelian' => $pembelian->id,
@@ -163,10 +197,11 @@ class PembelianController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan ' . $e->getMessage(),
-            ]);
+                'message' => 'Terjadi kesalahan data tidak lengkap',
+            ], 500);
         }
     }
+
 
 
     /**
@@ -397,7 +432,7 @@ class PembelianController extends Controller
                         Barang::where('id', $barangPembelianData['id_barang'])->update(['harga_beli' => $barangPembelianData['harga']]);
                     }
 
-                    $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->where('batch', $barangPembelianData['batch'])->first();
+                    $stokBarang = StokBarang::where('id_barang', $barangPembelianData['id_barang'])->first();
                     $pergerakanStok = PergerakanStokPembelian::where('id_pembelian', $pembelian->id)->where('id_barang', $barangPembelianData['id_barang'])->first();
 
                     if ($barangPembelianData['id_satuan'] == $satuanDasar) {

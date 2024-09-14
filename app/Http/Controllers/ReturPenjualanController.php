@@ -22,8 +22,8 @@ class ReturPenjualanController extends Controller
     public function index(Request $request)
     {
         $returPenjualans = ReturPenjualan::with(['penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan'])
-        ->orderBy('created_at', 'desc')
-        ->paginate($request->num);
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->num);
 
         $data = collect($returPenjualans->items())->map(function ($returPenjualan) {
             $jumlah = $returPenjualan->penjualan->barangPenjualan->sum('jumlah');
@@ -90,10 +90,10 @@ class ReturPenjualanController extends Controller
 
             foreach ($validatedData['barang_retur_penjualans'] as $barangReturPenjualan) {
 
-                if($barangReturPenjualan['jumlah_retur'] == 0) {
+                if ($barangReturPenjualan['jumlah_retur'] == 0) {
                     return response()->json([
-                        'success' => false,
-                        'message' => 'Jumlah retur tidak boleh 0',
+                        'success' => true,
+                        'message' => 'Berhasil!',
                     ]);
                 }
                 $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->first();
@@ -270,25 +270,25 @@ class ReturPenjualanController extends Controller
             'total_retur' => $returPenjualan->total_retur,
             'barang_penjualan' => $returPenjualan->penjualan->barangPenjualan->map(function ($barangPenjualan) {
                 $jumlah_retur = ReturPenjualan::where('id_penjualan', $barangPenjualan->id_penjualan)
-                ->join('barang_retur_penjualans', 'retur_penjualans.id', '=', 'barang_retur_penjualans.id_retur_penjualan')
-                ->where('barang_retur_penjualans.id_barang_penjualan', $barangPenjualan->id)
-                ->sum('barang_retur_penjualans.jumlah_retur');
-            $jumlah_bisa_retur = $barangPenjualan->jumlah - $jumlah_retur;
-            return [
-                'id' => $barangPenjualan->id,
-                'id_barang' => $barangPenjualan->id_barang,
-                'nama_barang' => $barangPenjualan->barang->nama_barang,
-                'id_stok_barang' => $barangPenjualan->id_stok_barang,
-                'batch' => $barangPenjualan->StokBarang->batch,
-                'jumlah' => $barangPenjualan->jumlah,
-                'jumlah_bisa_retur' => $jumlah_bisa_retur,
-                'id_satuan' => $barangPenjualan->id_satuan,
-                'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
-                'jenis_diskon' => $barangPenjualan->jenis_diskon,
-                'diskon' => $barangPenjualan->diskon,
-                'harga' => $barangPenjualan->harga,
-                'total' => $barangPenjualan->total
-            ];
+                    ->join('barang_retur_penjualans', 'retur_penjualans.id', '=', 'barang_retur_penjualans.id_retur_penjualan')
+                    ->where('barang_retur_penjualans.id_barang_penjualan', $barangPenjualan->id)
+                    ->sum('barang_retur_penjualans.jumlah_retur');
+                $jumlah_bisa_retur = $barangPenjualan->jumlah - $jumlah_retur;
+                return [
+                    'id' => $barangPenjualan->id,
+                    'id_barang' => $barangPenjualan->id_barang,
+                    'nama_barang' => $barangPenjualan->barang->nama_barang,
+                    'id_stok_barang' => $barangPenjualan->id_stok_barang,
+                    'batch' => $barangPenjualan->StokBarang->batch,
+                    'jumlah' => $barangPenjualan->jumlah,
+                    'jumlah_bisa_retur' => $jumlah_bisa_retur,
+                    'id_satuan' => $barangPenjualan->id_satuan,
+                    'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
+                    'jenis_diskon' => $barangPenjualan->jenis_diskon,
+                    'diskon' => $barangPenjualan->diskon,
+                    'harga' => $barangPenjualan->harga,
+                    'total' => $barangPenjualan->total
+                ];
             }),
             'barang_retur_penjualan' => $returPenjualan->barangReturPenjualan
         ];
@@ -396,7 +396,7 @@ class ReturPenjualanController extends Controller
                         if ($barangReturPenjualanData['id_satuan'] == $satuanDasar) {
                             $stokBarang->stok_apotek -= $barangReturPenjualanData['jumlah_retur'];
                             $stokBarang->stok_total -= $barangReturPenjualanData['jumlah_retur'];
-                            if(!$pergerakanStok){
+                            if (!$pergerakanStok) {
                                 $pergerakanStok = PergerakanStokPenjualan::create([
                                     'id_retur_penjualan' => $returPenjualan->id,
                                     'id_barang' => $barangReturPenjualanData['id_barang'],
@@ -415,7 +415,7 @@ class ReturPenjualanController extends Controller
                             $satuanBesar = SatuanBarang::where('id_barang', $barangReturPenjualanData['id_barang'])->where('id_satuan', $barangReturPenjualanData['id_satuan'])->value('jumlah');
                             $stokBarang->stok_apotek -= $satuanBesar * $barangReturPenjualanData['jumlah_retur'];
                             $stokBarang->stok_total -= $satuanBesar * $barangReturPenjualanData['jumlah_retur'];
-                            if(!$pergerakanStok){
+                            if (!$pergerakanStok) {
                                 $pergerakanStok = PergerakanStokPenjualan::create([
                                     'id_retur_penjualan' => $returPenjualan->id,
                                     'id_barang' => $barangReturPenjualanData['id_barang'],

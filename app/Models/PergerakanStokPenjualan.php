@@ -13,6 +13,7 @@ class PergerakanStokPenjualan extends Model
         'id_penjualan',
         'id_retur_penjualan',
         'id_barang',
+        'id_stok_barang',
         'harga',
         'pergerakan_stok',
         'stok_keseluruhan'
@@ -31,5 +32,9 @@ class PergerakanStokPenjualan extends Model
     public function returPenjualan()
     {
         return $this->belongsTo(ReturPenjualan::class, 'id_retur_penjualan');
+    }
+    public function stokBarang()
+    {
+        return $this->belongsTo(StokBarang::class, 'id_stok_barang');
     }
 }

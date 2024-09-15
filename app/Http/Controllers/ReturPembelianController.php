@@ -133,6 +133,7 @@ class ReturPembelianController extends Controller
                         PergerakanStokPembelian::create([
                             'id_retur_pembelian' => $returPembelian->id,
                             'id_barang' => $barangReturPembelian['id_barang'],
+                            'id_stok_barang' => $stokBarang->id,
                             'harga' => $barang_pembelian->harga,
                             'pergerakan_stok' => $barangReturPembelian['jumlah_retur'],
                             'stok_keseluruhan' => $totalStok - $barangReturPembelian['jumlah_retur'],
@@ -156,6 +157,7 @@ class ReturPembelianController extends Controller
                         PergerakanStokPembelian::create([
                             'id_retur_pembelian' => $returPembelian->id,
                             'id_barang' => $barangReturPembelian['id_barang'],
+                            'id_stok_barang' => $stokBarang->id,
                             'harga' => $barang_pembelian->harga,
                             'pergerakan_stok' => $stok,
                             'stok_keseluruhan' => $totalStok - $stok,
@@ -408,6 +410,7 @@ class ReturPembelianController extends Controller
                                 $pergerakanStok = PergerakanStokPembelian::create([
                                     'id_retur_pembelian' => $returPembelian->id,
                                     'id_barang' => $barangReturPembelianData['id_barang'],
+                                    'id_stok_barang' => $stokBarang->id,
                                     'harga' => $barang_pembelian->harga,
                                     'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'],
                                     'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'],
@@ -429,6 +432,7 @@ class ReturPembelianController extends Controller
                                 $pergerakanStok = PergerakanStokPembelian::create([
                                     'id_retur_pembelian' => $returPembelian->id,
                                     'id_barang' => $barangReturPembelianData['id_barang'],
+                                    'id_stok_barang' => $stokBarang->id,
                                     'harga' => $barang_pembelian->harga,
                                     'pergerakan_stok' => $barangReturPembelianData['jumlah_retur'] * $satuanBesar,
                                     'stok_keseluruhan' => $totalStok - $barangReturPembelianData['jumlah_retur'] * $satuanBesar,

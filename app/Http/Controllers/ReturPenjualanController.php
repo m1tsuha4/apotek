@@ -129,6 +129,7 @@ class ReturPenjualanController extends Controller
                         PergerakanStokPenjualan::create([
                             'id_retur_penjualan' => $returPenjualan->id,
                             'id_barang' => $barangReturPenjualan['id_barang'],
+                            'id_stok_barang' => $stokBarang->id,
                             'harga' => $barang_penjualan->harga,
                             'pergerakan_stok' => $barangReturPenjualan['jumlah_retur'],
                             'stok_keseluruhan' => $totalStok + $barangReturPenjualan['jumlah_retur']
@@ -152,6 +153,7 @@ class ReturPenjualanController extends Controller
                         PergerakanStokPenjualan::create([
                             'id_retur_penjualan' => $returPenjualan->id,
                             'id_barang' => $barangReturPenjualan['id_barang'],
+                            'id_stok_barang' => $stokBarang->id,
                             'harga' => $barang_penjualan->harga,
                             'pergerakan_stok' => $satuanBesar * $barangReturPenjualan['jumlah_retur'],
                             'stok_keseluruhan' => $totalStok + $satuanBesar * $barangReturPenjualan['jumlah_retur']
@@ -401,6 +403,7 @@ class ReturPenjualanController extends Controller
                                 $pergerakanStok = PergerakanStokPenjualan::create([
                                     'id_retur_penjualan' => $returPenjualan->id,
                                     'id_barang' => $barangReturPenjualanData['id_barang'],
+                                    'id_stok_barang' => $stokBarang->id,
                                     'harga' => $barang_penjualan->harga,
                                     'pergerakan_stok' => $barangReturPenjualanData['jumlah_retur'],
                                     'stok_keseluruhan' => $totalStok + $barangReturPenjualanData['jumlah_retur'],
@@ -420,6 +423,7 @@ class ReturPenjualanController extends Controller
                                 $pergerakanStok = PergerakanStokPenjualan::create([
                                     'id_retur_penjualan' => $returPenjualan->id,
                                     'id_barang' => $barangReturPenjualanData['id_barang'],
+                                    'id_stok_barang' => $stokBarang->id,
                                     'harga' => $barang_penjualan->harga,
                                     'pergerakan_stok' => $satuanBesar * $barangReturPenjualanData['jumlah_retur'],
                                     'stok_keseluruhan' => $totalStok + $satuanBesar * $barangReturPenjualanData['jumlah_retur'],

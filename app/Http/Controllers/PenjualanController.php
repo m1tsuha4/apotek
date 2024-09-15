@@ -241,6 +241,8 @@ class PenjualanController extends Controller
                             $jumlah -= intval(ceil($stokPengurangan / $satuanBesarJumlah));
                         }
 
+                        $total = $barangPenjualanData['harga'] * $stokPengurangan;
+
                         // Buat entri barang penjualan
                         $penjualan->barangPenjualan()->create([
                             'id_barang' => $idBarang,
@@ -250,7 +252,7 @@ class PenjualanController extends Controller
                             'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                             'diskon' => $barangPenjualanData['diskon'] ?? 0,
                             'harga' => $barangPenjualanData['harga'],
-                            'total' => $barangPenjualanData['total'],
+                            'total' => $total,
                         ]);
 
                         // Kurangi stok barang
@@ -262,6 +264,7 @@ class PenjualanController extends Controller
                     PergerakanStokPenjualan::create([
                         'id_penjualan' => $penjualan->id,
                         'id_barang' => $idBarang,
+                        'id_stok_barang' => $stokBarang->id,
                         'harga' => $barangPenjualanData['harga'],
                         'pergerakan_stok' => $stokPengurangan,
                         'stok_keseluruhan' => $totalStok - $stokPengurangan
@@ -499,7 +502,7 @@ class PenjualanController extends Controller
                             $stokBarang->save();
 
                             PergerakanStokPenjualan::updateOrCreate(
-                                ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang],
+                                ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang, 'id_stok_barang' => $stokBarang->id,], 
                                 ['harga' => $barangPenjualanData['harga'], 'pergerakan_stok' => $barangPenjualanData['jumlah'], 'stok_keseluruhan' => $totalStok - $barangPenjualanData['jumlah']]
                             );
                         }
@@ -514,6 +517,8 @@ class PenjualanController extends Controller
                         }
                     }
 
+                    $total = $barangPenjualanData['harga'] * $stokPengurangan;
+
                     // Update or create barang penjualan
                     if ($existingBarangPenjualan) {
                         $existingBarangPenjualan->update([
@@ -523,7 +528,7 @@ class PenjualanController extends Controller
                             'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                             'diskon' => $barangPenjualanData['diskon'] ?? 0,
                             'harga' => $barangPenjualanData['harga'],
-                            'total' => $barangPenjualanData['total'],
+                            'total' => $total,
                         ]);
                     } else {
                         $penjualan->barangPenjualan()->create([
@@ -534,7 +539,7 @@ class PenjualanController extends Controller
                             'jenis_diskon' => $barangPenjualanData['jenis_diskon'] ?? null,
                             'diskon' => $barangPenjualanData['diskon'] ?? 0,
                             'harga' => $barangPenjualanData['harga'],
-                            'total' => $barangPenjualanData['total'],
+                            'total' => $total,
                         ]);
                     }
                 }

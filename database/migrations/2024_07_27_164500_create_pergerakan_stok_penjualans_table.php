@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('id_penjualan',10)->nullable();
             $table->string('id_barang',10);
             $table->string('id_retur_penjualan', 10)->nullable();
+            $table->foreignId('id_stok_barang')->nullable()->constrained('stok_barangs')->onDelete('cascade');
             $table->integer('harga');
             $table->integer('pergerakan_stok');
             $table->integer('stok_keseluruhan')->nullable();

@@ -122,7 +122,7 @@ class PembelianController extends Controller
                             $stokExist->increment('stok_total', $barangPembelianData['jumlah']);
                         } else {
                             // Buat stok baru jika belum ada
-                            StokBarang::create([
+                            $stokExist = StokBarang::create([
                                 'id_barang' => $barangPembelianData['id_barang'],
                                 'batch' => $barangPembelianData['batch'],
                                 'exp_date' => $barangPembelianData['exp_date'],
@@ -135,6 +135,7 @@ class PembelianController extends Controller
                         PergerakanStokPembelian::create([
                             'id_pembelian' => $pembelian->id,
                             'id_barang' => $barangPembelianData['id_barang'],
+                            'id_stok_barang' => $stokExist ? $stokExist->id : null,
                             'harga' => $barangPembelianData['harga'],
                             'pergerakan_stok' => $barangPembelianData['jumlah'],
                             'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
@@ -156,7 +157,7 @@ class PembelianController extends Controller
                             $stokExist->increment('stok_total', $stok);
                         } else {
                             // Buat stok baru jika belum ada
-                            StokBarang::create([
+                            $stokExist =StokBarang::create([
                                 'id_barang' => $barangPembelianData['id_barang'],
                                 'batch' => $barangPembelianData['batch'],
                                 'exp_date' => $barangPembelianData['exp_date'],
@@ -169,6 +170,7 @@ class PembelianController extends Controller
                         PergerakanStokPembelian::create([
                             'id_pembelian' => $pembelian->id,
                             'id_barang' => $barangPembelianData['id_barang'],
+                            'id_stok_barang' => $stokExist ? $stokExist->id : null,
                             'harga' => $barangPembelianData['harga'],
                             'pergerakan_stok' => $stok,
                             'stok_keseluruhan' => $totalStok + $stok
@@ -481,6 +483,7 @@ class PembelianController extends Controller
                             PergerakanStokPembelian::create([
                                 'id_pembelian' => $pembelian->id,
                                 'id_barang' => $barangPembelianData['id_barang'],
+                                'id_stok_barang' => $stokBarang->id,
                                 'harga' => $barangPembelianData['harga'],
                                 'pergerakan_stok' => $barangPembelianData['jumlah'],
                                 'stok_keseluruhan' => $totalStok + $barangPembelianData['jumlah']
@@ -514,6 +517,7 @@ class PembelianController extends Controller
                             PergerakanStokPembelian::create([
                                 'id_pembelian' => $pembelian->id,
                                 'id_barang' => $barangPembelianData['id_barang'],
+                                'id_stok_barang' => $stokBarang->id,
                                 'harga' => $barangPembelianData['harga'],
                                 'pergerakan_stok' => $stok,
                                 'stok_keseluruhan' => $totalStok + $stok

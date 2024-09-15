@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Carbon\Carbon;
 
 class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
 {
@@ -20,10 +21,13 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
     {
         $karyawan = Karyawan::where('nama_karyawan', $row['nama_karyawan'])->first();
 
+        // Cek apakah tanggal dalam format excel (numeric)
         if (is_numeric($row['tanggal_bergabung'])) {
+            // Konversi tanggal Excel menjadi format Y-m-d
             $tanggal = Date::excelToDateTimeObject($row['tanggal_bergabung'])->format('Y-m-d');
         } else {
-            $tanggal = $row['tanggal_bergabung'];
+            // Jika tanggal dalam format d/m/y, gunakan Carbon untuk parsing
+            $tanggal = Carbon::createFromFormat('d/m/Y', $row['tanggal_bergabung'])->format('Y-m-d');
         }
 
         if ($karyawan) {

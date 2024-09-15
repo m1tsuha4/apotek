@@ -28,27 +28,17 @@ class PergerakanStokPembelianController extends Controller
             ->where('id_barang', $request->id_barang)
             ->paginate(10);
 
-        // Map untuk menyimpan batch yang sudah ditampilkan
-        $usedBatches = [];
-
         // Fungsi untuk menentukan batch yang akan ditampilkan
-        $standardizedData = $data->map(function ($item) use (&$usedBatches) {
+        $standardizedData = $data->map(function ($item) {
             $pembelian = $item->pembelian;
             $barangPembelian = $pembelian ? $pembelian->barangPembelian : collect();
 
-            // Pilih batch yang belum ditampilkan
-            $batchToShow = $barangPembelian->pluck('batch')->first(function ($batch) use (&$usedBatches) {
-                return !in_array($batch, $usedBatches);
-            });
+            // Ambil batch dari stokBarang
+            $batchStokBarang = $item->stokBarang->batch ?? null;
 
-            // Jika batch ditemukan, tambahkan ke usedBatches
-            if ($batchToShow) {
-                $usedBatches[] = $batchToShow;
-            }
-
-            // Filter barang_pembelian untuk hanya menampilkan batch yang dipilih
-            $filteredBarangPembelian = $barangPembelian->filter(function ($barang) use ($batchToShow) {
-                return $barang->batch === $batchToShow;
+            // Filter barang_pembelian untuk hanya menampilkan batch yang sesuai dengan stokBarang
+            $filteredBarangPembelian = $barangPembelian->filter(function ($barang) use ($batchStokBarang) {
+                return $barang->batch === $batchStokBarang;
             });
 
             // Return data yang sudah distandarisasi
@@ -85,6 +75,7 @@ class PergerakanStokPembelianController extends Controller
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
+
 
 
 

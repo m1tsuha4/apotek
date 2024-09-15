@@ -19,6 +19,7 @@ class PergerakanStokPembelianController extends Controller
                 'pembelian:id,id_vendor,id_sales,tanggal',
                 'pembelian.barangPembelian:id,id_pembelian,batch',
                 'returPembelian:id,id_pembelian,tanggal',
+                'returPembelian.pembelian.barangPembelian:id,id_pembelian,batch',
                 'pembelian.vendor:id,nama_perusahaan',
                 'pembelian.sales:id,nama_sales',
                 'barang:id,id_satuan,nama_barang',
@@ -32,20 +33,25 @@ class PergerakanStokPembelianController extends Controller
         $standardizedData = $data->map(function ($item) {
             $pembelian = $item->pembelian;
             $barangPembelian = $pembelian ? $pembelian->barangPembelian : collect();
+            $stokBarangBatch = $item->stokBarang->batch ?? null;
 
-            // Ambil batch dari stokBarang
-            $batchStokBarang = $item->stokBarang->batch ?? null;
+            // Filter barangPembelian untuk pembelian
+            $filteredBarangPembelian = $barangPembelian->filter(function ($barang) use ($stokBarangBatch) {
+                return $barang->batch === $stokBarangBatch;
+            });
 
-            // Filter barang_pembelian untuk hanya menampilkan batch yang sesuai dengan stokBarang
-            $filteredBarangPembelian = $barangPembelian->filter(function ($barang) use ($batchStokBarang) {
-                return $barang->batch === $batchStokBarang;
+            // Filter barangPembelian untuk returPembelian
+            $returPembelian = $item->returPembelian;
+            $barangPembelianRetur = $returPembelian ? $returPembelian->pembelian->barangPembelian : collect();
+            $filteredBarangPembelianRetur = $barangPembelianRetur->filter(function ($barang) use ($stokBarangBatch) {
+                return $barang->batch === $stokBarangBatch;
             });
 
             // Return data yang sudah distandarisasi
             return [
                 'id' => $item->id,
                 'id_barang' => $item->id_barang,
-                'id_pembelian' => $item->id_pembelian,
+                'id_pembelian' => $item->id_pembelian ?? $item->id_retur_pembelian,
                 'harga' => $item->harga,
                 'pergerakan_stok' => $item->pergerakan_stok,
                 'stok_keseluruhan' => $item->stok_keseluruhan,
@@ -63,7 +69,21 @@ class PergerakanStokPembelianController extends Controller
                     })->values()->toArray(),
                     'vendor' => $pembelian->vendor,
                     'sales' => $pembelian->sales,
-                ] : null,
+                ] : [
+                    'id' => $item->id_retur_pembelian,
+                    'id_vendor' => $returPembelian->pembelian->id_vendor,
+                    'id_sales' => $returPembelian->pembelian->id_sales,
+                    'tanggal' => $returPembelian->tanggal,
+                    'barang_pembelian' => $filteredBarangPembelianRetur->map(function ($barang) {
+                        return [
+                            'id' => $barang->id,
+                            'id_pembelian' => $barang->id_pembelian,
+                            'batch' => $barang->batch
+                        ];
+                    })->values()->toArray(),
+                    'vendor' => $returPembelian->pembelian->vendor,
+                    'sales' => $returPembelian->pembelian->sales,
+                ],
                 'barang' => $item->barang,
             ];
         });
@@ -75,6 +95,7 @@ class PergerakanStokPembelianController extends Controller
             'message' => 'Data Berhasil ditemukan!',
         ]);
     }
+
 
 
 

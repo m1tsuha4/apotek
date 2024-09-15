@@ -13,8 +13,9 @@ class PergerakanStokPenjualanController extends Controller
     public function index(Request $request)
 {
     // Ambil semua data dengan barangPenjualan dan stokBarang terkait
-    $data = PergerakanStokPenjualan::select('id', 'id_penjualan', 'id_barang', 'id_retur_penjualan', 'harga', 'pergerakan_stok', 'stok_keseluruhan')
+    $data = PergerakanStokPenjualan::select('id', 'id_penjualan', 'id_barang', 'id_retur_penjualan', 'harga', 'pergerakan_stok', 'stok_keseluruhan','id_stok_barang')
         ->with([
+            'stokBarang:id,batch',
             'penjualan:id,id_pelanggan,tanggal',
             'penjualan.pelanggan:id,nama_pelanggan,no_telepon',
             'penjualan.barangPenjualan:id,id_penjualan,id_barang,id_stok_barang',

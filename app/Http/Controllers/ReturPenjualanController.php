@@ -93,7 +93,7 @@ class ReturPenjualanController extends Controller
                 if ($barangReturPenjualan['jumlah_retur'] <= 0) {
                     continue; // Skip items with zero or negative return quantity
                 }
-                
+
                 $barang_penjualan = BarangPenjualan::where('id_penjualan', $validatedData['id_penjualan'])->where('id_barang', $barangReturPenjualan['id_barang'])->first();
 
                 $returPenjualan->barangReturPenjualan()->create([
@@ -268,7 +268,8 @@ class ReturPenjualanController extends Controller
             'tanggal' => $returPenjualan->tanggal,
             'referensi' => $returPenjualan->referensi,
             'total_retur' => $returPenjualan->total_retur,
-            'barang_penjualan' => $returPenjualan->penjualan->barangPenjualan->map(function ($barangPenjualan) {
+            'barang_penjualan' => $returPenjualan->barangReturPenjualan->map(function ($barangReturPenjualan) {
+                $barangPenjualan = $barangReturPenjualan->barangPenjualan;
                 $jumlah_retur = ReturPenjualan::where('id_penjualan', $barangPenjualan->id_penjualan)
                     ->join('barang_retur_penjualans', 'retur_penjualans.id', '=', 'barang_retur_penjualans.id_retur_penjualan')
                     ->where('barang_retur_penjualans.id_barang_penjualan', $barangPenjualan->id)
@@ -279,18 +280,19 @@ class ReturPenjualanController extends Controller
                     'id_barang' => $barangPenjualan->id_barang,
                     'nama_barang' => $barangPenjualan->barang->nama_barang,
                     'id_stok_barang' => $barangPenjualan->id_stok_barang,
-                    'batch' => $barangPenjualan->StokBarang->batch,
+                    'batch' => $barangPenjualan->stokBarang->batch,
                     'jumlah' => $barangPenjualan->jumlah,
                     'jumlah_bisa_retur' => $jumlah_bisa_retur,
+                    'jumlah_retur' => $barangReturPenjualan->jumlah_retur,
                     'id_satuan' => $barangPenjualan->id_satuan,
                     'nama_satuan' => $barangPenjualan->satuan->nama_satuan,
                     'jenis_diskon' => $barangPenjualan->jenis_diskon,
                     'diskon' => $barangPenjualan->diskon,
                     'harga' => $barangPenjualan->harga,
-                    'total' => $barangPenjualan->total
+                    'total' => $barangReturPenjualan->total
                 ];
             }),
-            'barang_retur_penjualan' => $returPenjualan->barangReturPenjualan
+            // 'barang_retur_penjualan' => $returPenjualan->barangReturPenjualan
         ];
         return response()->json([
             'success' => true,

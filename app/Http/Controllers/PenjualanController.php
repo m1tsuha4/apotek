@@ -323,7 +323,7 @@ class PenjualanController extends Controller
     {
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
         $sisa_tagihan = $penjualan->total - $pembayaranPenjualan;
-        if($sisa_tagihan < 0) {
+        if ($sisa_tagihan < 0) {
             $sisa_tagihan = 0;
         }
         $data = [
@@ -748,7 +748,9 @@ class PenjualanController extends Controller
         $total_diskon_satuan = $penjualan->barangPenjualan()->sum('diskon');
 
         $total_retur = ReturPenjualan::where('id_penjualan', $penjualan->id)->sum('total_retur');
-
+        // dd($penjualan->returPenjualan->map(function ($returPenjualan) {
+        //     return $returPenjualan->barangReturPenjualan;
+        // }));
         $data = [
             'id_penjualan' => $penjualan->id,
             'status' => $penjualan->status,
@@ -783,18 +785,21 @@ class PenjualanController extends Controller
                     'total_barang' => $barangPenjualan->total
                 ];
             }),
-            'barangReturPenjualan' => $penjualan->barangReturPenjualan->map(function ($barangReturPenjualan) {
-                return [
-                    'id' => $barangReturPenjualan->id,
-                    'nama_barang' => $barangReturPenjualan->barangPenjualan->barang->nama_barang,
-                    'batch' => $barangReturPenjualan->barangPenjualan->stokBarang->batch ?? null,
-                    'exp_date' => $barangReturPenjualan->barangPenjualan->stokBarang->exp_date ?? null,
-                    'jumlah_retur' => $barangReturPenjualan->jumlah_retur,
-                    'nama_satuan' => $barangReturPenjualan->barangPenjualan->satuan->nama_satuan,
-                    'harga' => $barangReturPenjualan->barangPenjualan->harga,
-                    'total_retur' => $barangReturPenjualan->total
-                ];
+            'barangReturPenjualan' => $penjualan->returPenjualan->flatMap(function ($returPenjualan) {
+                return $returPenjualan->barangReturPenjualan->map(function ($barangReturPenjualan) {
+                    return [
+                        'id' => $barangReturPenjualan->id,
+                        'nama_barang' => $barangReturPenjualan->barangPenjualan->barang->nama_barang,
+                        'batch' => $barangReturPenjualan->barangPenjualan->stokBarang->batch ?? null,
+                        'exp_date' => $barangReturPenjualan->barangPenjualan->stokBarang->exp_date ?? null,
+                        'jumlah_retur' => $barangReturPenjualan->jumlah_retur,
+                        'nama_satuan' => $barangReturPenjualan->barangPenjualan->satuan->nama_satuan,
+                        'harga' => $barangReturPenjualan->barangPenjualan->harga,
+                        'total_retur' => $barangReturPenjualan->total
+                    ];
+                });
             }),
+
             'pembayaranPenjualan' => $penjualan->pembayaranPenjualan->map(function ($pembayaranPenjualan) {
                 return [
                     'id' => $pembayaranPenjualan->id,

@@ -157,7 +157,7 @@
                                 <td class="text-start px-2">{{ $item['nama_barang'] }}</td>
                                 <td class="text-center px-2">{{ $item['batch'] }}</td>
                                 <td class="text-center px-2">{{ $item['exp_date'] }}</td>
-                                <td class="text-end px-2">{{ $item['jumlah_retur'] }}</td>
+                                <td class="text-end px-2">- {{ $item['jumlah_retur'] }}</td>
                                 <td class="px-2">{{ $item['nama_satuan'] }}</td>
                                 <td class="text-end px-2">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
                                 <td class="text-end px-2">Rp {{ number_format($item['total_retur'], 0, ',', '.') }}</td>

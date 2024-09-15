@@ -55,7 +55,7 @@ class PenjualanController extends Controller
     {
         $validatedData = $request->validate([
             'id_barang' => 'required',
-            'jumlah' => 'required|integer',
+            'jumlah' => 're',
             'id_satuan' => 'required|integer',
         ]);
 
@@ -179,12 +179,12 @@ class PenjualanController extends Controller
             'catatan' => 'sometimes',
             'barang_penjualans' => 'required|array',
             'barang_penjualans.*.id_barang' => 'required',
-            'barang_penjualans.*.jumlah' => 'required|integer',
-            'barang_penjualans.*.id_satuan' => 'required|integer',
+            'barang_penjualans.*.jumlah' => 'required',
+            'barang_penjualans.*.id_satuan' => 'required',
             'barang_penjualans.*.jenis_diskon' => 'sometimes',
-            'barang_penjualans.*.diskon' => 'sometimes|integer',
-            'barang_penjualans.*.harga' => 'required|integer',
-            'barang_penjualans.*.total' => 'required|integer'
+            'barang_penjualans.*.diskon' => 'sometimes',
+            'barang_penjualans.*.harga' => 'required',
+            'barang_penjualans.*.total' => 'required'
         ]);
 
         // Start transaction
@@ -323,7 +323,7 @@ class PenjualanController extends Controller
     {
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
         $sisa_tagihan = $penjualan->total - $pembayaranPenjualan;
-        if($sisa_tagihan < 0) {
+        if ($sisa_tagihan < 0) {
             $sisa_tagihan = 0;
         }
         $data = [
@@ -413,12 +413,12 @@ class PenjualanController extends Controller
             'catatan' => 'sometimes',
             'barang_penjualans' => 'required|array',
             'barang_penjualans.*.id_barang' => 'required',
-            'barang_penjualans.*.jumlah' => 'required|integer',
-            'barang_penjualans.*.id_satuan' => 'required|integer',
+            'barang_penjualans.*.jumlah' => 'required',
+            'barang_penjualans.*.id_satuan' => 'required',
             'barang_penjualans.*.jenis_diskon' => 'sometimes',
-            'barang_penjualans.*.diskon' => 'sometimes|integer',
-            'barang_penjualans.*.harga' => 'required|integer',
-            'barang_penjualans.*.total' => 'required|integer'
+            'barang_penjualans.*.diskon' => 'sometimes',
+            'barang_penjualans.*.harga' => 'required',
+            'barang_penjualans.*.total' => 'required'
         ]);
 
         DB::beginTransaction();

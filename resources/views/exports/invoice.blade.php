@@ -30,6 +30,10 @@
             padding: 2px; 
         }
 
+        thead {
+            display: table-header-group;
+        }
+
         @media print {
 
             @page {
@@ -70,6 +74,19 @@
      
             .invoice-title {
                 font-size: 1.3rem;
+            }
+
+            * {
+                overflow: visible !important;
+            }
+ 
+            tr {
+                page-break-inside: avoid;
+            }
+
+ 
+            tbody tr:nth-child(20n+1) {
+                page-break-before: always;
             }
         }
     </style>
@@ -119,7 +136,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php
+                            @php
                             $no = 1;
                         @endphp
                         @foreach ($data['barangPenjualan'] as $item)
@@ -134,6 +151,18 @@
                                 <td class="text-end px-2">Rp {{ number_format($item['total_barang'], 0, ',', '.') }}</td>
                             </tr>
                         @endforeach
+                        @foreach ($data['barangReturPenjualan'] as $item)
+                            <tr>
+                                <td class="text-center px-2">{{ $no++ }}</td>
+                                <td class="text-start px-2">{{ $item['nama_barang'] }}</td>
+                                <td class="text-center px-2">{{ $item['batch'] }}</td>
+                                <td class="text-center px-2">{{ $item['exp_date'] }}</td>
+                                <td class="text-end px-2">{{ $item['jumlah_retur'] }}</td>
+                                <td class="px-2">{{ $item['nama_satuan'] }}</td>
+                                <td class="text-end px-2">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
+                                <td class="text-end px-2">Rp {{ number_format($item['total_retur'], 0, ',', '.') }}</td>
+                            </tr>   
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -146,20 +175,22 @@
                         <tr>
                             <th class="text-end px-2">Subtotal</th>
                             <th class="text-end px-2">Pemotongan</th>
+                            <th class="text-end px-2">Jumlah Retur</th>
                             <th class="text-end px-2">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="text-end px-2">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
-                            <td class="text-end px-2">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
-                            <td class="text-end px-2"><strong>Rp {{ number_format($data['total'], 0, ',', '.') }}</strong></td>
+                            <td class="text-end px-2 w-25">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2 w-25">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2 w-25">Rp {{ number_format($data['total_retur'], 0, ',', '.') }}</td>
+                            <td class="text-end px-2 w-25"><strong>Rp {{ number_format($data['total'], 0, ',', '.') }}</strong></td>
                         </tr>
                         <tr>
                             <td colspan="3">
                                 <div>
-                                    <p><strong>Catatan:</strong></p>
-                                    <p>Barang yang sudah dibeli <strong>tidak dapat ditukar atau dikembalikan</strong>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya.</p>   
+                                    <p class="ps-2 pt-2"><strong>Catatan:</strong></p>
+                                    <p class="ps-2 pt-2" >Barang yang sudah dibeli <strong>tidak dapat ditukar atau dikembalikan</strong>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya.</p>   
                                 </div>  
                             </td>
                         </tr>

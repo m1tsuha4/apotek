@@ -747,6 +747,8 @@ class PenjualanController extends Controller
         $pembayaranPenjualan = PembayaranPenjualan::where('id_penjualan', $penjualan->id)->sum('total_dibayar');
         $total_diskon_satuan = $penjualan->barangPenjualan()->sum('diskon');
 
+        $total_retur = ReturPenjualan::where('id_penjualan', $penjualan->id)->sum('total_retur');
+
         $data = [
             'id_penjualan' => $penjualan->id,
             'status' => $penjualan->status,
@@ -763,6 +765,7 @@ class PenjualanController extends Controller
             'total' => $penjualan->total,
             'catatan' => $penjualan->catatan,
             'sisa_tagihan' => $penjualan->total - $pembayaranPenjualan,
+            'total_retur' => $total_retur,
             'barangPenjualan' => $penjualan->barangPenjualan->map(function ($barangPenjualan) {
                 return [
                     'id' => $barangPenjualan->id,
@@ -778,6 +781,18 @@ class PenjualanController extends Controller
                     'diskon' => $barangPenjualan->diskon,
                     'harga' => $barangPenjualan->harga,
                     'total_barang' => $barangPenjualan->total
+                ];
+            }),
+            'barangReturPenjualan' => $penjualan->barangReturPenjualan->map(function ($barangReturPenjualan) {
+                return [
+                    'id' => $barangReturPenjualan->id,
+                    'nama_barang' => $barangReturPenjualan->barangPenjualan->barang->nama_barang,
+                    'batch' => $barangReturPenjualan->barangPenjualan->stokBarang->batch ?? null,
+                    'exp_date' => $barangReturPenjualan->barangPenjualan->stokBarang->exp_date ?? null,
+                    'jumlah_retur' => $barangReturPenjualan->jumlah_retur,
+                    'nama_satuan' => $barangReturPenjualan->barangPenjualan->satuan->nama_satuan,
+                    'harga' => $barangReturPenjualan->barangPenjualan->harga,
+                    'total_retur' => $barangReturPenjualan->total
                 ];
             }),
             'pembayaranPenjualan' => $penjualan->pembayaranPenjualan->map(function ($pembayaranPenjualan) {

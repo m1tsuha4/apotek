@@ -270,7 +270,8 @@ class ReturPembelianController extends Controller
             'tanggal' => $returPembelian->tanggal,
             'referensi' => $returPembelian->referensi,
             'total_retur' => $returPembelian->total_retur,
-            'barang_pembelian' => $returPembelian->pembelian->barangPembelian->map(function ($barangPembelian) {
+            'barang_pembelian' => $returPembelian->barangReturPembelian->map(function ($barangReturPembelian) {
+                $barangPembelian = $barangReturPembelian->barangPembelian;
                 $jumlah_retur = ReturPembelian::where('id_pembelian', $barangPembelian->id_pembelian)
                     ->join('barang_retur_pembelians', 'retur_pembelians.id', '=', 'barang_retur_pembelians.id_retur_pembelian')
                     ->where('barang_retur_pembelians.id_barang_pembelian', $barangPembelian->id)
@@ -283,12 +284,13 @@ class ReturPembelianController extends Controller
                     'batch' => $barangPembelian->batch,
                     'jumlah' => $barangPembelian->jumlah,
                     'jumlah_bisa_retur' => $jumlah_bisa_retur,
+                    'jumlah_retur' => $barangPembelian->jumlah_retur,
                     'id_satuan' => $barangPembelian->id_satuan,
                     'nama_satuan' => $barangPembelian->satuan->nama_satuan,
                     'jenis_diskon' => $barangPembelian->jenis_diskon,
                     'diskon' => $barangPembelian->diskon,
                     'harga' => $barangPembelian->harga,
-                    'total' => $barangPembelian->total
+                    'total' => $barangReturPembelian->total
                 ];
             }),
             'barang_retur_pembelian' => $returPembelian->barangReturPembelian

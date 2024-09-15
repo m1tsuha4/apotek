@@ -292,7 +292,7 @@ class ReturPenjualanController extends Controller
                     'total' => $barangReturPenjualan->total
                 ];
             }),
-            // 'barang_retur_penjualan' => $returPenjualan->barangReturPenjualan
+            'barang_retur_penjualan' => $returPenjualan->barangReturPenjualan
         ];
         return response()->json([
             'success' => true,

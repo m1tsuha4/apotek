@@ -187,7 +187,7 @@
                             <td class="text-end px-2 w-25"><strong>Rp {{ number_format($data['total'], 0, ',', '.') }}</strong></td>
                         </tr>
                         <tr>
-                            <td colspan="3">
+                            <td colspan="4">
                                 <div>
                                     <p class="ps-2 pt-2"><strong>Catatan:</strong></p>
                                     <p class="ps-2 pt-2" >Barang yang sudah dibeli <strong>tidak dapat ditukar atau dikembalikan</strong>, kecuali barang expired sesuai dengan ketentuan BPOM dan Apotek Semoga Jaya.</p>   

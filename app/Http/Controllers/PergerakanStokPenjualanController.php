@@ -28,28 +28,21 @@ class PergerakanStokPenjualanController extends Controller
         ->paginate(10);
 
     $standardizedData = $data->map(function ($item) {
-        // Menyimpan batch yang sudah digunakan
-        static $usedBatches = [];
+        $penjualan = $item->penjualan;
+        $barangPenjualan = $penjualan ? $penjualan->barangPenjualan : collect();
+        $stokBarangBatch = $item->stokBarang->batch ?? null;
 
-        // Filter barangPenjualan untuk memastikan batch yang unik
-        $barangPenjualan = $item->penjualan ? $item->penjualan->barangPenjualan : collect();
-
-        // Ambil batch unik untuk setiap pergerakan stok penjualan
-        $batchToShow = $barangPenjualan->flatMap(function ($barang) {
-            return $barang->stokBarang ? [$barang->stokBarang->batch] : [];
-        })->first(function ($batch) use (&$usedBatches) {
-            return !in_array($batch, $usedBatches);
+        $filteredBarangPenjualan = $barangPenjualan->filter(function ($barang) use ($stokBarangBatch) {
+            return $barang->stokBarang->batch === $stokBarangBatch;
         });
 
-        // Tambahkan batch yang dipilih ke array usedBatches
-        if ($batchToShow) {
-            $usedBatches[] = $batchToShow;
-        }
-
-        // Filter barangPenjualan untuk hanya menampilkan batch yang dipilih
-        $filteredBarangPenjualan = $barangPenjualan->filter(function ($barang) use ($batchToShow) {
-            return $barang->stokBarang && $barang->stokBarang->batch === $batchToShow;
+        $returPenjualan = $item->returPenjualan;
+        $barangPenjualanRetur = $returPenjualan ? $returPenjualan->penjualan->barangPenjualan : collect();
+        
+        $filteredBarangPenjualanRetur = $barangPenjualanRetur->filter(function ($barang) use ($stokBarangBatch) {
+            return $barang->stokBarang->batch === $stokBarangBatch;
         });
+        
 
         // Return data yang sudah distandarisasi
         return [

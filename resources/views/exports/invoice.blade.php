@@ -35,6 +35,9 @@
         }
 
         @media print {
+            * {
+                overflow: visible !important;
+            }
 
             @page {
                 size: letter portrait;
@@ -75,19 +78,19 @@
             .invoice-title {
                 font-size: 1.3rem;
             }
-
-            * {
-                overflow: visible !important;
-            }
  
             tr {
                 page-break-inside: avoid;
             }
 
  
-            tbody tr:nth-child(20n+1) {
+            tbody tr:nth-child(20n) {
+                page-break-after: always;
+              }
+            
+              tbody tr:nth-child(20n+1) {
                 page-break-before: always;
-            }
+              }
         }
     </style>
 </head>

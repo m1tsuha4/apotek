@@ -16,7 +16,6 @@ use App\Models\PembayaranPenjualan;
 use App\Models\LaporanKeuanganMasuk;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\PergerakanStokPenjualan;
-use function Spatie\LaravelPdf\Support\pdf;
 
 class PenjualanController extends Controller
 {
@@ -502,7 +501,7 @@ class PenjualanController extends Controller
                             $stokBarang->save();
 
                             PergerakanStokPenjualan::updateOrCreate(
-                                ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang, 'id_stok_barang' => $stokBarang->id,], 
+                                ['id_penjualan' => $penjualan->id, 'id_barang' => $idBarang, 'id_stok_barang' => $stokBarang->id,],
                                 ['harga' => $barangPenjualanData['harga'], 'pergerakan_stok' => $barangPenjualanData['jumlah'], 'stok_keseluruhan' => $totalStok - $barangPenjualanData['jumlah']]
                             );
                         }
@@ -816,7 +815,9 @@ class PenjualanController extends Controller
                 ];
             })
         ];
-        return view('exports.invoice', compact('data'));
+        // return view('exports.invoice', compact('data'));
+        $pdf = PDF::loadView('exports.invoice', compact('data'))->setPaper('statement', 'landsacpe');
+        return $pdf->download('invoice.pdf');
         // return pdf()
         //     ->view('exports.invoice', ['data' => $data])
         //     ->download(downloadName: 'Invoice_'.$data['id_penjualan'].'pdf');

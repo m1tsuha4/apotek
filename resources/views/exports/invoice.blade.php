@@ -6,11 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+
 
         .invoice-title {
             font-weight: bold;
@@ -35,12 +33,9 @@
         }
 
         @media print {
-            * {
-                overflow: visible !important;
-            }
 
             @page {
-                size: letter portrait;
+                size: letter landscape;
                 margin: 0.5cm; 
             }
 
@@ -78,19 +73,19 @@
             .invoice-title {
                 font-size: 1.3rem;
             }
+
+            * {
+                overflow: visible !important;
+            }
  
             tr {
                 page-break-inside: avoid;
             }
 
  
-            tbody tr:nth-child(20n) {
-                page-break-after: always;
-              }
-            
-              tbody tr:nth-child(20n+1) {
+            tbody tr:nth-child(20n+1) {
                 page-break-before: always;
-              }
+            }
         }
     </style>
 </head>
@@ -114,7 +109,7 @@
                     <tbody>
                         <tr>
                             <td>{{ $data['nama_pelanggan'] }}</td>
-                            <td>{{ $data['tanggal'] }}</td>
+                            <td>{{ \Carbon\Carbon::parse($data['tanggal'])->format('d-m-Y') }}</td>
                             <td>{{ $data['id_penjualan'] }}</td>
                             <td>{{ $data['status'] }}</td>
                         </tr>
@@ -147,7 +142,7 @@
                                 <td class="text-center px-2">{{ $no++ }}</td>
                                 <td class="text-start px-2">{{ $item['nama_barang'] }}</td>
                                 <td class="text-center px-2">{{ $item['batch'] }}</td>
-                                <td class="text-center px-2">{{ $item['exp_date'] }}</td>
+                                <td class="text-center px-2">{{ \Carbon\Carbon::parse($item['exp_date'])->format('d-m-Y') }}</td>
                                 <td class="text-end px-2">{{ $item['jumlah'] }}</td>
                                 <td class="px-2">{{ $item['nama_satuan'] }}</td>
                                 <td class="text-end px-2">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
@@ -159,7 +154,7 @@
                                 <td class="text-center px-2">{{ $no++ }}</td>
                                 <td class="text-start px-2">{{ $item['nama_barang'] }}</td>
                                 <td class="text-center px-2">{{ $item['batch'] }}</td>
-                                <td class="text-center px-2">{{ $item['exp_date'] }}</td>
+                                <td class="text-center px-2">{{ \Carbon\Carbon::parse($item['exp_date'])->format('d-m-Y') }}</td>
                                 <td class="text-end px-2">- {{ $item['jumlah_retur'] }}</td>
                                 <td class="px-2">{{ $item['nama_satuan'] }}</td>
                                 <td class="text-end px-2">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>

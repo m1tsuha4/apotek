@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-
 
         .invoice-title {
             font-weight: bold;
@@ -35,8 +34,8 @@
         @media print {
 
             @page {
-                size: letter landscape;
-                margin: 0.5cm; 
+                size: 8.5in 11in landscape;
+                margin: 0; 
             }
 
 

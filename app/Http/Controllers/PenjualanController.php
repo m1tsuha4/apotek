@@ -816,7 +816,12 @@ class PenjualanController extends Controller
             })
         ];
         // return view('exports.invoice', compact('data'));
-        $pdf = PDF::loadView('exports.invoice', compact('data'))->setPaper('statement', 'landsacpe');
+        $pdf = PDF::loadView('exports.invoice', compact('data'))
+            ->setPaper([0, 0, 612, 396])
+            ->setOption('margin-top', 0)
+            ->setOption('margin-right', 0)
+            ->setOption('margin-bottom', 0)
+            ->setOption('margin-left', 0);
         return $pdf->download('invoice.pdf');
         // return pdf()
         //     ->view('exports.invoice', ['data' => $data])

@@ -23,6 +23,7 @@
         .table {
             margin-bottom: 0;
             border-width: 2px; 
+            border-color: black;
         }
 
         .table thead th, 
@@ -31,6 +32,7 @@
             vertical-align: middle;
             text-align: left;
             padding: 2px; 
+            border-color: black;
         }
 
         thead {
@@ -61,12 +63,14 @@
             .table {
                 width: 100%;
                 border-collapse: collapse;
+                border-color: black;
             }
 
             .table thead th, 
             .table tbody td {
                 padding: 5px;
                 font-size: 12px;
+                border-color: black;
             }
 
      
@@ -187,7 +191,7 @@
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['total_retur'], 0, ',', '.') }}</td>
-                            <td class="text-end px-2 w-25"><strong>Rp {{ number_format($data['total'], 0, ',', '.') }}</strong></td>
+                            <td class="text-end px-2 w-25"><b>Rp {{ number_format($data['total'], 0, ',', '.') }}</b></td>
                         </tr>
                         <tr>
                             <td colspan="4">

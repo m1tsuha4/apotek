@@ -40,62 +40,55 @@
         }
 
         @media print {
-
+        
             @page {
                 size: letter landscape;
                 margin: 0.5cm; 
+                margin-top: 2cm;
             }
-
 
             body {
                 width: 100%;
                 overflow: visible;
+                font-size: 20px; 
             }
-
-  
-            body, .container {
-                padding: 0;
-                margin: 0;
-                width: 100%;
-            }
-
-       
+        
             .table {
                 width: 100%;
                 border-collapse: collapse;
                 border-color: black;
             }
-
+        
             .table thead th, 
             .table tbody td {
                 padding: 5px;
-                font-size: 12px;
+                font-size: 18px;
                 border-color: black;
             }
-
-     
+        
             .p-5 {
                 padding: 0 !important;
             }
-
-     
+        
             .invoice-title {
-                font-size: 2rem;
+                font-size: 2rem; 
             }
-
+        
             * {
                 overflow: visible !important;
+                font-size: 20px; 
             }
- 
+        
             tr {
                 page-break-inside: avoid;
             }
-
- 
+        
             tbody tr:nth-child(15n+1) {
                 page-break-before: always;
             }
+            
         }
+        
     </style>
 </head>
 
@@ -191,7 +184,7 @@
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['sub_total'], 0, ',', '.') }}</td>
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['diskon_keseluruhan'], 0, ',', '.') }}</td>
                             <td class="text-end px-2 w-25">Rp {{ number_format($data['total_retur'], 0, ',', '.') }}</td>
-                            <td class="text-end px-2 w-25"><b>Rp {{ number_format($data['total'], 0, ',', '.') }}</b></td>
+                            <td class="text-end px-2 w-25 fw-bold">Rp {{ number_format($data['total'], 0, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td colspan="4">

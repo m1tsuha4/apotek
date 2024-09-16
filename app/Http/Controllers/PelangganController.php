@@ -21,12 +21,26 @@ class PelangganController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        $pelanggan = Pelanggan::select('id', 'nama_pelanggan', 'no_telepon', 'alamat')
+            ->where('nama_pelanggan', 'like', '%' . $search . '%')
+            ->paginate($request->num);
+        return response()->json([
+            'success' => true,
+            'data' => $pelanggan->items(),
+            'last_page' => $pelanggan->lastPage(),
+            'message' => 'Data pelanggan berhasil ditemukan',
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
     public function getPelanggan()
     {
-        $pelanggan = Pelanggan::select('id','nama_pelanggan')->get();
+        $pelanggan = Pelanggan::select('id', 'nama_pelanggan')->get();
 
         return response()->json([
             'success' => true,
@@ -52,14 +66,14 @@ class PelangganController extends Controller
             'alamat' => $request->alamat,
         ]);
 
-        if($pelanggan) {
+        if ($pelanggan) {
             return response()->json([
                 'success' => true,
                 'data' => $pelanggan,
                 'message' => 'Data pelanggan ditambahkan!',
             ], 200);
         }
-        
+
         return response()->json([
             'success' => false,
             'message' => 'Data pelanggan gagal ditambahkan!',
@@ -71,8 +85,8 @@ class PelangganController extends Controller
      */
     public function show(Pelanggan $pelanggan)
     {
-        $pelanggan = Pelanggan::findOrFail($pelanggan->id); 
-        
+        $pelanggan = Pelanggan::findOrFail($pelanggan->id);
+
         return response()->json([
             'success' => true,
             'data' => $pelanggan,

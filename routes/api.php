@@ -100,6 +100,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('pelanggan/{pelanggan}', [PelangganController::class, 'show'])->middleware('hak_akses:64');
     Route::put('pelanggan/{pelanggan}', [PelangganController::class, 'update'])->middleware('hak_akses:62');
     Route::delete('pelanggan/{pelanggan}', [PelangganController::class, 'destroy'])->middleware('hak_akses:63');
+    Route::get('search-pelanggan', [PelangganController::class, 'search']);
 
     //Vendor
     Route::get('nama-vendor', [VendorController::class, 'getVendor']);
@@ -108,6 +109,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('vendor/{vendor}', [VendorController::class, 'show'])->middleware('hak_akses:75');
     Route::put('vendor/{vendor}', [VendorController::class, 'update'])->middleware('hak_akses:73');
     Route::delete('vendor/{vendor}', [VendorController::class, 'destroy'])->middleware('hak_akses:74');
+    Route::get('search-vendor', [VendorController::class, 'search']);
 
     //Sales
     Route::get('sales', [SalesController::class, 'index'])->middleware('hak_akses:77');
@@ -132,6 +134,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('pembelian-export', [PembelianController::class, 'export'])->middleware('hak_akses:38');
     Route::put('set-pembelian/{pembelian}', [PembelianController::class, 'setPembelian']);
     Route::get('retur-barang-pembelian/{pembelian}', [PembelianController::class, 'returPembelian']);
+    Route::get('search-pembelian', [PembelianController::class, 'search']);
 
     //Pembayaran Pembelian
     Route::post('pembayaran-pembelian', [PembayaranPembelianController::class, 'store']);
@@ -143,6 +146,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'show'])->middleware('hak_akses:43');
     Route::put('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'update'])->middleware('hak_akses:41');
     Route::delete('retur-pembelian/{retur_pembelian}', [ReturPembelianController::class, 'destroy'])->middleware('hak_akses:42');
+    Route::get('search-retur-pembelian', [ReturPembelianController::class, 'search']);
 
     //Stok Barang
     Route::get('stok-barang', [StokBarangController::class, 'index'])->middleware('hak_akses:24');
@@ -187,6 +191,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('karyawan/{karyawan}', [KaryawanController::class, 'destroy'])->middleware('hak_akses:68');
     Route::post('karyawan-import', [KaryawanController::class, 'import'])->middleware('hak_akses:70');
     Route::get('download-template-karyawan', [KaryawanController::class, 'downloadTemplateKaryawan']);
+    Route::get('search-karyawan', [KaryawanController::class, 'search']);
 
     //Penjualan
     Route::get('penjualan-id', [PenjualanController::class, 'generateId']);
@@ -202,6 +207,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('set-penjualan/{penjualan}', [PenjualanController::class, 'setPenjualan']);
     Route::get('retur-barang-penjualan/{penjualan}', [PenjualanController::class, 'returPenjualan']);
     Route::get('penjualan-export', [PenjualanController::class, 'export'])->middleware('hak_akses:49');
+    Route::get('search-penjualan', [PenjualanController::class, 'search']);
 
 
     //Pembayaran Penjualan
@@ -215,10 +221,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('retur-penjualan', [ReturPenjualanController::class, 'store'])->middleware('hak_akses:50');
     Route::put('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'update'])->middleware('hak_akses:52');
     Route::delete('retur-penjualan/{retur_penjualan}', [ReturPenjualanController::class, 'destroy'])->middleware('hak_akses:53');
+    Route::get('search-retur-penjualan', [ReturPenjualanController::class, 'search']);
 
     //Laporan Keuangan
     Route::get('laporan-keuangan', [LaporanKeuanganController::class, 'index'])->middleware('hak_akses:81');
     Route::get('laporan-keuangan-export', [LaporanKeuanganController::class, 'export'])->middleware('hak_akses:82');
+    Route::get('search-laporan-keuangan', [LaporanKeuanganController::class, 'search']);
 
     //Transaksi dan Stok
     Route::get('transaksi-stok-pembelian', [PergerakanStokPembelianController::class, 'index']);

@@ -24,6 +24,21 @@ class VendorController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        $vendor = Vendor::select('id', 'nama_perusahaan', 'no_telepon', 'alamat')
+            ->where('nama_perusahaan', 'like', '%' . $search . '%')
+            ->with(['sales:id,id_vendor,nama_sales,no_telepon'])
+            ->paginate($request->num);
+        return response()->json([
+            'success' => true,
+            'data' => $vendor->items(),
+            'last_page' => $vendor->lastPage(),
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

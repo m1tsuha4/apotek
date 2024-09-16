@@ -51,6 +51,42 @@ class ReturPenjualanController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search'); // Get the search input
+        $returPenjualans = ReturPenjualan::with(['penjualan', 'penjualan.pelanggan', 'barangReturPenjualan', 'penjualan.barangPenjualan'])
+            ->whereHas('penjualan.pelanggan', function ($query) use ($search) {
+                $query->where('nama_pelanggan', 'like', '%' . $search . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->num); // Paginate with the provided 'num' parameter
+        
+        $data = collect($returPenjualans->items())->map(function ($returPenjualan) {
+            $jumlah = $returPenjualan->penjualan->barangPenjualan->sum('jumlah');
+            $jumlah_retur = $returPenjualan->barangReturPenjualan->sum('jumlah_retur');
+
+            return [
+                'id' => $returPenjualan->id,
+                'id_penjualan' => $returPenjualan->id_penjualan,
+                'tanggal' => $returPenjualan->tanggal,
+                'id_pelanggan' => $returPenjualan->penjualan->id_pelanggan,
+                'vendor' => $returPenjualan->penjualan->pelanggan->nama_pelanggan,
+                'no_telepon' => $returPenjualan->penjualan->pelanggan->no_telepon,
+                'referensi' => $returPenjualan->referensi,
+                'jumlah' => $jumlah,
+                'jumlah_retur' => $jumlah_retur,
+                'total' => $returPenjualan->total_retur
+            ];
+        })->all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'last_page' => $returPenjualans->lastPage(),
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

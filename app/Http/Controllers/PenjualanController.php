@@ -37,6 +37,24 @@ class PenjualanController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search'); // Get the search input
+        $penjualan = Penjualan::select('id', 'id_jenis', 'id_pelanggan', 'tanggal', 'status', 'tanggal_jatuh_tempo', 'total')
+            ->with('pelanggan:id,nama_pelanggan,no_telepon', 'jenis:id,nama_jenis')
+            ->whereHas('pelanggan', function ($query) use ($search) {
+                $query->where('nama_pelanggan', 'like', '%' . $search . '%');
+            })
+            ->paginate($request->num); // Paginate with the provided 'num' parameter
+        
+        return response()->json([
+            'success' => true,
+            'data' => $penjualan->items(),
+            'last_page' => $penjualan->lastPage(),
+            'message' => 'Data penjualan berhasil ditemukan!'
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

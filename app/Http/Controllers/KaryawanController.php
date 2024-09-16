@@ -15,7 +15,7 @@ class KaryawanController extends Controller
      */
     public function index(Request $request)
     {
-        $karyawan = Karyawan::select('id','nama_karyawan','jenis_kelamin','posisi','tanggal_bergabung','jumlah_gaji')->paginate($request->num);
+        $karyawan = Karyawan::select('id', 'nama_karyawan', 'jenis_kelamin', 'posisi', 'tanggal_bergabung', 'jumlah_gaji')->paginate($request->num);
         return response()->json([
             'success' => true,
             'data' => $karyawan->items(),
@@ -24,13 +24,21 @@ class KaryawanController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function search(Request $request)
     {
-        //
+        $search = $request->input('search'); 
+        $karyawan = Karyawan::select('id', 'nama_karyawan', 'jenis_kelamin', 'posisi', 'tanggal_bergabung', 'jumlah_gaji')
+            ->where('nama_karyawan', 'like', '%' . $search . '%')
+            ->paginate($request->num); 
+
+        return response()->json([
+            'success' => true,
+            'data' => $karyawan->items(),
+            'last_page' => $karyawan->lastPage(),
+            'message' => 'Data karyawan berhasil ditemukan!'
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -68,13 +76,6 @@ class KaryawanController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Karyawan $karyawan)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -104,7 +105,7 @@ class KaryawanController extends Controller
     public function destroy(Karyawan $karyawan)
     {
         $karyawan->delete();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Data karyawan dihapus!'

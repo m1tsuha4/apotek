@@ -87,14 +87,14 @@ class DashboardController extends Controller
     {
         $search = $request->input('search');
 
-        // Fetch the data with relationships
+        // Fetch the data with relationships and apply pagination
         $result = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
             ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->where('nama_barang', 'like', '%' . $search . '%')
-            ->groupBy('nama_barang')
-            ->get();
+            ->groupBy('id', 'nama_barang') // Group by 'id' and 'nama_barang' to avoid issues
+            ->paginate($request->num);
 
-        // Loop through the result to calculate total stock
+        // Calculate total stock for each item
         foreach ($result as $item) {
             $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
         }
@@ -113,10 +113,12 @@ class DashboardController extends Controller
         // Return the response with the formatted data
         return response()->json([
             'success' => true,
-            'data' => $data, // Use $data instead of $result to return the transformed collection
+            'data' => $data, // Return the mapped data
+            'last_page' => $result->lastPage(), // Include pagination info
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
+
 
 
     public function notifStok(Request $request)

@@ -50,7 +50,43 @@ class ReturPembelianController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search'); // Get the search input
+        $returPembelians = ReturPembelian::with(['pembelian', 'pembelian.sales.vendor', 'barangReturPembelian', 'pembelian.barangPembelian'])
+            ->whereHas('pembelian.vendor', function ($query) use ($search) {
+                $query->where('nama_perusahaan', 'like', '%' . $search . '%');
+            })
+            ->orWhereHas('pembelian.sales', function ($query) use ($search) {
+                $query->where('nama_sales', 'like', '%' . $search . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->num);
 
+        $data = collect($returPembelians->items())->map(function ($returPembelian) {
+            $jumlah = $returPembelian->pembelian->barangPembelian->sum('jumlah');
+            $jumlah_retur = $returPembelian->barangReturPembelian->sum('jumlah_retur');
+
+            return [
+                'id' => $returPembelian->id,
+                'id_pembelian' => $returPembelian->id_pembelian,
+                'tanggal' => $returPembelian->tanggal,
+                'id_vendor' => $returPembelian->pembelian->id_vendor,
+                'vendor' => $returPembelian->pembelian->vendor->nama_perusahaan,
+                'referensi' => $returPembelian->referensi,
+                'jumlah' => $jumlah,
+                'jumlah_retur' => $jumlah_retur,
+                'total' => $returPembelian->total_retur
+            ];
+        })->all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'last_page' => $returPembelians->lastPage(),
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
+    }
     /**
      * Show the form for creating a new resource.
      */

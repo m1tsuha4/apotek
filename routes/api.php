@@ -153,6 +153,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('stok-barang-export', [StokBarangController::class, 'export'])->middleware('hak_akses:29');
     Route::delete('delete-stokBarang', [StokBarangController::class, 'deleteStokBarang']);
+    Route::get('search-stok-barang', [StokBarangController::class, 'search']);
 
     //Stok Opname
     Route::get('stok-opname', [StokOpnameController::class, 'index'])->middleware('hak_akses:30');
@@ -162,6 +163,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('stok-opname-export', [StokOpnameController::class, 'export'])->middleware('hak_akses:31');
     Route::post('stock-opname-import', [StokOpnameController::class, 'import'])->middleware('hak_akses:32');
     Route::get('download-template-stok-opname', [StokOpnameController::class, 'downloadTemplateStokOpname']);
+    Route::get('search-stok-opname', [StokOpnameController::class, 'search']);
 
 
     //Jenis

@@ -18,13 +18,13 @@ class StokBarangController extends Controller
         $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
             ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->paginate($request->num);
-        
+
         $data = $stok->items();
 
         foreach ($data as $item) {
             $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
         }
-    
+
         return response()->json([
             'success' => true,
             'data' => $stok->items(),
@@ -33,13 +33,33 @@ class StokBarangController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function search(Request $request)
     {
-        //
+        $search = $request->input('search'); // Get the search input
+
+        // Fetch the data with relationships and search by 'nama_barang'
+        $stok = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
+            ->where('nama_barang', 'like', '%' . $search . '%') // Search by 'nama_barang'
+            ->paginate($request->num); // Paginate with the same 'num' parameter
+
+        // Get the paginated items
+        $data = $stok->items();
+
+        // Calculate the total stock for each item
+        foreach ($data as $item) {
+            $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
+        }
+
+        // Return the paginated search result with the same structure as index
+        return response()->json([
+            'success' => true,
+            'data' => $stok->items(), // Return the paginated items
+            'last_page' => $stok->lastPage(), // Include pagination data
+            'message' => 'Data Berhasil ditemukan!',
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -95,12 +115,12 @@ class StokBarangController extends Controller
      */
     public function show($id_barang)
     {
-        $barang = Barang::select('id','id_satuan', 'nama_barang')->with('satuan:id,nama_satuan')->findOrFail($id_barang);
+        $barang = Barang::select('id', 'id_satuan', 'nama_barang')->with('satuan:id,nama_satuan')->findOrFail($id_barang);
         $barang_total = StokBarang::where('id_barang', $id_barang)->sum('stok_total');
         $barang_gudang = StokBarang::where('id_barang', $id_barang)->sum('stok_gudang');
         $barang_apotek = StokBarang::where('id_barang', $id_barang)->sum('stok_apotek');
         $stok_entries = StokBarang::where('id_barang', $id_barang)
-            ->get(['id', 'batch','exp_date', 'stok_gudang', 'stok_apotek', 'stok_total']);
+            ->get(['id', 'batch', 'exp_date', 'stok_gudang', 'stok_apotek', 'stok_total']);
 
         return response()->json([
             'success' => true,
@@ -162,7 +182,7 @@ class StokBarangController extends Controller
 
     public function deleteStokBarang(Request $request, StokBarang $stokBarang)
     {
-        $stokBarang->where('id_barang','=', $request->id_barang)->delete();
+        $stokBarang->where('id_barang', '=', $request->id_barang)->delete();
         return response()->json([
             'success' => true,
             'message' => 'Data Berhasil dihapus!',

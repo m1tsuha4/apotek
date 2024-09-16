@@ -17,7 +17,7 @@ class StokOpnameController extends Controller
      */
     public function index(Request $request)
     {
-        $stokOpname = StokOpname::select('id','id_stok_barang','tanggal', 'sumber_stok', 'stok_tercatat', 'stok_aktual')
+        $stokOpname = StokOpname::select('id', 'id_stok_barang', 'tanggal', 'sumber_stok', 'stok_tercatat', 'stok_aktual')
             ->with([
                 'stokBarang:id,id_barang,exp_date,batch',
                 'stokBarang.barang:id,id_kategori,nama_barang',
@@ -31,6 +31,32 @@ class StokOpnameController extends Controller
             'message' => 'Data Stok Opname Berhasil ditemukan!',
         ]);
     }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('search'); // Get the search input
+        $num = $request->input('num', 15); // Default to 15 items per page if 'num' is not provided
+
+        $stokOpname = StokOpname::select('id', 'id_stok_barang', 'tanggal', 'sumber_stok', 'stok_tercatat', 'stok_aktual')
+            ->with([
+                'stokBarang:id,id_barang,exp_date,batch',
+                'stokBarang.barang:id,id_kategori,nama_barang',
+                'stokBarang.barang.kategori:id,nama_kategori'
+            ])
+            ->whereHas('stokBarang.barang', function ($query) use ($search) {
+                $query->where('nama_barang', 'like', '%' . $search . '%');
+            })
+            ->paginate($num); // Paginate with the provided 'num' parameter
+
+        return response()->json([
+            'success' => true,
+            'data' => $stokOpname->items(),
+            'last_page' => $stokOpname->lastPage(),
+            'message' => 'Data Stok Opname Berhasil ditemukan!',
+        ]);
+    }
+
+
 
     public function store(Request $request)
     {

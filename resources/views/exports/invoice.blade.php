@@ -8,13 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        *{
+            font-size: 20px;
+        }
         body {
             font-family: 'Inter', sans-serif;
         }
 
         .invoice-title {
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 200%;
         }
 
         .table {
@@ -73,7 +76,7 @@
 
      
             .invoice-title {
-                font-size: 1.3rem;
+                font-size: 2rem;
             }
 
             * {
@@ -85,7 +88,7 @@
             }
 
  
-            tbody tr:nth-child(20n+1) {
+            tbody tr:nth-child(15n+1) {
                 page-break-before: always;
             }
         }

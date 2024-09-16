@@ -43,7 +43,7 @@
         
             @page {
                 size: letter landscape;
-                margin: 0.5cm; 
+                margin: 0.4cm; 
                 margin-top: 2cm;
             }
 

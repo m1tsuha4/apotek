@@ -86,20 +86,38 @@ class DashboardController extends Controller
     public function searchStokBarang(Request $request)
     {
         $search = $request->input('search');
-        $result = StokBarang::select('id', 'id_barang', 'stok_total')
-            ->with([
-                'satuan:id,nama_satuan',
-                'kategori:id,nama_kategori',
-            ])
+
+        // Fetch the data with relationships
+        $result = Barang::select('id', 'id_kategori', 'id_satuan', 'nama_barang')
+            ->with(['kategori:id,nama_kategori', 'satuan:id,nama_satuan', 'stokBarang:id,batch,exp_date,id_barang,stok_total'])
             ->where('nama_barang', 'like', '%' . $search . '%')
             ->groupBy('nama_barang')
             ->get();
+
+        // Loop through the result to calculate total stock
+        foreach ($result as $item) {
+            $item->total_stok = StokBarang::where('id_barang', $item->id)->sum('stok_total');
+        }
+
+        // Map the data into a specific structure
+        $data = $result->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'nama_barang' => $item->nama_barang,
+                'kategori' => $item->kategori->nama_kategori,
+                'satuan' => $item->satuan->nama_satuan,
+                'total' => $item->total_stok
+            ];
+        });
+
+        // Return the response with the formatted data
         return response()->json([
             'success' => true,
-            'data' => $result,
+            'data' => $data, // Use $data instead of $result to return the transformed collection
             'message' => 'Data Berhasil Ditemukan!',
         ]);
     }
+
 
     public function notifStok(Request $request)
     {

@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('users/{user}', [AksesController::class, 'destroy'])->middleware('superadmin');
     Route::get('list-users', [AksesController::class, 'getUsers']);
     Route::get('akses-user', [AksesController::class, 'getAksesUser']);
+    Route::get('search-user', [AksesController::class, 'search']);
 
 
     //Role

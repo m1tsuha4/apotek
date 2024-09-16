@@ -13,7 +13,7 @@ class AksesController extends Controller
      */
     public function index()
     {
-        $data = Akses::select('id','hak_akses')->get();
+        $data = Akses::select('id', 'hak_akses')->get();
 
         return response()->json([
             'success' => true,
@@ -22,8 +22,33 @@ class AksesController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        $users = User::with('akses')
+            ->where('username', 'like', '%' . $search . '%')
+            ->orWhere('email', 'like', '%' . $search . '%')
+            ->paginate($request->num);
+            
+        $result = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'access_count' => $user->akses->count(),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data'    => $result,
+            'last_page' => $users->lastPage(),
+            'message' => 'Data Berhasil ditemukan!'
+        ]);
+    }
+
     public function getUsers(Request $request)
-    {        
+    {
         $users = User::with('akses')->paginate($request->num);
 
         $result = $users->map(function ($user) {
@@ -54,11 +79,11 @@ class AksesController extends Controller
                 'email' => $user->email,
                 'access_count' => $user->akses->count(),
                 'access_rights' => $user->akses->map(function ($akses) {
-                return [
-                    'id' => $akses->id,
-                    'hak_akses' => $akses->hak_akses,
-                ];
-            }),
+                    return [
+                        'id' => $akses->id,
+                        'hak_akses' => $akses->hak_akses,
+                    ];
+                }),
             ];
         });
 
@@ -94,7 +119,7 @@ class AksesController extends Controller
         if ($user) {
             $user->akses()->attach($aksesIds);
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Penambahan hak akses berhasil ditambahkan!'
             ], 200);
         }
@@ -138,7 +163,7 @@ class AksesController extends Controller
         if ($user) {
             $user->akses()->sync($aksesIds);
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Penambahan hak akses berhasil diupdate!'
             ], 200);
         }

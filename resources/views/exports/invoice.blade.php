@@ -43,14 +43,15 @@
         
             @page {
                 size: letter landscape;
-                margin: 0.4cm; 
+                margin: 0.3cm; 
                 margin-top: 2cm;
             }
 
             body {
                 width: 100%;
                 overflow: visible;
-                font-size: 20px; 
+                font-size: 25px; 
+                font-weight: 600;
             }
         
             .table {
@@ -71,12 +72,13 @@
             }
         
             .invoice-title {
-                font-size: 2rem; 
+                font-size: 1.5rem; 
             }
         
             * {
                 overflow: visible !important;
-                font-size: 20px; 
+                font-size: 25px; 
+                font-weight: 600;
             }
         
             tr {

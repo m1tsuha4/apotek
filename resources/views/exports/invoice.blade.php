@@ -16,7 +16,7 @@
             overflow: visible;
             font-size: 25px; 
             font-weight: 500;
-            font-family: 'Calibri', sans-serif;
+            font-family: 'Arial', sans-serif;
         }
 
         .invoice-title {
@@ -67,7 +67,7 @@
             .table thead th, 
             .table tbody td {
                 padding: 5px;
-                font-size: 18px;
+                font-size: 25px;
                 border-color: black;
             }
         

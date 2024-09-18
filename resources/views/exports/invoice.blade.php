@@ -60,6 +60,10 @@
                 border-collapse: collapse;
                 border-color: black;
             }
+            
+            .table thead th{
+                font-weight: bold;
+            }
         
             .table thead th, 
             .table tbody td {

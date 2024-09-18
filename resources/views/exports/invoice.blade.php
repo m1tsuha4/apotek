@@ -9,12 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         *{
-            font-size: 20px;
+            font-size: 18px;
         }
         body {
             width: 100%;
             overflow: visible;
-            font-size: 25px; 
+            font-size: 18px; 
             font-weight: 500;
             font-family: 'Arial', sans-serif;
         }
@@ -54,7 +54,7 @@
             body {
                 width: 100%;
                 overflow: visible;
-                font-size: 25px; 
+                font-size: 18px; 
                 font-weight: 600;
             }
         
@@ -67,7 +67,7 @@
             .table thead th, 
             .table tbody td {
                 padding: 5px;
-                font-size: 25px;
+                font-size: 18px;
                 border-color: black;
             }
         
@@ -81,7 +81,7 @@
         
             * {
                 overflow: visible !important;
-                font-size: 25px; 
+                font-size: 18px; 
                 font-weight: 500;
             }
         

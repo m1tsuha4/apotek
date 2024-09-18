@@ -12,7 +12,11 @@
             font-size: 20px;
         }
         body {
-            font-family: 'Inter', sans-serif;
+            width: 100%;
+            overflow: visible;
+            font-size: 25px; 
+            font-weight: 500;
+            font-family: 'Calibri', sans-serif;
         }
 
         .invoice-title {
@@ -78,7 +82,7 @@
             * {
                 overflow: visible !important;
                 font-size: 25px; 
-                font-weight: 600;
+                font-weight: 500;
             }
         
             tr {

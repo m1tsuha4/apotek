@@ -50,9 +50,10 @@
             body {
                 width: 100%;
                 overflow: visible;
-                font-size: 22px; 
+                font-size: 25px; 
                 font-weight: 500;
-                font-family: 'Arial MT', sans-serif;
+                font-family: 'Courier New', monospace;
+                color: black;
             }
         
             .table {
@@ -62,14 +63,17 @@
             }
             
             .table thead th{
-                font-weight: bold;
-            }
-        
-            .table thead th, 
-            .table tbody td {
+                font-weight: 900;
                 padding: 1px;
                 font-size: 22px;
                 border-color: black;
+            }
+        
+            .table tbody td {
+                padding: 1px;
+                font-size: 21px;
+                border-color: black;
+                font-weight: 500;
             }
         
             .p-5 {

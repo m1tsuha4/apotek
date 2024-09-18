@@ -9,13 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         *{
-            font-size: 18px;
+            font-size: 20px;
         }
         body {
-            width: 100%;
-            overflow: visible;
-            font-size: 18px; 
-            font-weight: 500;
             font-family: 'Arial', sans-serif;
         }
 
@@ -35,7 +31,7 @@
             border-width: 2px; 
             vertical-align: middle;
             text-align: left;
-            padding: 2px; 
+            padding: 1px; 
             border-color: black;
         }
 
@@ -47,15 +43,16 @@
         
             @page {
                 size: letter landscape;
-                margin: 0.3cm; 
+                margin: 0.3em; 
                 margin-top: 2cm;
             }
 
             body {
                 width: 100%;
                 overflow: visible;
-                font-size: 18px; 
-                font-weight: 600;
+                font-size: 22px; 
+                font-weight: 500;
+                font-family: 'Arial MT', sans-serif;
             }
         
             .table {
@@ -66,8 +63,8 @@
         
             .table thead th, 
             .table tbody td {
-                padding: 5px;
-                font-size: 18px;
+                padding: 1px;
+                font-size: 22px;
                 border-color: black;
             }
         
@@ -81,7 +78,7 @@
         
             * {
                 overflow: visible !important;
-                font-size: 18px; 
+                font-size: 22px; 
                 font-weight: 500;
             }
         

@@ -43,7 +43,7 @@
         
             @page {
                 size: letter landscape;
-                margin: 0.3em; 
+                margin: 0.3cm; 
                 margin-top: 2cm;
             }
 
@@ -52,7 +52,7 @@
                 overflow: visible;
                 font-size: 25px; 
                 font-weight: 500;
-                font-family: 'Courier New', monospace;
+                font-family: 'Arial', sans-serif;
                 color: black;
             }
         
